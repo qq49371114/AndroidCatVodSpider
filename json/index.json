@@ -1,5 +1,5 @@
 {
-  "spider": "../jar/custom_spider.jar;md5;3495a63cf181e6f690d3f257478e1913",
+  "spider": "https://gh.idayer.com/https://raw.githubusercontent.com/lushunming/AndroidCatVodSpider/mine/jar/custom_spider.jar;md5;3495a63cf181e6f690d3f257478e1913",
   "lives": [
     {
       "name": "直播ipv6",
