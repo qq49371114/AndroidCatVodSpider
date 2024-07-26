@@ -8,6 +8,7 @@ import com.github.catvod.R;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.spider.Init;
 import com.github.catvod.spider.PTT;
+import com.github.catvod.spider.Zxzj;
 import com.orhanobut.logger.AndroidLogAdapter;
 import com.orhanobut.logger.Logger;
 
@@ -46,7 +47,7 @@ public class MainActivity extends Activity {
     private void initSpider() {
         try {
             Init.init(getApplicationContext());
-            spider = new PTT();
+            spider = new Zxzj();
             spider.init(this, "");
         } catch (Throwable e) {
             e.printStackTrace();
@@ -74,7 +75,7 @@ public class MainActivity extends Activity {
             HashMap<String, String> extend = new HashMap<>();
             extend.put("c", "19");
             extend.put("year", "2024");
-            Logger.t("categoryContent").d(spider.categoryContent("3", "2", true, extend));
+            Logger.t("categoryContent").d(spider.categoryContent("/list/1.html", "2", true, extend));
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -82,7 +83,7 @@ public class MainActivity extends Activity {
 
     public void detailContent() {
         try {
-            Logger.t("detailContent").d(spider.detailContent(Arrays.asList("245424")));
+            Logger.t("detailContent").d(spider.detailContent(Arrays.asList("/detail/4463.html")));
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -90,7 +91,7 @@ public class MainActivity extends Activity {
 
     public void playerContent() {
         try {
-            Logger.t("playerContent").d(spider.playerContent("", "382044/1/78", new ArrayList<>()));
+            Logger.t("playerContent").d(spider.playerContent("", "/video/4463-1-1.html", new ArrayList<>()));
         } catch (Throwable e) {
             e.printStackTrace();
         }

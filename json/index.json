@@ -1,5 +1,5 @@
 {
-  "spider": "https://mirror.ghproxy.com/https://github.com/lushunming/AndroidCatVodSpider/blob/main/jar/custom_spider.jar;md5;28c66965b142b726b3d47b9b58c0c45c",
+  "spider": "https://mirror.ghproxy.com/https://github.com/lushunming/AndroidCatVodSpider/blob/main/jar/custom_spider.jar;md5;3495a63cf181e6f690d3f257478e1913\n",
   "lives": [
     {
       "name": "直播ipv6",
@@ -19,6 +19,22 @@
     }
   ],
   "sites": [
+    {
+      "key": "Douban",
+      "name": "\uD83E\uDD54 豆瓣 | 仅推荐",
+      "type": 3,
+      "api": "csp_Douban",
+      "searchable": 0,
+      "filterable": 1
+    },
+    {
+      "key": "Jianpian",
+      "name": "\uD83D\uDCC0 荐片 | 视频",
+      "type": 3,
+      "api": "csp_Jianpian",
+      "searchable": 1,
+      "filterable": 1
+    },
     {
       "key": "玩偶",
       "name": "玩偶",
@@ -103,22 +119,7 @@
       "searchable": 1,
       "filterable": 1
     },
-    {
-      "key": "Douban",
-      "name": "\uD83E\uDD54 豆瓣 | 仅推荐",
-      "type": 3,
-      "api": "csp_Douban",
-      "searchable": 0,
-      "filterable": 1
-    },
-    {
-      "key": "Jianpian",
-      "name": "\uD83D\uDCC0 荐片 | 视频",
-      "type": 3,
-      "api": "csp_Jianpian",
-      "searchable": 1,
-      "filterable": 1
-    },
+
     {
       "key": "Ying",
       "name": "\uD83C\uDF38 樱花动漫 | 动漫",

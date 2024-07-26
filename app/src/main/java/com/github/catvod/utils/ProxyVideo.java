@@ -2,13 +2,16 @@ package com.github.catvod.utils;
 
 import android.os.SystemClock;
 import android.text.TextUtils;
+import android.util.Base64;
 
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.spider.Proxy;
+import com.google.gson.Gson;
 
 import org.json.JSONObject;
 
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -18,6 +21,10 @@ import okhttp3.Response;
 public class ProxyVideo {
 
     private static final String GO_SERVER = "http://127.0.0.1:7777/";
+
+    public static String buildCommonProxyUrl(String url, Map<String, String> headers) {
+        return Proxy.getUrl() + "?do=proxy&url=" + Base64.encode(url.getBytes(Charset.defaultCharset()), Base64.DEFAULT) + "&header=" + Base64.encode((new Gson().toJson(headers)).getBytes(Charset.defaultCharset()), Base64.DEFAULT);
+    }
 
     public static void go() {
         boolean close = OkHttp.string(GO_SERVER).isEmpty();
@@ -46,7 +53,8 @@ public class ProxyVideo {
         String contentDisposition = response.headers().get("Content-Disposition");
         if (contentDisposition != null) contentType = getMimeType(contentDisposition);
         Map<String, String> respHeaders = new HashMap<>();
-        for (String key : response.headers().names()) respHeaders.put(key, response.headers().get(key));
+        for (String key : response.headers().names())
+            respHeaders.put(key, response.headers().get(key));
         return new Object[]{206, contentType, response.body().byteStream(), respHeaders};
     }
 
