@@ -12,19 +12,22 @@ import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class WoggTest {
-    @Mock
+
     private Application mockContext;
 
     private Wogg spider;
 
     @org.junit.Before
     public void setUp() throws Exception {
+        mockContext = RuntimeEnvironment.application;
         Init.init(mockContext);
         spider = new Wogg();
         spider.init(mockContext, "");
@@ -73,7 +76,7 @@ public class WoggTest {
 
     @org.junit.Test
     public void playerContent() throws Exception {
-        String content = spider.playerContent("", "tvbox-xg:ftp://a.gbl.114s.com:20320/8430/绝地战警：生死与共-2024_BD中英双字.mp4", new ArrayList<>());
+        String content = spider.playerContent("轉存原畫", "sTpdhKkg18j+66a32d0a1d147f930c5e462db86e7eb629ee947e", new ArrayList<>());
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println("playerContent--" + gson.toJson(map));

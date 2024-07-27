@@ -1,36 +1,30 @@
 import android.app.Application;
 
 import com.github.catvod.spider.Init;
-import com.github.catvod.spider.NCat;
 import com.github.catvod.spider.TvDy;
 import com.github.catvod.utils.Json;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.whl.quickjs.android.BuildConfig;
 
 import org.junit.Assert;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowLog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 @RunWith(RobolectricTestRunner.class)
 public class TvDyTest {
-   // @Mock
+    // @Mock
     private Application mockContext;
 
     private TvDy spider;
 
     @org.junit.Before
     public void setUp() throws Exception {
-        mockContext= RuntimeEnvironment.application;
+        mockContext = RuntimeEnvironment.application;
         Init.init(mockContext);
         spider = new TvDy();
         spider.init(mockContext, "");
