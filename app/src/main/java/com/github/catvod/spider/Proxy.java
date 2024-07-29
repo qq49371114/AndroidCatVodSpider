@@ -29,6 +29,8 @@ public class Proxy extends Spider {
                 return Bili.proxy(params);
             case "webdav":
                 return WebDAV.vod(params);
+            case "local":
+                return Local.proxy(params);
             case "proxy":
                 return commonProxy(params);
             default:
