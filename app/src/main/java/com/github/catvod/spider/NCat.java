@@ -160,14 +160,14 @@ public class NCat extends Spider {
     @Override
     public String playerContent(String flag, String id, List<String> vipFlags) throws Exception {
         Document doc = Jsoup.parse(OkHttp.string(playUrl.concat(id), getHeaders()));
-        String regex = "src: \"(.*?)m3u8\",";
+        String regex = "src: \"(.*?)\",";
 
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(doc.html());
         String url = "";
         if (matcher.find()) {
             url = matcher.group(1);
-            url = url.replace("\\/", "/") + "m3u8";
+            url = url.replace("\\/", "/").replace(" ","");
         }
         return Result.get().url(url).header(getHeaders()).string();
     }

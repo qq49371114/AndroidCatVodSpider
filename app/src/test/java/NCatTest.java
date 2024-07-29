@@ -64,7 +64,7 @@ public class NCatTest {
     @org.junit.Test
     public void detailContent() throws Exception {
 
-        String content = spider.detailContent(Arrays.asList("237526.html"));
+        String content = spider.detailContent(Arrays.asList("241982.html"));
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println("detailContent--" + gson.toJson(map));
@@ -73,11 +73,17 @@ public class NCatTest {
 
     @org.junit.Test
     public void playerContent() throws Exception {
-        String content = spider.playerContent("", "15744-4-99491.html", new ArrayList<>());
-        JsonObject map = Json.safeObject(content);
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        System.out.println("playerContent--" + gson.toJson(map));
-        Assert.assertFalse(map.getAsJsonPrimitive("url").getAsString().isEmpty());
+        String froms = "超清$$$4K(高峰不卡)$$$FF线路$$$蓝光8$$$蓝光3$$$蓝光2$$$蓝光2-1$$$蓝光2-2$$$蓝光9$$$蓝光9-1";
+        String urls = "粤语$241982-32-1020215.html#国语$241982-32-1020217.html$$$粤语$241982-35-1020141.html#国语$241982-35-1020143.html$$$谈判专家粤语版$241982-4-788565.html#谈判专家国语版$241982-4-788566.html$$$正片$241982-34-345909.html$$$（普通话版）$241982-2-578532.html#（粤语版）$241982-2-578533.html$$$1$241982-31-1011262.html$$$1$241982-31-1011263.html$$$1$241982-31-1016415.html$$$正片$241982-36-407941.html$$$正片$241982-36-405254.html";
+        for (int i = 0; i < urls.split("\\$\\$\\$").length; i++) {
+            String content = spider.playerContent(froms.split("\\$\\$\\$")[i], urls.split("\\$\\$\\$")[i].split("\\$")[1], new ArrayList<>());
+            JsonObject map = Json.safeObject(content);
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            System.out.println("playerContent--" + gson.toJson(map));
+            Assert.assertFalse(map.getAsJsonPrimitive("url").getAsString().isEmpty());
+        }
+
+
     }
 
     @org.junit.Test
