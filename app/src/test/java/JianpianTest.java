@@ -12,11 +12,13 @@ import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class JianpianTest {
     @Mock
     private Application mockContext;
@@ -25,6 +27,7 @@ public class JianpianTest {
 
     @org.junit.Before
     public void setUp() throws Exception {
+        mockContext = RuntimeEnvironment.application;
         Init.init(mockContext);
         spider = new Jianpian();
         spider.init(mockContext, "");
