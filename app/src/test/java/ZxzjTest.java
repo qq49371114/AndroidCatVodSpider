@@ -12,11 +12,13 @@ import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class ZxzjTest {
     @Mock
     private Application mockContext;
@@ -25,6 +27,7 @@ public class ZxzjTest {
 
     @org.junit.Before
     public void setUp() throws Exception {
+        mockContext = RuntimeEnvironment.application;
         Init.init(mockContext);
         spider = new Zxzj();
         spider.init(mockContext, "");
@@ -43,7 +46,7 @@ public class ZxzjTest {
 
     @org.junit.Test
     public void categoryContent() throws Exception {
-        String content = spider.categoryContent("/list/1.html", "2", true, null);
+        String content = spider.categoryContent("/type/1.html", "2", true, null);
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println("categoryContent--" + gson.toJson(map));
@@ -53,7 +56,7 @@ public class ZxzjTest {
     @org.junit.Test
     public void detailContent() throws Exception {
 
-        String content = spider.detailContent(Arrays.asList("/detail/4463.html"));
+        String content = spider.detailContent(Arrays.asList("/detail/354820.html"));
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println("detailContent--" + gson.toJson(map));
@@ -61,20 +64,20 @@ public class ZxzjTest {
     }
 
     @org.junit.Test
-    public void searchContent() throws Exception {
-        String content = spider.playerContent("", "/video/4463-1-1.html", new ArrayList<>());
-        JsonObject map = Json.safeObject(content);
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        System.out.println("searchContent--" + gson.toJson(map));
-        Assert.assertFalse(map.getAsJsonArray("list").isEmpty());
-    }
-
-    @org.junit.Test
     public void playerContent() throws Exception {
-        String content = spider.searchContent("我的人间烟火", false);
+        String content = spider.playerContent("HD", "/video/354820-2-1.html", new ArrayList<>());
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println("playerContent--" + gson.toJson(map));
+        Assert.assertFalse(map.getAsJsonPrimitive("url").getAsString().isEmpty());
+    }
+
+    @org.junit.Test
+    public void searchContent() throws Exception {
+        String content = spider.searchContent("红", false);
+        JsonObject map = Json.safeObject(content);
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        System.out.println("searchContent--" + gson.toJson(map));
         Assert.assertFalse(map.getAsJsonArray("list").isEmpty());
     }
 }

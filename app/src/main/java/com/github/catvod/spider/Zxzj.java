@@ -33,13 +33,13 @@ import java.util.regex.Pattern;
 
 public class Zxzj extends Spider {
 
-    private final String siteUrl = "https://www.zxzja.com";
+    private final String siteUrl = "http://zxzj.shop";
 
     private Map<String, String> getHeader() {
         Map<String, String> header = new HashMap<>();
         header.put("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 16_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/100.0.4896.77 Mobile/15E148 Safari/604.1");
         header.put("Connection", "keep-alive");
-        header.put("Referer", "https://www.zxzj.com/");
+        header.put("Referer", "http://zxzj.shop/");
         header.put("sec-fetch-dest", "iframe");
         header.put("sec-fetch-mode", "navigate");
         header.put("sec-fetch-site", "cross-site");
@@ -164,7 +164,15 @@ public class Zxzj extends Spider {
         }
         Document document = Jsoup.parse(html);
         List<Vod> list = new ArrayList<>();
-        getVods(list, document);
+        for (Element div : document.select(".stui-vodlist__media >li")) {
+            String id = div.select("a.stui-vodlist__thumb").attr("href");
+            String name = div.select(".detail >h3.title > a").text();
+            String pic = div.select("a.stui-vodlist__thumb").attr("data-original");
+            if (pic.isEmpty()) pic = div.select("img").attr("src");
+            String remark = div.select("a.stui-vodlist__thumb > span.pic-text").text();
+
+            list.add(new Vod(id, name, pic, remark));
+        }
 
         return Result.string(list);
     }
@@ -177,6 +185,9 @@ public class Zxzj extends Spider {
         String json = matcher.find() ? matcher.group(1) : "";
         org.json.JSONObject player = new JSONObject(json);
         String realUrl = player.getString("url");
+        if(realUrl.indexOf("m3u8")>-1){
+            return Result.get().url(realUrl).header(getVideoHeader()).string();
+        }
         String videoContent = OkHttp.string(realUrl, getHeader());
         Matcher matcher2 = Pattern.compile("result_v2 =(.*?);").matcher(videoContent);
         String json2 = matcher2.find() ? matcher2.group(1) : "";
