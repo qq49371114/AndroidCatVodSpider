@@ -64,7 +64,7 @@ public class TvDyTest {
     @org.junit.Test
     public void detailContent() throws Exception {
 
-        String content = spider.detailContent(Arrays.asList("index125346.html"));
+        String content = spider.detailContent(Arrays.asList("index126780.html"));
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println("detailContent--" + gson.toJson(map));
@@ -73,7 +73,7 @@ public class TvDyTest {
 
     @org.junit.Test
     public void playerContent() throws Exception {
-        String content = spider.playerContent("", "125346-1-3.html", new ArrayList<>());
+        String content = spider.playerContent("", "126780-0-0.html", new ArrayList<>());
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println("playerContent--" + gson.toJson(map));
