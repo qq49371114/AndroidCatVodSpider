@@ -206,12 +206,12 @@ public class W55Movie extends Spider {
             url = matcher.group(1);
             url_next = matcher.group(2);
         }
-        String encrytStr = "{\"url\":\"" + url + "\",\"next_url\":\"" + url_next + "\"}";
+        String encrytStr =url;// "{\"url\":\"" + url + "\",\"next_url\":\"" + url_next + "\"}";
         // 加密
         String encrypt = AESEncryption.encrypt(encrytStr);
         String encodeURI = AESEncryption.encodeURIComponent(encrypt);
         // 请求获取url
-        String data = OkHttp.string("https://player.ddzyku.com:3653/getUrls?data=" + encodeURI);
+        String data = OkHttp.string("https://player.ddzyku.com:3653/get_url_v2?data=" + encodeURI);
         // 解密
         String decrypted = AESEncryption.decrypt(data);
         Gson gson = new Gson();

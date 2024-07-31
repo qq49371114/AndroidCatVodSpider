@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 
 public class QxiTv extends Spider {
 
-    private static final String siteUrl = "https://7xi.tv";
+    private static final String siteUrl = "https://www.7xi.tv";
     private static final String cateUrl = siteUrl + "/index.php/api/vod";
     private static final String detailUrl = siteUrl + "/voddetail/";
     private static final String searchUrl = siteUrl + "/vodsearch/page/1/wd/";

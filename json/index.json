@@ -1,5 +1,5 @@
 {
-  "spider": "https://androidcatvodspider.pages.dev/jar/custom_spider.jar;md5;9b75d7c15ea175b9ea9b6b63e676ce99",
+  "spider": "https://androidcatvodspider.pages.dev/jar/custom_spider.jar;md5;b39aef6dd7ae29b2c284dff5718814b9",
   "lives": [
     {
       "name": "直播ipv6",
@@ -70,14 +70,7 @@
       "searchable": 1,
       "filterable": 1
     },
-    {
-      "key": "QxiTv",
-      "name": "\uD83E\uDD70 7喜 | 影视",
-      "type": 3,
-      "api": "csp_QxiTv",
-      "searchable": 1,
-      "filterable": 1
-    },
+
     {
       "key": "W55Movie",
       "name": "\uD83C\uDF9E\uFE0F 555电影 | 搜索×",
@@ -159,6 +152,13 @@
       "api": "./js/ikanbot.js",
       "timeout": 30,
       "ext": "{\"box\": \"TVBox\", \"danmu\": false}"
+    }, {
+      "key": "QxiTv",
+      "name": "\uD83E\uDD70 7喜 | 影视(不稳定)",
+      "type": 3,
+      "api": "csp_QxiTv",
+      "searchable": 1,
+      "filterable": 1
     }
   ],
   "parses": [
