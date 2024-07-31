@@ -1,5 +1,5 @@
 {
-  "spider": "https://androidcatvodspider.pages.dev/jar/custom_spider.jar;md5;b39aef6dd7ae29b2c284dff5718814b9",
+  "spider": "../jar/custom_spider.jar;md5;d1a0394c6756383a9f36cf50d6738e9b",
   "lives": [
     {
       "name": "直播ipv6",
