@@ -26,11 +26,11 @@ import java.util.regex.Pattern;
 
 public class HkTv extends Spider {
 
-    private static final String siteUrl = "http://www.tvyb04.com";
+    private static final String siteUrl = "http://www.tvyb03.com";
     private static final String cateUrl = siteUrl + "/vod/type/id/";
     private static final String detailUrl = siteUrl + "/vod/detail/id/";
     private static final String playUrl = siteUrl + "/vod/play/id/";
-    private static final String searchUrl = siteUrl + "/search--------------.html?wd=";
+    private static final String searchUrl = siteUrl + "/vod/search.html?wd=";
 
     private HashMap<String, String> getHeaders() {
         HashMap<String, String> headers = new HashMap<>();
@@ -69,7 +69,7 @@ public class HkTv extends Spider {
         List<Vod> list = new ArrayList<>();
         String target = cateUrl + tid + ".html";
         if (!"1".equals(pg)) {
-            target = pg + "/page/" + tid + ".html";
+            target =cateUrl + pg + "/page/" + tid + ".html";
         }
         Document doc = Jsoup.parse(OkHttp.string(target, getHeaders()));
         for (Element element : doc.select("ul.myui-vodlist li a.myui-vodlist__thumb")) {
