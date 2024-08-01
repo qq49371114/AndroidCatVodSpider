@@ -16,12 +16,19 @@ import com.github.catvod.spider.Init;
 import org.mozilla.universalchardet.UniversalDetector;
 
 import java.math.BigInteger;
+import java.net.URI;
 import java.security.MessageDigest;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import okhttp3.Cookie;
+import okhttp3.Headers;
+import okhttp3.internal.http.HttpHeaders;
+import okhttp3.internal.http2.Header;
 
 public class Util {
 
@@ -31,6 +38,7 @@ public class Util {
     public static final String ACCEPT = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
     public static final List<String> MEDIA = Arrays.asList("mp4", "mkv", "wmv", "flv", "avi", "iso", "mpg", "ts", "mp3", "aac", "flac", "m4a", "ape", "ogg");
     public static final List<String> SUB = Arrays.asList("srt", "ass", "ssa", "vtt");
+    private static HashMap<String, String> webHttpHeaderMap;
 
     public static boolean isVip(String url) {
         List<String> hosts = Arrays.asList("iqiyi.com", "v.qq.com", "youku.com", "le.com", "tudou.com", "mgtv.com", "sohu.com", "acfun.cn", "bilibili.com", "baofeng.com", "pptv.com");
@@ -53,7 +61,8 @@ public class Util {
     }
 
     public static boolean isVideoFormat(String url) {
-        if (url.contains("url=http") || url.contains(".js") || url.contains(".css") || url.contains(".html")) return false;
+        if (url.contains("url=http") || url.contains(".js") || url.contains(".css") || url.contains(".html"))
+            return false;
         return RULE.matcher(url).find();
     }
 
@@ -212,5 +221,37 @@ public class Util {
         } catch (Exception e) {
             return "";
         }
+    }
+
+
+    /**
+     * @param referer
+     * @param cookie  多个cookie name=value;name2=value2
+     * @return
+     */
+    public static HashMap<String, String> webHeaders(String referer, String cookie) {
+        HashMap<String, String> map = webHeaders(referer);
+        map.put("Cookie", cookie);
+        return map;
+    }
+
+    public static HashMap<String, String> webHeaders(String referer) {
+        if (webHttpHeaderMap == null || webHttpHeaderMap.isEmpty()) {
+            synchronized (Util.class) {
+                if (webHttpHeaderMap == null || webHttpHeaderMap.isEmpty()) {
+                    webHttpHeaderMap = new HashMap<>();
+                    webHttpHeaderMap.put("Content-Type", "text/plain;charset=UTF-8");
+                    webHttpHeaderMap.put("Accept-Language", "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2");
+                    webHttpHeaderMap.put("Connection", "keep-alive");
+                    webHttpHeaderMap.put("User-Agent", CHROME);
+                    webHttpHeaderMap.put("Accept", "*/*");
+                }
+            }
+        }
+        URI uri = URI.create(referer);
+        String u = uri.getScheme() + "://" + uri.getHost();
+        webHttpHeaderMap.put("Referer", u);
+        webHttpHeaderMap.put("Origin", u);
+        return webHttpHeaderMap;
     }
 }

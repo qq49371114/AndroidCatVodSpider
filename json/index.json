@@ -1,5 +1,5 @@
 {
-  "spider": "../jar/custom_spider.jar;md5;438408397ac27c14336f47bc41b743fb",
+  "spider": "../jar/custom_spider.jar;md5;01e1c90f1873a3e193bc494b9eab2d83",
   "lives": [
     {
       "name": "直播ipv6",
@@ -113,20 +113,13 @@
     },
 
     {
-      "key": "Ysj",
-      "name": "\uD83C\uDF0F\uFE0F 异世界动漫 | 动漫",
+      "key": "ikanbot",
+      "name": "🤖┃爱看机器人┃🤖",
+
       "type": 3,
-      "api": "csp_Ysj",
-      "searchable": 1,
-      "filterable": 1
-    },
-    {
-      "key": "FirstAid",
-      "name": "\uD83D\uDCAA 健康 | 视频",
-      "type": 3,
-      "api": "csp_FirstAid",
-      "searchable": 1,
-      "filterable": 1
+      "api": "csp_Ikanbot",
+
+      "ext": "{\"box\": \"TVBox\", \"danmu\": false}"
     },
     {
       "key": "nangua",
@@ -137,15 +130,16 @@
       "timeout": 30,
       "ext": "{\"box\": \"TVBox\", \"danmu\": false}"
     },
+
     {
-      "key": "ikanbot",
-      "name": "🤖┃爱看机器人┃🤖",
-      "playerType": 0,
+      "key": "Ysj",
+      "name": "\uD83C\uDF0F\uFE0F 异世界动漫 | 动漫(不稳定)",
       "type": 3,
-      "api": "./js/ikanbot.js",
-      "timeout": 30,
-      "ext": "{\"box\": \"TVBox\", \"danmu\": false}"
-    }, {
+      "api": "csp_Ysj",
+      "searchable": 1,
+      "filterable": 1
+    },
+    {
       "key": "QxiTv",
       "name": "\uD83E\uDD70 7喜 | 影视(不稳定)",
       "type": 3,
