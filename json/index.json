@@ -111,14 +111,7 @@
       "searchable": 1,
       "filterable": 1
     },
-    {
-      "key": "Ying",
-      "name": "\uD83C\uDF38 樱花动漫 | 动漫",
-      "type": 3,
-      "api": "csp_Ying",
-      "searchable": 1,
-      "filterable": 1
-    },
+
     {
       "key": "Ysj",
       "name": "\uD83C\uDF0F\uFE0F 异世界动漫 | 动漫",
