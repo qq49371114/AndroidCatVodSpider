@@ -36,6 +36,7 @@ public class DaGongRen extends Spider {
     private HashMap<String, String> getHeaders() {
         HashMap<String, String> headers = new HashMap<>();
         headers.put("User-Agent", Util.CHROME);
+        headers.put("Host", "dagongren1.com");
         return headers;
     }
 

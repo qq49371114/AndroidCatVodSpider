@@ -1,5 +1,6 @@
 import android.app.Application;
 
+import com.github.catvod.spider.DaGongRen;
 import com.github.catvod.spider.Init;
 import com.github.catvod.spider.W55Movie;
 import com.github.catvod.utils.Json;
@@ -20,13 +21,13 @@ public class DaGongRenTest {
     // @Mock
     private Application mockContext;
 
-    private W55Movie spider;
+    private DaGongRen spider;
 
     @org.junit.Before
     public void setUp() throws Exception {
         mockContext = RuntimeEnvironment.application;
         Init.init(mockContext);
-        spider = new W55Movie();
+        spider = new DaGongRen();
         spider.init(mockContext, "");
     }
 
@@ -54,7 +55,7 @@ public class DaGongRenTest {
 
     @org.junit.Test
     public void categoryContent() throws Exception {
-        String content = spider.categoryContent("/vodshow/1", "2", true, null);
+        String content = spider.categoryContent("dianying", "2", true, null);
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println("categoryContent--" + gson.toJson(map));
@@ -64,7 +65,7 @@ public class DaGongRenTest {
     @org.junit.Test
     public void detailContent() throws Exception {
 
-        String content = spider.detailContent(Arrays.asList("472585.html"));
+        String content = spider.detailContent(Arrays.asList("92856-1-1.html"));
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println("detailContent--" + gson.toJson(map));
@@ -73,8 +74,8 @@ public class DaGongRenTest {
 
     @org.junit.Test
     public void playerContent() throws Exception {
-        String froms = "极速线路11$$$极速线路31$$$极速线路41$$$备用高清11$$$备用高清21$$$极速线路21$$$蓝光专享31$$$蓝光专享51$$$555蓝光1$$$蓝光专享41";
-        String urls = "HD中字$472585-2-1.html$$$正片$472585-7-1.html$$$HD$472585-3-1.html$$$HD$472585-4-1.html$$$正片$472585-6-1.html$$$HD$472585-5-1.html$$$正片$472585-8-1.html$$$正片$472585-10-1.html$$$预告片$472585-1-1.html$$$正片$472585-9-1.html";
+        String froms = "\uE62F 闪电资源";
+        String urls = "HD$92856-1-1.html";
         for (int i = 0; i < urls.split("\\$\\$\\$").length; i++) {
             String content = spider.playerContent(froms.split("\\$\\$\\$")[i], urls.split("\\$\\$\\$")[i].split("\\$")[1], new ArrayList<>());
             JsonObject map = Json.safeObject(content);
