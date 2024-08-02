@@ -74,8 +74,8 @@ public class LibvioTest {
 
     @org.junit.Test
     public void playerContent() throws Exception {
-        String froms = "BD播放$$$视频下载 (夸克)";
-        String urls = "第01集$714891769-1-1.html#第02集$714891769-1-2.html#第03集$714891769-1-3.html#第04集$714891769-1-4.html$$$合集$714891769-2-1.html";
+        String froms = "BD播放";
+        String urls = "第01集$714891769-1-1.html#第02集$714891769-1-2.html#第03集$714891769-1-3.html#第04集$714891769-1-4.html";
         for (int i = 0; i < urls.split("\\$\\$\\$").length; i++) {
             String content = spider.playerContent(froms.split("\\$\\$\\$")[i], urls.split("\\$\\$\\$")[i].split("#")[0].split("\\$")[1], new ArrayList<>());
             JsonObject map = Json.safeObject(content);
@@ -87,7 +87,7 @@ public class LibvioTest {
 
     @org.junit.Test
     public void searchContent() throws Exception {
-        String content = spider.searchContent("红海", false);
+        String content = spider.searchContent("唐朝", false);
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println("searchContent--" + gson.toJson(map));

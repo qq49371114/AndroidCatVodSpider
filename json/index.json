@@ -1,5 +1,5 @@
 {
-  "spider": "../jar/custom_spider.jar;md5;01e1c90f1873a3e193bc494b9eab2d83",
+  "spider": "../jar/custom_spider.jar;md5;e3bc7843d766de40c20a38dd72c989cd",
   "lives": [
     {
       "name": "直播ipv6",
@@ -70,7 +70,6 @@
       "searchable": 1,
       "filterable": 1
     },
-
     {
       "key": "W55Movie",
       "name": "\uD83C\uDF9E\uFE0F 555电影 | 搜索×",
@@ -111,26 +110,23 @@
       "searchable": 1,
       "filterable": 1
     },
-
     {
       "key": "ikanbot",
       "name": "🤖┃爱看机器人┃🤖",
-
       "type": 3,
       "api": "csp_Ikanbot",
-
+      "searchable": 1,
+      "filterable": 0,
       "ext": "{\"box\": \"TVBox\", \"danmu\": false}"
     },
     {
-      "key": "nangua",
-      "name": "🎃┃南瓜影视┃🎃",
-      "playerType": 0,
+      "key": "Libvio",
+      "name": "立播",
       "type": 3,
-      "api": "./js/nangua.js",
-      "timeout": 30,
-      "ext": "{\"box\": \"TVBox\", \"danmu\": false}"
+      "api": "csp_Libvio",
+      "searchable": 1,
+      "filterable": 0
     },
-
     {
       "key": "Ysj",
       "name": "\uD83C\uDF0F\uFE0F 异世界动漫 | 动漫(不稳定)",

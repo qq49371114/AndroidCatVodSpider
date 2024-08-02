@@ -3,7 +3,6 @@ package com.github.catvod.spider;
 import android.content.Context;
 
 import com.github.catvod.bean.Class;
-import com.github.catvod.bean.Filter;
 import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
 import com.github.catvod.crawler.Spider;
@@ -17,13 +16,11 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,21 +28,20 @@ import java.util.regex.Pattern;
 public class Libvio extends Spider {
 
     private static String siteUrl = "";
-    private static final String cateUrl = siteUrl + "/list/";
-    private static final String detailUrl = siteUrl + "/play/";
-    private static final String playUrl = siteUrl + "/play/";
-    private static final String searchUrl = siteUrl + "/search--------------.html?wd=";
+
+
+    private static final String MOBILE_UA = "Mozilla/5.0 (Linux; Android 11; M2007J3SC Build/RKQ1.200826.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/77.0.3865.120 MQQBrowser/6.2 TBS/045714 Mobile Safari/537.36";
 
     private HashMap<String, String> getHeaders() {
         HashMap<String, String> headers = new HashMap<>();
-        headers.put("User-Agent", Util.CHROME);
+        headers.put("User-Agent", MOBILE_UA);
 
         return headers;
     }
 
     private HashMap<String, String> getHeaders(String refer) {
         HashMap<String, String> headers = new HashMap<>();
-        headers.put("User-Agent", Util.CHROME);
+        headers.put("User-Agent", MOBILE_UA);
         headers.put("Referer", refer);
 
         return headers;
@@ -148,6 +144,9 @@ public class Libvio extends Spider {
         String PlayUrl = "";
         for (int i = 0; i < tabs.size(); i++) {
             String tabName = tabs.get(i).text();
+            if (tabName.contains("夸克")) {
+                continue;
+            }
             if (!"".equals(PlayFrom)) {
                 PlayFrom = PlayFrom + "$$$" + tabName;
             } else {
@@ -181,19 +180,18 @@ public class Libvio extends Spider {
     @Override
     public String searchContent(String key, boolean quick) throws Exception {
         List<Vod> list = new ArrayList<>();
-        Document doc = Jsoup.parse(OkHttp.string(searchUrl.concat(URLEncoder.encode(key)), getHeaders()));
-        for (Element element : doc.select("div.searchlist_img")) {
-            try {
-                String pic = element.select("a").attr("data-original");
-                String url = element.select("a").attr("href");
-                String name = element.select("a").attr("title");
-                if (!pic.startsWith("http")) {
-                    pic = siteUrl + pic;
-                }
-                String id = url.replace("/video/", "").replace(".html", "-1-1.html");
-                list.add(new Vod(id, name, pic));
-            } catch (Exception e) {
+        Document doc = Jsoup.parse(OkHttp.string(siteUrl.concat("/search/-------------.html?wd=").concat(URLEncoder.encode(key)), getHeaders()));
+        for (Element element : doc.select("ul.stui-vodlist > li > div > a")) {
+
+            String pic = element.attr("data-original");
+            String url = element.attr("href");
+            String name = element.attr("title");
+            if (!pic.startsWith("http")) {
+                pic = siteUrl + pic;
             }
+            String id = url.split("/")[2];
+            list.add(new Vod(id, name, pic));
+
         }
         return Result.string(list);
     }
