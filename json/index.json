@@ -1,5 +1,5 @@
 {
-  "spider": "../jar/custom_spider.jar;md5;e3bc7843d766de40c20a38dd72c989cd",
+  "spider": "../jar/custom_spider.jar;md5;10c3ce1b9c5b8dd9f5d3ef1b88f42f19",
   "lives": [
     {
       "name": "直播ipv6",
@@ -127,6 +127,14 @@
       "searchable": 1,
       "filterable": 0,
       "ext": "https://www.libvio.app"
+    }, {
+      "key": "Ddrk",
+      "name": "低端影视",
+      "type": 3,
+      "api": "csp_Ddrk",
+      "searchable": 1,
+      "filterable": 0
+
     },
     {
       "key": "Ysj",
