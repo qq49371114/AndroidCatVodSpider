@@ -28,7 +28,7 @@ public class ChangZhangTest {
         mockContext = RuntimeEnvironment.application;
         Init.init(mockContext);
         spider = new ChangZhang();
-        spider.init(mockContext, "");
+        spider.init(mockContext, "https://www.czzy.site/");
     }
 
     @org.junit.Test

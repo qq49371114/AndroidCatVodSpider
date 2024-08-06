@@ -209,7 +209,7 @@ public class ChangZhang extends Spider {
         String realUrl = new String(new BigInteger(StringUtils.reverse(encodedStr), 16).toByteArray());
         Map<String, String> header = getVideoHeader();
         String temp = decodeStr(realUrl);
-        return Result.get().url(ProxyVideo.buildCommonProxyUrl(temp, header)).header(getVideoHeader()).string();
+        return Result.get().url(temp).string();
     }
 
     String decodeStr(String _0x267828) {
