@@ -75,7 +75,7 @@ public class ChangZhang extends Spider {
         return header;
     }
 
-    private Map<String, String> getVideoHeader() {
+    private Map<String, String> getVideoHeader(String url) {
         Map<String, String> header = new HashMap<>();
 
         header.put("Accept", "*/*");
@@ -83,7 +83,8 @@ public class ChangZhang extends Spider {
         header.put("Cache-Control", "no-cache");
         header.put("Connection", "keep-alive");
         header.put("Pragma", "no-cache");
-
+        URI uri = URI.create(url);
+        header.put("Host", uri.getHost());
         header.put("Sec-Fetch-Dest", "video");
         header.put("Sec-Fetch-Mode", "no-cors");
         header.put("Sec-Fetch-Site", "cross-site");
@@ -208,9 +209,10 @@ public class ChangZhang extends Spider {
             org.json.JSONObject jsonObject = new JSONObject(json2);
             String encodedStr = jsonObject.getString("data");
             String realUrl = new String(new BigInteger(StringUtils.reverse(encodedStr), 16).toByteArray());
-            Map<String, String> header = getVideoHeader();
+
             String temp = decodeStr(realUrl);
-            return Result.get().url(temp).string();
+            Map<String, String> header = getVideoHeader(temp);
+            return Result.get().url(ProxyVideo.buildCommonProxyUrl(temp, header)).string();
         } else {
             for (Element script : document.select("script")) {
                 String scriptText = script.html();
