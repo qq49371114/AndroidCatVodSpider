@@ -4,6 +4,8 @@ import android.util.Base64;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -49,6 +51,27 @@ public class AESEncryption {
             byte[] decrypted = cipher.doFinal(decoded);
 
             return new String(decrypted, "UTF-8");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static String decrypt(String word,String key,String iv) {
+        try {
+            byte[] keyBytes = key.getBytes("UTF-8");
+            SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
+
+            byte[] ivBytes = iv.getBytes("UTF-8");
+            IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
+            cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
+
+            byte[] decoded = Base64.decode(word, Base64.DEFAULT);
+            byte[] decrypted = cipher.doFinal(decoded);
+
+            return new String(decrypted, Charset.defaultCharset());
         } catch (Exception e) {
             e.printStackTrace();
             return null;

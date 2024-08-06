@@ -75,7 +75,7 @@ public class ChangZhangTest {
     @org.junit.Test
     public void playerContent() throws Exception {
         String froms = "厂长$$$";
-        String urls = "立即播放 (周处除三害)$https://www.czys.pro/v_play/bXZfMTc1ODAtbm1fMQ==.html$$$";
+        String urls = "立即播放 (周处除三害)$https://www.czys.pro/v_play/bXZfMTg2MjEtbm1fMQ==.html$$$";
         for (int i = 0; i < urls.split("\\$\\$\\$").length; i++) {
             String content = spider.playerContent(froms.split("\\$\\$\\$")[i], urls.split("\\$\\$\\$")[i].split("\\$")[1], new ArrayList<>());
             JsonObject map = Json.safeObject(content);

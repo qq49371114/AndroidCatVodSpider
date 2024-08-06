@@ -199,18 +199,52 @@ public class ChangZhang extends Spider {
         String content = OkHttp.string(id, getHeader());
         Document document = Jsoup.parse(content);
         Elements iframe = document.select("iframe");
-        String videoContent = OkHttp.string(iframe.get(0).attr("src"), getIframeHeader(iframe.get(0).attr("src")));
+        if (!iframe.isEmpty()) {
+            String videoContent = OkHttp.string(iframe.get(0).attr("src"), getIframeHeader(iframe.get(0).attr("src")));
 
 
-        Matcher matcher2 = Pattern.compile("result_v2 =(.*?);").matcher(videoContent);
-        String json2 = matcher2.find() ? matcher2.group(1) : "";
-        org.json.JSONObject jsonObject = new JSONObject(json2);
-        String encodedStr = jsonObject.getString("data");
-        String realUrl = new String(new BigInteger(StringUtils.reverse(encodedStr), 16).toByteArray());
-        Map<String, String> header = getVideoHeader();
-        String temp = decodeStr(realUrl);
-        return Result.get().url(temp).string();
+            Matcher matcher2 = Pattern.compile("result_v2 =(.*?);").matcher(videoContent);
+            String json2 = matcher2.find() ? matcher2.group(1) : "";
+            org.json.JSONObject jsonObject = new JSONObject(json2);
+            String encodedStr = jsonObject.getString("data");
+            String realUrl = new String(new BigInteger(StringUtils.reverse(encodedStr), 16).toByteArray());
+            Map<String, String> header = getVideoHeader();
+            String temp = decodeStr(realUrl);
+            return Result.get().url(temp).string();
+        } else {
+            for (Element script : document.select("script")) {
+                String scriptText = script.html();
+                if (scriptText.contains("wp_nonce")) {
+                    String reg = "var(.*?)=\"(.*?)\"";
+                    Pattern pattern = Pattern.compile(reg);
+                    Matcher matcher = pattern.matcher(scriptText);
+
+                    if (matcher.find()) {
+                        String data = matcher.group(2);
+                        String result = dncry(data);
+                        String regex = "url:.*?['\"](.*?)['\"]";
+                        Pattern pattern1 = Pattern.compile(regex);
+                        Matcher matcher1 = pattern1.matcher(result);
+                        if (matcher1.find()) {
+                            String playUrl = matcher1.group(0).replace("\"", "").replace("url:", "").trim();
+                            return Result.get().url(playUrl).string();
+                        }
+                    }
+                }
+
+            }
+        }
+        return null;
     }
+
+    String dncry(String data) {
+        String kc8a64 = "336460fdcb76a597";
+        String iv = "1234567890983456";
+
+        return AESEncryption.decrypt(data, kc8a64, iv);
+    }
+
+    ;
 
     String decodeStr(String _0x267828) {
         int _0x5cd2b5 = (_0x267828.length() - 7) / 2;
