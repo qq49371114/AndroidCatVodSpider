@@ -254,4 +254,23 @@ public class Util {
         webHttpHeaderMap.put("Origin", u);
         return webHttpHeaderMap;
     }
+
+    public static String getHost(String url) {
+        URI uri = URI.create(url);
+        return uri.getHost();
+    }
+
+
+    public static String findByRegex(String regex, String content, Integer groupCount) {
+        // 创建 Pattern 对象
+        Pattern r = Pattern.compile(regex);
+
+        // 现在创建 matcher 对象
+        Matcher m = r.matcher(content);
+        if (m.find()) {
+            return m.group(groupCount);
+        } else {
+            return "";
+        }
+    }
 }

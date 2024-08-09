@@ -20,146 +20,22 @@
   ],
   "sites": [
     {
-      "key": "Douban",
-      "name": "\uD83E\uDD54 豆瓣 | 仅推荐",
+      "key": "Supjav",
+      "name": "Supjav",
       "type": 3,
-      "api": "csp_Douban",
-      "searchable": 0,
-      "filterable": 1
-    },
-    {
-      "key": "Jianpian",
-      "name": "\uD83D\uDCC0 荐片 | 视频",
-      "type": 3,
-      "api": "csp_Jianpian",
+      "api": "csp_Supjav",
       "searchable": 1,
       "filterable": 1
     },
     {
-      "key": "玩偶",
-      "name": "玩偶",
+      "key": "Jable",
+      "name": "Jable",
       "type": 3,
-      "api": "csp_Wogg",
-      "searchable": 1,
-      "changeable": 1,
-      "ext": {}
-    },
-    {
-      "key": "NCat",
-      "name": "\uD83D\uDE3C 网飞猫 | 影视",
-      "type": 3,
-      "api": "csp_NCat",
-      "searchable": 1,
-      "filterable": 1
-    }, {
-      "key": "ChangZhang",
-      "name": "厂长影视",
-      "type": 3,
-      "api": "csp_ChangZhang",
-      "searchable": "1",
-      "filterable": "0",
-      "changeable": 0,
-      "ext": "https://www.czzy.site/"
-    },
-    {
-      "key": "Zxzj",
-      "name": "在线之家",
-      "type": 3,
-      "api": "csp_Zxzj",
+      "api": "csp_Jable",
       "searchable": "1",
       "filterable": "0",
       "changeable": 0,
       "ext": {}
-    },
-    {
-      "key": "TvDy",
-      "name": "\uD83D\uDE07 电影天堂 | 影视",
-      "type": 3,
-      "api": "csp_TvDy",
-      "searchable": 1,
-      "filterable": 1
-    },
-    {
-      "key": "W55Movie",
-      "name": "\uD83C\uDF9E\uFE0F 555电影 | 搜索×",
-      "type": 3,
-      "api": "csp_W55Movie",
-      "searchable": 0,
-      "filterable": 1
-    },
-    {
-      "key": "DaGongRen",
-      "name": "\uD83D\uDC77\u200D♂\uFE0F 打工人电影 | 影视",
-      "type": 3,
-      "api": "csp_DaGongRen",
-      "searchable": 1,
-      "filterable": 1
-    },
-    {
-      "key": "HkTv",
-      "name": "☁\uFE0F TVB云播 | 影视",
-      "type": 3,
-      "api": "csp_HkTv",
-      "searchable": 0,
-      "filterable": 1
-    },
-    {
-      "key": "JustLive",
-      "name": "\uD83D\uDCFA\uFE0F JustLive | 直播",
-      "type": 3,
-      "api": "csp_JustLive",
-      "searchable": 1,
-      "filterable": 1
-    },
-    {
-      "key": "Xb6v",
-      "name": "6\uFE0F⃣ 新版6V | 视频",
-      "type": 3,
-      "api": "csp_Xb6v",
-      "searchable": 1,
-      "filterable": 1
-    },
-    {
-      "key": "ikanbot",
-      "name": "🤖┃爱看机器人┃🤖",
-      "type": 3,
-      "api": "csp_Ikanbot",
-      "searchable": 1,
-      "filterable": 0,
-      "ext": "{\"box\": \"TVBox\", \"danmu\": false}"
-    },
-    {
-      "key": "Libvio",
-      "name": "立播",
-      "type": 3,
-      "api": "csp_Libvio",
-      "searchable": 1,
-      "filterable": 0,
-      "ext": "https://www.libvio.app"
-    }, {
-      "key": "Ddrk",
-      "name": "低端影视",
-      "type": 3,
-      "api": "csp_Ddrk",
-      "searchable": 1,
-      "filterable": 0
-
-    },
-    {
-      "key": "Ysj",
-      "name": "\uD83C\uDF0F\uFE0F 异世界动漫 | 动漫(不稳定)",
-      "type": 3,
-      "api": "csp_Ysj",
-      "searchable": 1,
-      "filterable": 1
-    },
-    {
-      "key": "QxiTv",
-      "name": "\uD83E\uDD70 7喜 | 影视(不稳定)",
-      "type": 3,
-      "api": "csp_QxiTv",
-      "searchable": 1,
-      "filterable": 1
     }
   ],
   "parses": [
