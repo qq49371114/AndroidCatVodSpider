@@ -88,7 +88,7 @@ public class SupjavTest {
 
     @org.junit.Test
     public void searchContent() throws Exception {
-        String content = spider.searchContent("红海", false);
+        String content = spider.searchContent("fc", false);
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println("searchContent--" + gson.toJson(map));

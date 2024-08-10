@@ -16,7 +16,9 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.*;
+import java.nio.charset.Charset;
 import java.util.*;
 
 public class Supjav extends Spider {
@@ -30,10 +32,9 @@ public class Supjav extends Spider {
 
     private HashMap<String, String> getHeaders(String referer) {
         HashMap<String, String> headers = new HashMap<>();
-        headers.put("Referer", referer);
-        headers.put("User-Agent", "PostmanRuntime/7.36.3");
+        headers.put("Referer", "https://supjav.com/");
         headers.put("Host", "supjav.com");
-        headers.put("Postman-Token", "33290483-3c8d-413f-a160-0d3aea9e6f95");
+        headers.put("User-Agent", Util.CHROME);
         return headers;
     }
 
@@ -115,7 +116,7 @@ public class Supjav extends Spider {
             String sourceUrl = source.attr("data-link");
             sites.put(sourceName, "播放" + "$" + sourceUrl);
         }
-        if (sites.size() > 0) {
+        if (!sites.isEmpty()) {
             vod.setVodPlayFrom(StringUtils.join(sites.keySet(), "$$$"));
             vod.setVodPlayUrl(StringUtils.join(sites.values(), "$$$"));
         }
@@ -123,9 +124,9 @@ public class Supjav extends Spider {
     }
 
     @Override
-    public String searchContent(String key, boolean quick) {
+    public String searchContent(String key, boolean quick) throws UnsupportedEncodingException {
         List<Vod> list = new ArrayList<>();
-        Document doc = Jsoup.parse(OkHttp.string(siteUrl.concat("?s=").concat(URLEncoder.encode(key)), getHeaders()));
+        Document doc = Jsoup.parse(OkHttp.string(siteUrl.concat("?s=").concat(URLEncoder.encode(key, "UTF-8")), getHeaders()));
         for (Element element : doc.select("div.post")) {
             String pic = element.select("img").attr("data-original");
             String url = element.select("a").attr("href");
@@ -138,7 +139,7 @@ public class Supjav extends Spider {
 
     @Override
     public String playerContent(String flag, String id, List<String> vipFlags) throws URISyntaxException, IOException {
-        String redirect = OkHttp.getLocation(playUrl + "supjav.php?c=" + new StringBuilder(id).reverse(), getTVVideoHeaders(playUrl + "supjav.php?l=" + new StringBuilder(id) + "&bg=undefined"));
+        String redirect = OkHttp.getLocation(playUrl + "supjav.php?c=" + new StringBuilder(id).reverse(), getTVVideoHeaders(playUrl + "supjav.php?l=" + id + "&bg=undefined"));
         switch (flag) {
             case "TV":
                 return parseTV(redirect);
@@ -155,12 +156,14 @@ public class Supjav extends Spider {
 
     private String parseVOE(String redirect) {
         String data = OkHttp.string(redirect, getTVVideoHeaders(playUrl));
-        return Result.get().url(Util.findByRegex("prompt\\(\"Node\",(.*?)\\);", data,1).trim().replace("\"", "")).header(getHeaders(redirect)).string();
+        redirect = Util.findByRegex("window.location.href = '(.*?)';", data, 1);
+        data = OkHttp.string(redirect, getTVVideoHeaders(playUrl));
+        return Result.get().url(Util.findByRegex("prompt\\(\"Node\",(.*?)\\);", data, 1).trim().replace("\"", "")).header(getHeaders(redirect)).string();
     }
 
     private String parseFST(String redirect) {
         String data = OkHttp.string(redirect, getTVVideoHeaders(playUrl));
-        return Result.get().url(Util.findByRegex("file:\"(.*?)\"}]", data,1)).header(getHeaders(redirect)).string();
+        return Result.get().url(Util.findByRegex("file:\"(.*?)\"}]", data, 1)).header(getHeaders(redirect)).string();
     }
 
     private String parseTV(String redirect) throws MalformedURLException {
