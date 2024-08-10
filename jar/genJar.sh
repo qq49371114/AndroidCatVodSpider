@@ -14,9 +14,9 @@ if [ ! -f "$DIR"/spider.jar/smali/com/github/catvod/ ]; then
     mkdir -p "$DIR"/spider.jar/smali/com/github/catvod/
 fi
 
-mv "$DIR"/Smali_classes/com/github/catvod/spider "$DIR"/spider.jar/smali/com/github/catvod/
-mv "$DIR"/Smali_classes/com/github/catvod/parser "$DIR"/spider.jar/smali/com/github/catvod/
-mv "$DIR"/Smali_classes/com/github/catvod/js "$DIR"/spider.jar/smali/com/github/catvod/
+cp -rf "$DIR"/Smali_classes/com/github/catvod/spider "$DIR"/spider.jar/smali/com/github/catvod/
+cp -rf "$DIR"/Smali_classes/com/github/catvod/parser "$DIR"/spider.jar/smali/com/github/catvod/
+cp -rf "$DIR"/Smali_classes/com/github/catvod/js "$DIR"/spider.jar/smali/com/github/catvod/
 
 java -jar "$DIR"/3rd/apktool_2.4.1.jar b "$DIR"/spider.jar -c
 
