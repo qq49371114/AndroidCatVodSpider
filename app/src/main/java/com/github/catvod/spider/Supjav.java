@@ -6,6 +6,7 @@ import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.net.OkHttp;
+import com.github.catvod.utils.ProxyVideo;
 import com.github.catvod.utils.Util;
 
 import org.apache.commons.lang3.StringUtils;
@@ -158,7 +159,9 @@ public class Supjav extends Spider {
         String data = OkHttp.string(redirect, getTVVideoHeaders(playUrl));
         redirect = Util.findByRegex("window.location.href = '(.*?)';", data, 1);
         data = OkHttp.string(redirect, getTVVideoHeaders(playUrl));
-        return Result.get().url(Util.findByRegex("prompt\\(\"Node\",(.*?)\\);", data, 1).trim().replace("\"", "")).header(getHeaders(redirect)).string();
+        String url=Util.findByRegex("prompt\\(\"Node\",(.*?)\\);", data, 1).trim().replace("\"", "");
+
+        return Result.get().url(ProxyVideo.buildCommonProxyUrl(url, Util.webHeaders(redirect))).header(getHeaders(redirect)).string();
     }
 
     private String parseFST(String redirect) {
@@ -179,7 +182,7 @@ public class Supjav extends Spider {
             if (!text.contains("').substring(")) continue;
             robot = "https:/" + robot + text.split("'")[0] + "&stream=1";
             String url = OkHttp.getLocation(robot, getTVVideoHeaders(redirect));
-            return Result.get().url(url).header(getHeaders(redirect)).string();
+            return Result.get().url(ProxyVideo.buildCommonProxyUrl(url, Util.webHeaders(robot))).header(getHeaders(redirect)).string();
         }
         return "";
     }

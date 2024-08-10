@@ -1,11 +1,18 @@
 {
-  "spider": "https://androidcatvodspider.pages.dev/jar/custom_spider.jar;md5;f17ff3cecd4f05deed95907f062e91a5",
+  "spider": "https://androidcatvodspider.pages.dev/jar/custom_spider.jar;md5;4e701cc52253ca010c293c86c2d6d3e6",
   "lives": [
     {
       "name": "直播ipv6",
       "type": "0",
       "pass": true,
       "url": "https://fanmingming.com/txt?url=https://live.fanmingming.com/tv/m3u/ipv6.m3u",
+      "epg": "https://epg.112114.xyz/?ch={name}&date={date}",
+      "logo": "https://epg.112114.xyz/logo/{name}.png"
+    }, {
+      "name": "一木",
+      "type": "0",
+      "pass": true,
+      "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/xianyuyimu/TVBOX-/main/TVBox/%E4%B8%80%E6%9C%A8%E7%9B%B4%E6%92%AD%E6%BA%90.txt",
       "epg": "https://epg.112114.xyz/?ch={name}&date={date}",
       "logo": "https://epg.112114.xyz/logo/{name}.png"
     },
