@@ -8,7 +8,8 @@
       "url": "https://fanmingming.com/txt?url=https://live.fanmingming.com/tv/m3u/ipv6.m3u",
       "epg": "https://epg.112114.xyz/?ch={name}&date={date}",
       "logo": "https://epg.112114.xyz/logo/{name}.png"
-    }, {
+    },
+    {
       "name": "一木",
       "type": "0",
       "pass": true,
@@ -58,7 +59,8 @@
       "api": "csp_NCat",
       "searchable": 1,
       "filterable": 1
-    }, {
+    },
+    {
       "key": "ChangZhang",
       "name": "厂长影视",
       "type": 3,
@@ -111,6 +113,15 @@
       "filterable": 1
     },
     {
+      "key": "NG",
+      "name": "瓜瓜",
+      "type": 3,
+      "api": "csp_NG",
+      "searchable": 1,
+      "changeable": 1,
+      "ext": {}
+    },
+    {
       "key": "甲子",
       "name": "甲子",
       "type": 3,
@@ -151,14 +162,14 @@
       "searchable": 1,
       "filterable": 0,
       "ext": "https://www.libvio.app"
-    }, {
+    },
+    {
       "key": "Ddrk",
       "name": "低端影视",
       "type": 3,
       "api": "csp_Ddrk",
       "searchable": 1,
       "filterable": 0
-
     },
     {
       "key": "Ysj",
