@@ -1,5 +1,5 @@
 {
-  "spider": "https://androidcatvodspider.pages.dev/jar/custom_spider.jar;md5;4e701cc52253ca010c293c86c2d6d3e6",
+  "spider": "https://androidcatvodspider.pages.dev/jar/custom_spider.jar;md5;03e3184db97fde66e469c8b92b9c4a97",
   "lives": [
     {
       "name": "直播ipv6",
@@ -111,6 +111,14 @@
       "filterable": 1
     },
     {
+      "key": "甲子",
+      "name": "甲子",
+      "type": 3,
+      "api": "csp_AppYsV2",
+      "searchable": 1,
+      "ext": "http://211.101.237.197:6532/api.php/app/"
+    },
+    {
       "key": "JustLive",
       "name": "\uD83D\uDCFA\uFE0F JustLive | 直播",
       "type": 3,
@@ -162,11 +170,12 @@
     },
     {
       "key": "QxiTv",
-      "name": "\uD83E\uDD70 7喜 | 影视(不稳定)",
+      "name": "七喜 | 影视",
       "type": 3,
       "api": "csp_QxiTv",
       "searchable": 1,
-      "filterable": 1
+      "changeable": 0,
+      "ext": {}
     }
   ],
   "parses": [

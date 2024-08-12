@@ -55,7 +55,7 @@ public class QxiTvTest {
 
     @org.junit.Test
     public void categoryContent() throws Exception {
-        String content = spider.categoryContent("1", "2", true, null);
+        String content = spider.categoryContent("/vodtype/2/", "2", true, null);
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println("categoryContent--" + gson.toJson(map));
@@ -65,7 +65,7 @@ public class QxiTvTest {
     @org.junit.Test
     public void detailContent() throws Exception {
 
-        String content = spider.detailContent(Arrays.asList("index126780.html"));
+        String content = spider.detailContent(Arrays.asList("/voddetail/867573/"));
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println("detailContent--" + gson.toJson(map));
@@ -74,7 +74,7 @@ public class QxiTvTest {
 
     @org.junit.Test
     public void playerContent() throws Exception {
-        String content = spider.playerContent("", "126780-0-0.html", new ArrayList<>());
+        String content = spider.playerContent("甄选蓝光6", "/vodplay/867573-1-1/", new ArrayList<>());
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println("playerContent--" + gson.toJson(map));

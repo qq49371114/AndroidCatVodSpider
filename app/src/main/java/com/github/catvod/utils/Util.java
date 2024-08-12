@@ -5,6 +5,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
+import android.util.Base64;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.ValueCallback;
@@ -17,6 +18,7 @@ import org.mozilla.universalchardet.UniversalDetector;
 
 import java.math.BigInteger;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -24,11 +26,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import okhttp3.Cookie;
-import okhttp3.Headers;
-import okhttp3.internal.http.HttpHeaders;
-import okhttp3.internal.http2.Header;
 
 public class Util {
 
@@ -272,5 +269,9 @@ public class Util {
         } else {
             return "";
         }
+    }
+
+    public static String base64Decode(String s) {
+        return new String(android.util.Base64.decode(s, Base64.DEFAULT), Charset.defaultCharset());
     }
 }
