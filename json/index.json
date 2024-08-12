@@ -121,14 +121,7 @@
       "changeable": 1,
       "ext": {}
     },
-    {
-      "key": "甲子",
-      "name": "甲子",
-      "type": 3,
-      "api": "csp_AppYsV2",
-      "searchable": 1,
-      "ext": "http://211.101.237.197:6532/api.php/app/"
-    },
+
     {
       "key": "JustLive",
       "name": "\uD83D\uDCFA\uFE0F JustLive | 直播",
