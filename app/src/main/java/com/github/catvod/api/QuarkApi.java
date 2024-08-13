@@ -1,15 +1,21 @@
 package com.github.catvod.api;
 
+import android.text.TextUtils;
+
 import com.github.catvod.bean.Vod;
+import com.github.catvod.bean.ali.Cache;
 import com.github.catvod.bean.quark.Item;
 import com.github.catvod.bean.quark.ShareData;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.net.OkResult;
+import com.github.catvod.spider.Init;
 import com.github.catvod.utils.Json;
+import com.github.catvod.utils.Path;
 import com.github.catvod.utils.Util;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,10 +37,37 @@ public class QuarkApi {
     private String saveDirId = null;
     private String saveDirName = "TV";
     private boolean isVip = false;
+    private final Cache cache;
+
+    private QuarkApi() {
+        Init.checkPermission();
+
+        cache = Cache.objectFrom(Path.read(getCache()));
+    }
+
+    public File getCache() {
+        return Path.tv("quark");
+    }
 
     public Vod getVod(ShareData shareData) throws Exception {
         getShareToken(shareData);
+        List<Item> files = new ArrayList<>();
+        List<Item> subs = new ArrayList<>();
+        List<Map<String, Object>> listData = listFile(1, shareData, files, subs, shareData.getShareId(), shareData.getFolderId(), 1);
 
+        List<String> playFrom = Arrays.asList("轉存原畫", "分享原畫", "代理普畫");
+        List<String> episode = new ArrayList<>();
+        List<String> playUrl = new ArrayList<>();
+
+        for (int i = 0; i < playFrom.size(); i++) playUrl.add(TextUtils.join("#", episode));
+        Vod vod = new Vod();
+        vod.setVodId("");
+        vod.setVodContent("");
+        vod.setVodPic("");
+        vod.setVodName("");
+        vod.setVodPlayUrl(TextUtils.join("$$$", playUrl));
+        vod.setVodPlayFrom(TextUtils.join("$$$", playFrom));
+        vod.setTypeName("夸克云盘");
         return null;
     }
 
