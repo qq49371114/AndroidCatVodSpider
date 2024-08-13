@@ -323,6 +323,18 @@ public class Util {
         return new LCSResult(maxlen, sequence.toString(), lastSubsBegin);
     }
 
+
+    public static Integer findAllIndexes(List<String> arr, String value) {
+
+        for (int i = 0; i < arr.size(); i++) {
+            if (arr.get(i).equals(value)) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+
     public static class LCSResult {
         public int length;
         public String sequence;

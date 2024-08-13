@@ -1,7 +1,8 @@
-/*
 package com.github.catvod.api;
 
+import com.github.catvod.bean.Vod;
 import com.github.catvod.bean.quark.Item;
+import com.github.catvod.bean.quark.ShareData;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.net.OkResult;
 import com.github.catvod.utils.Json;
@@ -31,6 +32,21 @@ public class QuarkApi {
     private String saveDirName = "TV";
     private boolean isVip = false;
 
+    public Vod getVod(ShareData shareData) throws Exception {
+        getShareToken(shareData);
+
+        return null;
+    }
+
+    private static class Loader {
+        static volatile QuarkApi INSTANCE = new QuarkApi();
+    }
+
+    public static QuarkApi get() {
+        return QuarkApi.Loader.INSTANCE;
+    }
+
+
     public void initQuark(String cookie) throws Exception {
         this.ckey = bytesToHex(MessageDigest.getInstance("MD5").digest(cookie.getBytes()));
         this.cookie = cookie;
@@ -52,7 +68,7 @@ public class QuarkApi {
 
         int leftRetry = retry != null ? retry : 3;
         OkResult okResult;
-        if ("get".equals(method)) {
+        if ("GET".equals(method)) {
             okResult = OkHttp.get(this.apiUrl + url, data, getHeaders());
         } else {
             okResult = OkHttp.post(this.apiUrl + url, data, getHeaders());
@@ -76,14 +92,11 @@ public class QuarkApi {
         return okResult.getBody();
     }
 
-    private Map<String, String> getShareData(String url) {
+    public ShareData getShareData(String url) {
         Pattern pattern = Pattern.compile("https://pan\\.quark\\.cn/s/([^\\\\|#/]+)");
         Matcher matcher = pattern.matcher(url);
         if (matcher.find()) {
-            Map<String, String> shareData = new HashMap<>();
-            shareData.put("shareId", matcher.group(1));
-            shareData.put("folderId", "0");
-            return shareData;
+            return new ShareData(matcher.group(1), "0");
         }
         return null;
     }
@@ -109,17 +122,17 @@ public class QuarkApi {
         }
     }
 
-    private void getShareToken(Map<String, String> shareData) throws Exception {
-        if (!this.shareTokenCache.containsKey(shareData.get("shareId"))) {
-            this.shareTokenCache.remove(shareData.get("shareId"));
-            Map<String, Object> shareToken = Json.parseSafe(api("share/sharepage/token?" + this.pr, Map.of("pwd_id", shareData.get("shareId"), "passcode", shareData.get("sharePwd")), 0, "POST"), Map.class);
+    private void getShareToken(ShareData shareData) throws Exception {
+        if (!this.shareTokenCache.containsKey(shareData.getShareId())) {
+            this.shareTokenCache.remove(shareData.getShareId());
+            Map<String, Object> shareToken = Json.parseSafe(api("share/sharepage/token?" + this.pr, Map.of("pwd_id", shareData.getShareId(), "passcode", shareData.getSharePwd()), 0, "POST"), Map.class);
             if (shareToken.containsKey("data") && ((Map<String, Object>) shareToken.get("data")).containsKey("stoken")) {
-                this.shareTokenCache.put(shareData.get("shareId"), (Map<String, Object>) shareToken.get("data"));
+                this.shareTokenCache.put(shareData.getShareId(), (Map<String, Object>) shareToken.get("data"));
             }
         }
     }
 
-    private List<Map<String, Object>> listFile(int shareIndex, Map<String, String> shareData, List<Item> videos, List<Item> subtitles, String shareId, String folderId, Integer page) throws Exception {
+    private List<Map<String, Object>> listFile(int shareIndex, ShareData shareData, List<Item> videos, List<Item> subtitles, String shareId, String folderId, Integer page) throws Exception {
         int prePage = 200;
         page = page != null ? page : 1;
         Map<String, Object> listData = Json.parseSafe(api("share/sharepage/detail?" + this.pr + "&pwd_id=" + shareId + "&stoken=" + encodeURIComponent((String) this.shareTokenCache.get(shareId).get("stoken")) + "&pdir_fid=" + folderId + "&force=0&_page=" + page + "&_size=" + prePage + "&_sort=file_type:asc,file_name:asc", null, 0, "GET"), Map.class);
@@ -132,10 +145,10 @@ public class QuarkApi {
                 subDir.add(item);
             } else if (Boolean.TRUE.equals(item.get("file")) && "video".equals(item.get("obj_category"))) {
                 if ((int) item.get("size") < 1024 * 1024 * 5) continue;
-                item.put("stoken", this.shareTokenCache.get(shareData.get("shareId")).get("stoken"));
-                videos.add(Item.objectFrom(Json.toJson(item), shareData.get("shareId"), shareIndex));
+                item.put("stoken", this.shareTokenCache.get(shareData.getShareId()).get("stoken"));
+                videos.add(Item.objectFrom(Json.toJson(item), shareData.getShareId(), shareIndex));
             } else if ("file".equals(item.get("type")) && this.subtitleExts.contains("." + Util.getExt((String) item.get("file_name")))) {
-                subtitles.add(Item.objectFrom(Json.toJson(item), shareData.get("shareId"), shareIndex));
+                subtitles.add(Item.objectFrom(Json.toJson(item), shareData.getShareId(), shareIndex));
             }
         }
         if (page < Math.ceil((double) ((Map<String, Object>) listData.get("metadata")).get("_total") / prePage)) {
@@ -170,12 +183,12 @@ public class QuarkApi {
         return finalResult;
     }
 
-    public void getFilesByShareUrl(int shareIndex, Object shareInfo, List<Item> videos, List<Item> subtitles) throws Exception {
-        Map<String, String> shareData = shareInfo instanceof String ? getShareData((String) shareInfo) : (Map<String, String>) shareInfo;
+    public void getFilesByShareUrl(int shareIndex, String shareInfo, List<Item> videos, List<Item> subtitles) throws Exception {
+        ShareData shareData = getShareData((String) shareInfo);
         if (shareData == null) return;
         getShareToken(shareData);
-        if (!this.shareTokenCache.containsKey(shareData.get("shareId"))) return;
-        listFile(shareIndex, shareData, videos, subtitles, shareData.get("shareId"), shareData.get("folderId"), 1);
+        if (!this.shareTokenCache.containsKey(shareData.getShareId())) return;
+        listFile(shareIndex, shareData, videos, subtitles, shareData.getShareId(), shareData.getFolderId(), 1);
         if (!subtitles.isEmpty()) {
             for (Item video : videos) {
                 Map<String, Object> matchSubtitle = findBestLCS(video, subtitles);
@@ -193,7 +206,14 @@ public class QuarkApi {
     private void clearSaveDir() throws Exception {
         Map<String, Object> listData = Json.parseSafe(api("file/sort?" + this.pr + "&pdir_fid=" + this.saveDirId + "&_page=1&_size=200&_sort=file_type:asc,updated_at:desc", Collections.emptyMap(), 0, "GET"), Map.class);
         if (listData.get("data") != null && ((List<Map<String, Object>>) ((Map<String, Object>) listData.get("data")).get("list")).size() > 0) {
-            api("file/delete?" + this.pr, Map.of("action_type", 2, "filelist", ((List<Map<String, Object>>) ((Map<String, Object>) listData.get("data")).get("list")).stream().map(v -> v.get("fid")).toArray(), "exclude_fids", new Object[]{}), 0, "POST");
+            List<String> list = new ArrayList<>();
+            for (Map<String, Object> stringStringMap : ((List<Map<String, Object>>) ((Map<String, Object>) listData.get("data")).get("list"))) {
+                list.add((String) stringStringMap.get("fid"));
+            }
+            api("file/delete?" + this.pr,
+
+
+                    Map.of("action_type", "2", "filelist", Json.toJson(list), "exclude_fids", ""), 0, "POST");
         }
     }
 
@@ -213,7 +233,7 @@ public class QuarkApi {
             }
         }
         if (this.saveDirId == null) {
-            Map<String, Object> create = Json.parseSafe(api("file?" + this.pr, Map.of("pdir_fid", "0", "file_name", this.saveDirName, "dir_path", "", "dir_init_lock", false), 0, "POST"), Map.class);
+            Map<String, Object> create = Json.parseSafe(api("file?" + this.pr, Map.of("pdir_fid", "0", "file_name", this.saveDirName, "dir_path", "", "dir_init_lock", "false"), 0, "POST"), Map.class);
             if (create.get("data") != null && ((Map<String, Object>) create.get("data")).get("fid") != null) {
                 this.saveDirId = ((Map<String, Object>) create.get("data")).get("fid").toString();
             }
@@ -227,10 +247,10 @@ public class QuarkApi {
         }
         if (this.saveDirId == null) return null;
         if (stoken == null) {
-            getShareToken(Map.of("shareId", shareId));
+            getShareToken(new ShareData(shareId, null));
             if (!this.shareTokenCache.containsKey(shareId)) return null;
         }
-        Map<String, Object> saveResult = Json.parseSafe(api("share/sharepage/save?" + this.pr, Map.of("fid_list", new String[]{fileId}, "fid_token_list", new String[]{fileToken}, "to_pdir_fid", this.saveDirId, "pwd_id", shareId, "stoken", stoken != null ? stoken : this.shareTokenCache.get(shareId).get("stoken"), "pdir_fid", "0", "scene", "link"), 0, "POST"), Map.class);
+        Map<String, Object> saveResult = Json.parseSafe(api("share/sharepage/save?" + this.pr, Map.of("fid_list", fileId, "fid_token_list", fileToken, "to_pdir_fid", this.saveDirId, "pwd_id", shareId, "stoken", stoken != null ? stoken : (String) this.shareTokenCache.get(shareId).get("stoken"), "pdir_fid", "0", "scene", "link"), 0, "POST"), Map.class);
         if (saveResult.get("data") != null && ((Map<String, Object>) saveResult.get("data")).get("task_id") != null) {
             int retry = 0;
             while (true) {
@@ -255,7 +275,7 @@ public class QuarkApi {
         Map<String, Object> transcoding = Json.parseSafe(api("file/v2/play?" + this.pr, Map.of("fid", this.saveFileIdCaches.get(fileId), "resolutions", "normal,low,high,super,2k,4k", "supports", "fmp4"), 0, "POST"), Map.class);
         if (transcoding.get("data") != null && ((Map<String, Object>) transcoding.get("data")).get("video_list") != null) {
             String flagId = flag.split("-")[flag.split("-").length - 1];
-            int index = Utils.findAllIndexes(getPlayFormatList(), flagId);
+            int index = Util.findAllIndexes(getPlayFormatList(), flagId);
             String quarkFormat = getPlayFormatQuarkList().get(index);
             for (Map<String, Object> video : (List<Map<String, Object>>) ((Map<String, Object>) transcoding.get("data")).get("video_list")) {
                 if (video.get("resolution").equals(quarkFormat)) {
@@ -299,4 +319,5 @@ public class QuarkApi {
     }
 
 
-}*/
+}
+
