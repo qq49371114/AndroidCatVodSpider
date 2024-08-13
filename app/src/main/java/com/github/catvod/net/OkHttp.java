@@ -21,6 +21,7 @@ public class OkHttp {
 
     private OkHttpClient client;
 
+
     private static class Loader {
         static volatile OkHttp INSTANCE = new OkHttp();
     }
@@ -51,6 +52,10 @@ public class OkHttp {
 
     public static String string(String url, Map<String, String> params, Map<String, String> header) {
         return url.startsWith("http") ? new OkRequest(GET, url, params, header).execute(client()).getBody() : "";
+    }
+
+    public static OkResult get(String url, Map<String, String> params, Map<String, String> header) {
+        return new OkRequest(GET, url, params, header).execute(client());
     }
 
     public static String post(String url, Map<String, String> params) {

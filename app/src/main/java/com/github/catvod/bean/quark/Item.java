@@ -16,6 +16,7 @@ public class Item {
     private String shareData;
     private int shareIndex;
     private long lastUpdateAt;
+    private String subtitle;
 
     public Item() {
         this.fileId = "";
@@ -53,6 +54,14 @@ public class Item {
     public String getFileExtension() {
         String[] arr = name.split("\\.");
         return arr[arr.length - 1];
+    }
+
+    public String getSubtitle() {
+        return subtitle;
+    }
+
+    public void setSubtitle(String subtitle) {
+        this.subtitle = subtitle;
     }
 
     public String getFileId() {

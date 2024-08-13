@@ -28,6 +28,10 @@ public class Json {
         }
     }
 
+    public static String toJson(Object obj) {
+        return new Gson().toJson(obj);
+    }
+
     public static <T> T parseSafe(String json, Type t) {
         try {
             return new Gson().fromJson(json, t);
