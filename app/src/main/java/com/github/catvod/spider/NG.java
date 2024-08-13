@@ -80,9 +80,9 @@ public class NG extends Spider {
     public String categoryContent(String tid, String pg, boolean filter, HashMap<String, String> extend) {
         try {
             Map<String, String> params = new HashMap<>(getParams());
-            for (String s : extend.keySet()) {
+           /* for (String s : extend.keySet()) {
                 params.put(s, URLEncoder.encode(extend.get(s), "UTF-8"));
-            }
+            }*/
             params.put("page", pg);
             params.put("id", tid);
             String string = OkHttp.string(COMMON_URL + FIND_VIDEO_VOD_LIST, params, getHeaders());
