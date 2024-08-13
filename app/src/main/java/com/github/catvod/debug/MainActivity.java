@@ -7,6 +7,7 @@ import android.widget.Button;
 import com.github.catvod.R;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.spider.Init;
+import com.github.catvod.spider.NG;
 import com.github.catvod.spider.PTT;
 import com.github.catvod.spider.Zxzj;
 import com.orhanobut.logger.AndroidLogAdapter;
@@ -47,7 +48,7 @@ public class MainActivity extends Activity {
     private void initSpider() {
         try {
             Init.init(getApplicationContext());
-            spider = new Zxzj();
+            spider = new NG();
             spider.init(this, "");
         } catch (Throwable e) {
             e.printStackTrace();
@@ -75,7 +76,7 @@ public class MainActivity extends Activity {
             HashMap<String, String> extend = new HashMap<>();
             extend.put("c", "19");
             extend.put("year", "2024");
-            Logger.t("categoryContent").d(spider.categoryContent("/list/1.html", "2", true, extend));
+            Logger.t("categoryContent").d(spider.categoryContent("1", "2", true, extend));
         } catch (Throwable e) {
             e.printStackTrace();
         }

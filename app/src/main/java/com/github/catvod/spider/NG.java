@@ -73,7 +73,25 @@ public class NG extends Spider {
                 classList.add(clazz);
             }
         }
-        return Result.string(classList, filters);
+        Map<String, String> params = new HashMap<>(getParams());
+           /* for (String s : extend.keySet()) {
+                params.put(s, URLEncoder.encode(extend.get(s), "UTF-8"));
+            }*/
+        params.put("page", "1");
+        params.put("id", classList.get(0).getTypeId());
+        String string = OkHttp.string(COMMON_URL + FIND_VIDEO_VOD_LIST, params, getHeaders());
+        Type type = new TypeToken<Rst<It>>() {
+        }.getType();
+        Rst<It> resp = Json.parseSafe(string, type);
+        List<Vod> vodList = new ArrayList<>();
+        if (resp != null && resp.isSuccess()) {
+            for (It it : resp.getList()) {
+                vodList.add(it.toVod());
+            }
+        } else {
+            SpiderDebug.log("ng cate error: " + string);
+        }
+        return Result.string(classList, vodList, filters);
     }
 
     @Override
