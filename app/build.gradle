@@ -2,7 +2,11 @@ plugins {
     id 'com.android.application'
     id 'ru.cleverpumpkin.proguard-dictionaries-generator'
 }
-
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
 android {
     namespace 'com.github.catvod'
 
