@@ -98,7 +98,7 @@ public class NG extends Spider {
                 SpiderDebug.log("ng cate error: " + string);
             }
 
-            return Result.string(classList, vodList, filters);
+            return Result.string(Integer.parseInt(pg), Integer.parseInt(pg) + 1, vodList.size(), Integer.MAX_VALUE, vodList);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -144,8 +144,8 @@ public class NG extends Spider {
 
     @Override
     public String searchContent(String key, boolean quick) throws UnsupportedEncodingException {
-       Map<String, String> params = new HashMap<>(getParams());
-        params.put("video_name", URLEncoder.encode(key,"UTF-8"));
+        Map<String, String> params = new HashMap<>(getParams());
+        params.put("video_name", URLEncoder.encode(key, "UTF-8"));
         String string = OkHttp.string(COMMON_URL + SEARCH_SEARCH, params, getHeaders());
         Type type = new TypeToken<Rst<List<SearchRst>>>() {
         }.getType();
