@@ -2,6 +2,7 @@ import android.app.Application;
 
 import com.github.catvod.spider.Init;
 import com.github.catvod.spider.NG;
+import com.github.catvod.spider.NGkt;
 import com.github.catvod.utils.Json;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -21,13 +22,13 @@ public class NGTest {
     // @Mock
     private Application mockContext;
 
-    private NG spider;
+    private NGkt spider;
 
     @org.junit.Before
     public void setUp() throws Exception {
         mockContext = RuntimeEnvironment.application;
         Init.init(mockContext);
-        spider = new NG();
+        spider = new NGkt();
         spider.init(mockContext, "https://www.czzy.site/");
     }
 
