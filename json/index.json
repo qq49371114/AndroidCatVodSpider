@@ -29,7 +29,7 @@
   "sites": [
     {
       "key": "Douban",
-      "name": "\uD83E\uDD54 豆瓣 | 仅推荐",
+      "name": " 豆瓣仅推荐",
       "type": 3,
       "api": "csp_Douban",
       "searchable": 0,
@@ -37,7 +37,7 @@
     },
     {
       "key": "Jianpian",
-      "name": "\uD83D\uDCC0 荐片 | 视频",
+      "name": "荐片视频",
       "type": 3,
       "api": "csp_Jianpian",
       "searchable": 1,
@@ -45,7 +45,7 @@
     },
     {
       "key": "玩偶",
-      "name": "玩偶",
+      "name": "玩偶哥哥",
       "type": 3,
       "api": "csp_Wogg",
       "searchable": 1,
@@ -62,7 +62,7 @@
     },
     {
       "key": "NCat",
-      "name": "\uD83D\uDE3C 网飞猫 | 影视",
+      "name": "网飞猫影视",
       "type": 3,
       "api": "csp_NCat",
       "searchable": 1,
@@ -90,7 +90,7 @@
     },
     {
       "key": "TvDy",
-      "name": "\uD83D\uDE07 电影天堂 | 影视",
+      "name": "电影天堂影视",
       "type": 3,
       "api": "csp_TvDy",
       "searchable": 1,
@@ -98,7 +98,7 @@
     },
     {
       "key": "W55Movie",
-      "name": "\uD83C\uDF9E\uFE0F 555电影 | 搜索×",
+      "name": "555电影",
       "type": 3,
       "api": "csp_W55Movie",
       "searchable": 0,
@@ -106,7 +106,7 @@
     },
     {
       "key": "DaGongRen",
-      "name": "\uD83D\uDC77\u200D♂\uFE0F 打工人电影 | 影视",
+      "name": "打工人电影",
       "type": 3,
       "api": "csp_DaGongRen",
       "searchable": 1,
@@ -114,7 +114,7 @@
     },
     {
       "key": "HkTv",
-      "name": "☁\uFE0F TVB云播 | 影视",
+      "name": "TVB云播影视",
       "type": 3,
       "api": "csp_HkTv",
       "searchable": 0,
@@ -133,7 +133,7 @@
 
     {
       "key": "JustLive",
-      "name": "\uD83D\uDCFA\uFE0F JustLive | 直播",
+      "name": "JustLive直播",
       "type": 3,
       "api": "csp_JustLive",
       "searchable": 1,
@@ -141,7 +141,7 @@
     },
     {
       "key": "Xb6v",
-      "name": "6\uFE0F⃣ 新版6V | 视频",
+      "name": "新版6V视频",
       "type": 3,
       "api": "csp_Xb6v",
       "searchable": 1,
@@ -149,7 +149,7 @@
     },
     {
       "key": "ikanbot",
-      "name": "🤖┃爱看机器人┃🤖",
+      "name":"爱看机器人",
       "type": 3,
       "api": "csp_Ikanbot",
       "searchable": 1,
@@ -158,7 +158,7 @@
     },
     {
       "key": "Libvio",
-      "name": "立播",
+      "name": "立播影视",
       "type": 3,
       "api": "csp_Libvio",
       "searchable": 1,
@@ -175,7 +175,7 @@
     },
     {
       "key": "Ysj",
-      "name": "\uD83C\uDF0F\uFE0F 异世界动漫 | 动漫(不稳定)",
+      "name": "异世界动漫(不稳定)",
       "type": 3,
       "api": "csp_Ysj",
       "searchable": 1,
@@ -183,7 +183,7 @@
     },
     {
       "key": "QxiTv",
-      "name": "七喜 | 影视",
+      "name": "七喜影视",
       "type": 3,
       "api": "csp_QxiTv",
       "searchable": 1,
@@ -192,7 +192,7 @@
     },
     {
       "key": "newvision",
-      "name": "🐼┃新视觉影院┃🐼",
+      "name":"(js)新视觉影院┃🐼",
       "api": "./js/newvision.js",
       "timeout": 30,
       "ext": {
@@ -203,7 +203,7 @@
     },
     {
       "key": "kankan70",
-      "name": "📺┃70看看┃📺",
+      "name":"(js)70看看┃📺",
       "api": "./js/kankan70.js",
       "timeout": 30,
       "ext": {
@@ -214,7 +214,7 @@
     },
     {
       "key": "tiantian",
-      "name": "⛄┃天天影视┃⛄",
+      "name":"(js)天天影视┃⛄",
       "api": "./js/tiantian.js",
       "timeout": 30,
       "ext": {
@@ -225,7 +225,7 @@
     },
     {
       "key": "xb6v",
-      "name": "🧲┃磁力新6V┃🧲",
+      "name":"(js)磁力新6V┃🧲",
       "api": "./js/xb6v.js",
       "timeout": 30,
       "ext": {
@@ -236,7 +236,7 @@
     },
     {
       "key": "mp4movie",
-      "name": "🍚┃Mp4电影┃🍚",
+      "name":"(js)Mp4电影┃🍚",
       "api": "./js/mp4movie.js",
       "timeout": 30,
       "ext": {
@@ -247,7 +247,7 @@
     },
     {
       "key": "jianpian",
-      "name": "🌼┃荐片┃🌼",
+      "name":"(js)荐片┃🌼",
       "api": "./js/jianpian.js",
       "timeout": 30,
       "ext": {
@@ -258,7 +258,7 @@
     },
     {
       "key": "alipansou",
-      "name": "😸┃阿里猫狸┃😸",
+      "name":"(js)阿里猫狸┃😸",
       "api": "./js/alipansou.js",
       "timeout": 30,
       "ext": {
@@ -271,7 +271,7 @@
     },
     {
       "key": "huya",
-      "name": "🐯┃虎牙直播┃🐯",
+      "name":"(js)虎牙直播┃🐯",
       "api": "./js/huya.js",
       "timeout": 30,
       "ext": {
@@ -282,7 +282,7 @@
     },
     {
       "key": "star",
-      "name": "☄️┃星视界┃墙☄️",
+      "name":"(js)星视界┃墙☄️",
       "api": "./js/star.js",
       "timeout": 30,
       "ext": {
@@ -293,7 +293,7 @@
     },
     {
       "key": "nivod",
-      "name": "👑‍┃泥视频┃墙👑",
+      "name":"(js)泥视频┃墙👑",
       "api": "./js/nivod.js",
       "timeout": 30,
       "ext": {
@@ -305,7 +305,7 @@
     },
     {
       "key": "aiyingshi",
-      "name": "🚀‍┃爱影视┃🚀",
+      "name":"(js)爱影视┃🚀",
       "api": "./js/aiyingshi.js",
       "timeout": 30,
       "ext": {
@@ -316,7 +316,7 @@
     },
     {
       "key": "sp360",
-      "name": "🥎┃360影视┃🥎",
+      "name":"(js)360影视┃🥎",
       "api": "./js/sp360.js",
       "timeout": 30,
       "ext": {
@@ -327,7 +327,7 @@
     },
     {
       "key": "mxanime",
-      "name": "🍒┃MX动漫┃🍒",
+      "name":"(js)MX动漫┃🍒",
       "api": "./js/mxanime.js",
       "timeout": 30,
       "ext": {
@@ -338,7 +338,7 @@
     },
     {
       "key": "cntv",
-      "name": "🤵‍♂️┃中央影视┃🤵‍♂️",
+      "name":"(js)中央影视┃🤵‍♂️",
       "api": "./js/cntv.js",
       "timeout": 30,
       "ext": {
@@ -349,7 +349,7 @@
     },
     {
       "key": "douban",
-      "name": "🍥┃豆瓣┃🍥",
+      "name":"(js)豆瓣┃🍥",
       "api": "./js/douban.js",
       "timeout": 30,
       "ext": {
@@ -360,7 +360,7 @@
     },
     {
       "key": "pan_search",
-      "name": "🗂️┃阿里盘搜┃🗂️",
+      "name":"(js)阿里盘搜┃🗂️",
       "api": "./js/pan_search.js",
       "timeout": 30,
       "ext": {
@@ -373,7 +373,7 @@
     },
     {
       "key": "bilibili",
-      "name": "🏰┃哔哩哔哩┃🏰",
+      "name":"(js)哔哩哔哩┃🏰",
       "api": "./js/bilibili.js",
       "timeout": 30,
       "ext": {
@@ -385,7 +385,7 @@
     },
     {
       "key": "changzhang",
-      "name": "🏭️┃厂长直连┃🏭️",
+      "name":"(js)厂长直连┃🏭️",
       "api": "./js/changzhang.js",
       "timeout": 30,
       "ext": {
@@ -398,7 +398,7 @@
     },
     {
       "key": "wogg",
-      "name": "💂‍┃阿里玩偶┃💂",
+      "name":"(js)阿里玩偶┃💂",
       "api": "./js/wogg.js",
       "timeout": 30,
       "ext": {
@@ -411,7 +411,7 @@
     },
     {
       "key": "nangua",
-      "name": "🎃┃南瓜影视┃🎃",
+      "name":"(js)南瓜影视┃🎃",
       "api": "./js/nangua.js",
       "timeout": 30,
       "ext": {
@@ -422,7 +422,7 @@
     },
     {
       "key": "aliyunpanshare",
-      "name": "🥏‍┃阿里云盘分享┃🥏‍",
+      "name":"(js)阿里云盘分享┃🥏‍",
       "api": "./js/aliyunpanshare.js",
       "timeout": 30,
       "ext": {
@@ -435,7 +435,7 @@
     },
     {
       "key": "dubo",
-      "name": "🛶┃独播影视┃🛶",
+      "name":"(js)独播影视┃🛶",
       "api": "./js/dubo.js",
       "timeout": 30,
       "ext": {
@@ -446,7 +446,7 @@
     },
     {
       "key": "haiwaikan",
-      "name": "☕┃海外看┃☕墙",
+      "name":"(js)海外看┃☕墙",
       "api": "./js/haiwaikan.js",
       "timeout": 30,
       "ext": {
@@ -457,7 +457,7 @@
     },
     {
       "key": "dygangs",
-      "name": "🏖️┃电影港┃🏖️",
+      "name":"(js)电影港┃🏖️",
       "api": "./js/dygangs.js",
       "timeout": 30,
       "ext": {
@@ -468,7 +468,7 @@
     },
     {
       "key": "cilixiong",
-      "name": "🐻┃磁力熊┃🐻",
+      "name":"(js)磁力熊┃🐻",
       "api": "./js/cilixiong.js",
       "timeout": 30,
       "ext": {
@@ -479,7 +479,7 @@
     },
     {
       "key": "lovemovie",
-      "name": "💕┃爱情电影网┃💕",
+      "name":"(js)爱情电影网┃💕",
       "api": "./js/lovemovie.js",
       "timeout": 30,
       "ext": {
@@ -490,7 +490,7 @@
     },
     {
       "key": "gitcafe",
-      "name": "🦊┃阿里纸条┃🦊",
+      "name":"(js)阿里纸条┃🦊",
       "api": "./js/gitcafe.js",
       "timeout": 30,
       "ext": {
@@ -503,7 +503,7 @@
     },
     {
       "key": "kuaikan",
-      "name": "🛥︎┃快看视频┃🛥︎",
+      "name":"(js)快看视频┃🛥︎",
       "api": "./js/kuaikan.js",
       "timeout": 30,
       "ext": {
