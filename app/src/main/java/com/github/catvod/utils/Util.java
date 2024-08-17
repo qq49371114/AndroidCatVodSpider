@@ -274,6 +274,9 @@ public class Util {
     public static String base64Decode(String s) {
         return new String(android.util.Base64.decode(s, Base64.DEFAULT), Charset.defaultCharset());
     }
+    public static String base64Encode(byte[] bytes) {
+        return new String(android.util.Base64.encode(bytes, Base64.DEFAULT), Charset.defaultCharset());
+    }
 
     /**
      * 字符串相似度匹配
