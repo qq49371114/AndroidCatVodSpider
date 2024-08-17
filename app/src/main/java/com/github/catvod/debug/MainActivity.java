@@ -6,12 +6,16 @@ import android.widget.Button;
 
 import com.github.catvod.R;
 import com.github.catvod.crawler.Spider;
+import com.github.catvod.net.OkHttp;
 import com.github.catvod.spider.Init;
 import com.github.catvod.spider.NG;
 import com.github.catvod.spider.PTT;
 import com.github.catvod.spider.Zxzj;
+import com.github.catvod.utils.Util;
 import com.orhanobut.logger.AndroidLogAdapter;
 import com.orhanobut.logger.Logger;
+import com.whl.quickjs.android.QuickJSLoader;
+import com.whl.quickjs.wrapper.QuickJSContext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,10 +27,13 @@ public class MainActivity extends Activity {
 
     private ExecutorService executor;
     private Spider spider;
+    private  QuickJSContext context;;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        QuickJSLoader.init();
+        context = QuickJSContext.create();
         setContentView(R.layout.activity_main);
         Button homeContent = findViewById(R.id.homeContent);
         Button homeVideoContent = findViewById(R.id.homeVideoContent);
@@ -43,6 +50,9 @@ public class MainActivity extends Activity {
         Logger.addLogAdapter(new AndroidLogAdapter());
         executor = Executors.newCachedThreadPool();
         executor.execute(this::initSpider);
+        String content = OkHttp.string("https://androidcatvodspider.pages.dev/json/js/newvision.js");
+       // byte[] bytes = context.compileModule(content, "newvision.js");
+       // String result = "//bb" + Util.base64Encode(bytes);
     }
 
     private void initSpider() {
