@@ -17,6 +17,9 @@ android {
         applicationId "com.github.catvod.demo"
         minSdk 16
         targetSdk 34
+        ndk { abiFilters "arm64-v8a" }
+
+
     }
 
     buildTypes {
@@ -54,7 +57,7 @@ android {
 dependencies {
     implementation 'com.googlecode.juniversalchardet:juniversalchardet:1.0.3'
     implementation 'com.github.thegrizzlylabs:sardine-android:0.9'
-    implementation 'wang.harlon.quickjs:wrapper-android:0.21.1'
+     implementation 'wang.harlon.quickjs:wrapper-android:2.0.0'
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
     implementation 'com.google.code.gson:gson:2.11.0'
     implementation 'cn.wanghaomiao:JsoupXpath:2.5.1'
@@ -68,5 +71,9 @@ dependencies {
     // Optional -- Mockito framework（可选，用于模拟一些依赖对象，以达到隔离依赖的效果）
     testImplementation 'org.mockito:mockito-core:5.12.0'
     testImplementation "org.robolectric:robolectric:4.13"
+    //implementation 'wang.harlon.quickjs:wrapper-java:1.0.0'
+   // implementation(ext: 'aar', name: 'quickjs', group: 'fongmi', version: 'release')
+   // api 'wang.harlon.quickjs:wrapper-android:2.0.0'
+
 
 }
