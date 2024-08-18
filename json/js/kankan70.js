@@ -1,138 +1,308 @@
-//bbAeUBcmh0dHBzOi8vYW5kcm9pZGNhdHZvZHNwaWRlci5wYWdlcy5kZXYvanNvbi9qcy9rYW5rYW43
-MC5qcx4uLi9saWIvdXRpbHMuanMaLi4vbGliL2NhdC5qcxouLi9saWIvdm9kLmpzFi4vc3BpZGVy
-LmpzHF9fanNFdmFsUmV0dXJuDHNwaWRlcgJfCGxvYWQSVm9kRGV0YWlsEFZvZFNob3J0DFNwaWRl
-chxLYW5rYW43MFNwaWRlcgpVdGlscxpnZXRfcXBfbmFtZTQ0CGluaXQIaG9tZQ5ob21lVm9kEGNh
-dGVnb3J5DGRldGFpbAhwbGF5DHNlYXJjaA5nZXROYW1lFGdldEFwcE5hbWUSZ2V0SlNOYW1lDmdl
-dFR5cGUecGFyYXNlVXJsT2JqZWN0MHBhcnNlVm9kU2hvcnRMaXN0RnJvbURvYypwYXJzZVZvZERl
-dGFpbEZyb21Eb2MycGFyc2VWb2RTaG9ydExpc3RGcm9tSnNvbhRzZXRDbGFzc2VzEmdldEZpbHRl
-chhzZXRGaWx0ZXJPYmoUc2V0SG9tZVZvZBZzZXRDYXRlZ29yeRJzZXREZXRhaWwSc2V0U2VhcmNo
-DnFwX3R5cGUEemQFAGcnWQR5agU4bEVOBGhuBVtyW3IEZ3MFSVHibARzbgWwZRdnBHdsBaFtbo8E
-bHoFb4JQWwRmcwVGAB+QBGZmBd6Y3pgEYmQFfnamXgR1awV3kVUABHdqBeBlKVkEYmoFa1ESYgR0
-awUpWXp6BHNzBR+QH5AEa2IFd5GtZARzZAXqlTV1BHhrBQt3C3cEdHAF2G3YbQRqeQW+fPGCIGh0
-dHA6Ly9jcWRiNi5jb20Oc2l0ZVVybBU92PrcAyU3ADAAC3cLdwMlPdj63Ak3ADAAC3cLdxBrYW5r
-YW43MAxqc19zdHIYY29udGVudF9saXN0EnVybE9iamVjdA5qc19uYW1lDnBsYXlfaWQOcGxkeV9p
-ZAxqc19rZXkCaQ5jb250ZW50EHBsYXlfdXJsGnBsYXlfdXJsX2xpc3QgcGxheV9mb3JtYXRfbGlz
-dAZrZXkgcGxheV9mb3JtYXRfbmFtZRB2b2RJdGVtcwI7DmluZGV4T2YadmFyIGxpYW56YWlqcwI9
-AiAMcGxfaWQ9CGxpc3QKcGxfZHkSdmFyIHBsX2R5EHBsYXlhcnJfAlsEPSICLAhwdXNoCGtleXMD
-LHsDxpYCJAIjBiQkJBZwbGF5X2Zvcm1hdBB2b2RfbGlzdBh2b2RfZWxlbWVudHMWdm9kX2VsZW1l
-bnQQdm9kU2hvcnQScmVtYXJrRWxlDmEubGktaHYCLw5hdHRyaWJzCGhyZWYMdm9kX2lkCnRpdGxl
-EHZvZF9uYW1lCGZpbmQGaW1nGmRhdGEtb3JpZ2luYWwOdm9kX3BpYwhwLmJ6EGNoaWxkcmVuCGRh
-dGEWdm9kX3JlbWFya3MSdm9kRGV0YWlsFmluZm9FbGVtZW50EmR0RWxlbWVudBBkZFN0cmluZxhb
-Y2xhc3M9aW5mb10OZHQubmFtZQRkZAh0ZXh0GmdldFN0ckJ5UmVnZXgQdm9kX2FyZWEQdm9kX3ll
-YXISdHlwZV9uYW1lGFtjbGFzcz1kZXMyXRRyZXBsYWNlQWxsAgoHZ1LFYBr/FnZvZF9jb250ZW50
-EGltZy5sYXp5Bm9iahR2b2Rfb2JqZWN0BnVybAp0aHVtYgh0aW1lCGh0bWwQZWxlbWVudHMOZWxl
-bWVudBZ0eXBlRWxlbWVudA50eXBlX2lkCmZldGNoEmdldEhlYWRlcg5pc0VtcHR5KFtjbGFzcz1p
-bmRleC1saXN0LWxdKltjbGFzcz0iaDEgY2xlYXJmaXgiXQJhDmNsYXNzZXMWZXh0ZW5kX2xpc3QU
-ZXh0ZW5kX2RpYxp0eXBlX2VsZW1lbnRzGHR5cGVfZWxlbWVudBh0eXBlX2lkX2xpc3Q0W2NsYXNz
-PSJzeSBzY29uIGNsZWFyZml4Il0EZGwEZHQOcmVwbGFjZQMJYwMa/wVnUsVgBXRe404FMFc6UwJu
-AnYSY2xhc3NfZGljCQBn0Y/0ZrBlEmZpbHRlck9iahZob21lVm9kTGlzdAZ0aWQEcGcMZmlsdGVy
-DGV4dGVuZBRjbGFzc19uYW1lBGlkDmFwaV9zdHIMcGFyYW1zEmNhdGVfaHRtbAxhY3Rpb24QcGFy
-c2VJbnQIcGFnZQh5ZWFyBmFsbAhhcmVhCGRlY3QOdm9kTGlzdBJkZXRhaWxVcmwMbWF0aGVyDGpz
-X3VybBRwbGF5T2JqZWN0PGh0dHA6Ly90ZXN0LmdxeXk4LmNvbTo4MDc3L25lMhh2b2RfcGxheV91
-cmwadm9kX3BsYXlfZnJvbQR3ZApxdWljaw5hcGlfdXJsGGNvbnRlbnRfanNvbhYvc2VhcmNoLnBo
-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
+/*
+* @File     : kankan70.js
+* @Author   : jade
+* @Date     : 2023/12/29 15:33
+* @Email    : jadehh@1ive.com
+* @Software : Samples
+* @Desc     :
+*/
+import * as Utils from "../lib/utils.js";
+import {_, load} from "../lib/cat.js";
+import {VodDetail, VodShort} from "../lib/vod.js";
+import {Spider} from "./spider.js";
+
+function get_qp_name44(qp_type) {
+    if (qp_type === 'zd') return '最大';
+    if (qp_type === 'yj') return '永久';
+    if (qp_type === 'hn') return '牛牛';
+    if (qp_type === 'gs') return '光波';
+    if (qp_type === 'sn') return '新朗';
+    if (qp_type === 'wl') return '涡轮';
+    if (qp_type === 'lz') return '良子';
+    if (qp_type === 'fs') return 'F速';
+    if (qp_type === 'ff') return '飞飞';
+    if (qp_type === 'bd') return '百度';
+    if (qp_type === 'uk') return '酷U';
+    if (qp_type === 'wj') return '无天';
+    if (qp_type === 'bj') return '八戒';
+    if (qp_type === 'tk') return '天空';
+    if (qp_type === 'ss') return '速速';
+    if (qp_type === 'kb') return '酷播';
+    if (qp_type === 'sd') return '闪电';
+    if (qp_type === 'xk') return '看看';
+    if (qp_type === 'tp') return '淘淘';
+    if (qp_type === 'jy') return '精英';
+
+    return qp_type;
+}
+
+
+class Kankan70Spider extends Spider {
+    constructor() {
+        super();
+        this.siteUrl = "http://cqdb6.com";
+    }
+
+    getName() {
+        return "📺┃70看看┃📺"
+    }
+
+    getAppName() {
+        return "70看看"
+    }
+
+    getJSName() {
+        return "kankan70"
+    }
+
+    getType() {
+        return 3
+    }
+
+    paraseUrlObject(js_str) {
+        let content_list = js_str.split(";")
+        let urlObject = {}
+        let js_name = ""
+        let play_id = 0
+        let pldy_id = 0
+        let js_key = ""
+        for (let i = 0; i < content_list.length; i++) {
+            let content = content_list[i]
+            if (content.indexOf("var lianzaijs") > -1) {
+                js_name = content.split("=")[0].split(" ")[1]
+                js_key = js_name.split("_")[1]
+            } else if (content.indexOf("pl_id=") > -1) {
+                play_id = content.split("=")[1]
+                urlObject[js_name] = {"play_id": play_id, "list": [], "pl_dy": pldy_id}
+            } else if (content.indexOf("var pl_dy") > -1) {
+                pldy_id = content.split("=")[1]
+            }
+            if (content.indexOf(`playarr_${js_key}[`) > -1) {
+                let play_url = content.split("=\"")[1].split(",")[0]
+                urlObject[js_name]["list"].push(play_url)
+            }
+        }
+        let play_url_list = [], play_format_list = [];
+        for (const key of Object.keys(urlObject)) {
+            if (key.indexOf("_") > -1) {
+                let play_format_name = get_qp_name44(key.split("_")[1])
+                play_format_list.push(play_format_name)
+                let vodItems = []
+                let index = 0
+                for (const play_url of urlObject[key]["list"]) {
+                    index = index + 1
+                    vodItems.push("第" + index.toString() + "集" + "$" + play_url)
+                }
+                play_url_list.push(vodItems.join("#"))
+            }
+        }
+        return {"play_format": play_format_list.join("$$$"), "play_url": play_url_list.join("$$$")}
+    }
+
+    async parseVodShortListFromDoc($) {
+        let vod_list = []
+        let vod_elements = $("a.li-hv")
+        for (const vod_element of vod_elements) {
+            let vodShort = new VodShort()
+            vodShort.vod_id = "/" + vod_element.attribs["href"]
+            vodShort.vod_name = vod_element.attribs["title"]
+            vodShort.vod_pic = $(vod_element).find("img")[0].attribs["data-original"]
+            let remarkEle = $(vod_element).find("p.bz")[0]
+            if (remarkEle.length > 0) {
+                vodShort.vod_remarks = remarkEle.children[0].data
+            }
+            vod_list.push(vodShort)
+        }
+        return vod_list
+    }
+
+    async parseVodDetailFromDoc($) {
+        let vodDetail = new VodDetail()
+        let infoElement = $("[class=info]")
+        let dtElement = $(infoElement).find("dt.name")[0]
+        vodDetail.vod_name = dtElement.children[0].data
+        vodDetail.vod_remarks = dtElement.children[1].children[0].data
+        let ddString = $(infoElement).find("dd").text()
+        vodDetail.vod_area = Utils.getStrByRegex(/地区：(.*?) /, ddString)
+        vodDetail.vod_year = Utils.getStrByRegex(/年代：(.*?)\n/, ddString)
+        vodDetail.type_name = Utils.getStrByRegex(/类型：(.*?)\n/, ddString)
+        vodDetail.vod_content = $(infoElement).find("[class=des2]").text().replaceAll("\n", "").replaceAll("剧情：", "")
+        vodDetail.vod_pic = $("img.lazy")[0].attribs["data-original"]
+
+        return vodDetail
+    }
+
+    async parseVodShortListFromJson(obj) {
+        let vod_list = []
+        for (const vod_object of obj) {
+            let vodShort = new VodShort()
+            vodShort.vod_id = vod_object["url"]
+            vodShort.vod_pic = vod_object["thumb"]
+            vodShort.vod_remarks = vod_object["time"]
+            vodShort.vod_name = vod_object["title"]
+            vod_list.push(vodShort)
+        }
+        return vod_list
+    }
+
+    async setClasses() {
+        let html = await this.fetch(this.siteUrl, null, this.getHeader())
+        if (!_.isEmpty(html)) {
+            let $ = load(html)
+            let elements = $("[class=index-list-l]")
+            for (const element of elements) {
+                let typeElement = $($(element).find("[class=\"h1 clearfix\"]")[0]).find("a")
+                let type_id = typeElement[0].attribs["href"]
+                let type_name = $(typeElement[1]).text()
+                if (!_.isEmpty(type_name)) {
+                    this.classes.push({"type_id": type_id, "type_name": type_name})
+                }
+            }
+        }
+    }
+
+    async getFilter(type_id) {
+        let url = this.siteUrl + type_id
+        let html = await this.fetch(url, null, this.getHeader())
+        let extend_list = []
+        if (!_.isEmpty(html)) {
+            let $ = load(html)
+            let elements = $("[class=\"sy scon clearfix\"]").find("dl")
+            let i = 0
+            for (const element of elements) {
+                let type_name = $($(element).find("dt")).text().replace("按", "").replace("：", "")
+                let extend_dic = {
+                    "key": (i + 1).toString(), "name": type_name, "value": []
+                }
+                let type_elements = $(element).find("a")
+                let index = 0
+                if (type_name === "剧情") {
+                    index = 3
+                } else if (type_name === "年代") {
+                    index = 2
+                } else if (type_name === "地区") {
+                    index = 4
+                }
+                for (const type_element of type_elements) {
+                    let type_id_list = type_element.attribs["href"].split("/")
+                    extend_dic["value"].push({"n": $(type_element).text(), "v": type_id_list[index]})
+                }
+                extend_list.push(extend_dic)
+                i = i + 1
+            }
+        }
+        return extend_list
+    }
+
+    async setFilterObj() {
+        for (const class_dic of this.classes) {
+            let type_id = class_dic["type_id"]
+            if (type_id !== "最近更新") {
+                this.filterObj[type_id] = await this.getFilter(type_id)
+            }
+        }
+    }
+
+    async setHomeVod() {
+        let html = await this.fetch(this.siteUrl, null, this.getHeader())
+        if (!_.isEmpty(html)) {
+            let $ = load(html)
+            this.homeVodList = await this.parseVodShortListFromDoc($)
+        }
+    }
+
+    async setCategory(tid, pg, filter, extend) {
+        let url = this.siteUrl + tid
+        let html = await this.fetch(url, null, this.getHeader())
+        if (!_.isEmpty(html)) {
+            let class_name = tid.split("/")[1]
+            let id = tid.split("/")[2]
+            let api_str = Utils.getStrByRegex(/var _yu_gda_s="(.*?)";/, html)
+            let params = {
+                "action": class_name,
+                "page": parseInt(pg),
+                "year": extend["2"] ?? "0",
+                "area": extend["3"] ?? "all",
+                "class": extend["1"] ?? "0",
+                "dect": "",
+                "id": id
+            }
+            let cate_html = await this.fetch(api_str, params, this.getHeader())
+            if (cate_html !== null) {
+                let $ = load(cate_html)
+                this.vodList = await this.parseVodShortListFromDoc($)
+            }
+        }
+
+    }
+
+    async setDetail(id) {
+        let detailUrl = this.siteUrl + id
+        let html = await this.fetch(detailUrl, null, this.getHeader())
+        if (!_.isEmpty(html)) {
+            let $ = load(html)
+            this.vodDetail = await this.parseVodDetailFromDoc($)
+            let mather = /<script type="text\/javascript" src="http:\/\/test.gqyy8.com:8077\/ne2(.*?)"><\/script>/g.exec(html)
+            let js_url = "http://test.gqyy8.com:8077/ne2" + mather[1]
+            let js_str = await this.fetch(js_url, null, this.getHeader())
+            if (!_.isEmpty(js_str)) {
+                let playObject = this.paraseUrlObject(js_str)
+                this.vodDetail.vod_play_url = playObject["play_url"]
+                this.vodDetail.vod_play_from = playObject["play_format"]
+            }
+        }
+    }
+
+    async setSearch(wd, quick) {
+        let url = this.siteUrl + "/search.php"
+        let html = await this.fetch(url, null, this.getHeader())
+        if (!_.isEmpty(html)) {
+            let params = {
+                "top": 10, "q": wd,
+            }
+            let api_url = Utils.getStrByRegex(/var my_search='(.*?)';/, html)
+            let content = await this.fetch(api_url, params, this.getHeader())
+            if (!_.isEmpty(content)) {
+                let content_json = JSON.parse(content.replaceAll("﻿",""))
+                this.vodList = await this.parseVodShortListFromJson(content_json)
+            }
+        }
+    }
+}
+
+let spider = new Kankan70Spider()
+
+async function init(cfg) {
+    await spider.init(cfg)
+}
+
+async function home(filter) {
+    return await spider.home(filter)
+}
+
+async function homeVod() {
+    return await spider.homeVod()
+}
+
+async function category(tid, pg, filter, extend) {
+    return await spider.category(tid, pg, filter, extend)
+}
+
+async function detail(id) {
+    return await spider.detail(id)
+}
+
+async function play(flag, id, flags) {
+    return await spider.play(flag, id, flags)
+}
+
+async function search(wd, quick) {
+    return await spider.search(wd, quick)
+}
+
+export function __jsEvalReturn() {
+    return {
+        init: init, home: home, homeVod: homeVod, category: category, detail: detail, play: play, search: search,
+    };
+}
+export {spider}
