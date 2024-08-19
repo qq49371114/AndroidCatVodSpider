@@ -1,901 +1,329 @@
-/*
-* @File     : spider.js
-* @Author   : jade
-* @Date     : 2023/12/25 17:19
-* @Email    : jadehh@1ive.com
-* @Software : Samples
-* @Desc     :
-*/
-
-import {JadeLogging} from "../lib/log.js";
-import * as Utils from "../lib/utils.js";
-import {VodDetail, VodShort} from "../lib/vod.js";
-import {_, load, Uri} from "../lib/cat.js";
-import * as HLS from "../lib/hls.js";
-import {hlsCache, tsCache} from "../lib/ffm3u8_open.js";
-import {DanmuSpider} from "../lib/danmuSpider.js";
-import { initCloud } from "../lib/cloud.js";
-class Result {
-    constructor() {
-        this.class = []
-        this.list = []
-        this.filters = []
-        this.header = {"User-Agent": Utils.CHROME};
-        this.format = "";
-        this.danmaku = "";
-        this.url = "";
-        this.subs = [];
-        this.parse = 0
-        this.jx = 0;
-        this.page = 0
-        this.pagecount = 0
-        this.limit = 0;
-        this.total = 0;
-        this.extra = {}
-
-    }
-
-    get() {
-        return new Result()
-    }
-
-    home(classes, list, filters) {
-        return JSON.stringify({
-            "class": classes, "list": list, "filters": filters
-        })
-    }
-
-    homeVod(vod_list) {
-        return JSON.stringify({"page": this.page, "list": vod_list, "pagecount": this.page, "total": this.page})
-    }
-
-    category(vod_list, page, count, limit, total) {
-        return JSON.stringify({
-            page: parseInt(page), pagecount: count, limit: limit, total: total, list: vod_list,
-        });
-    }
-
-    search(vod_list) {
-        return JSON.stringify({"list": vod_list,"page":this.page,"pagecount":this.pagecount,"total":this.total})
-    }
-
-    detail(vod_detail) {
-        return JSON.stringify({"list": [vod_detail]})
-    }
-
-    play(url) {
-        if (!_.isEmpty(this.danmaku)) {
-            return JSON.stringify({
-                "url": url,
-                "parse": this.parse,
-                "header": this.header,
-                "format": this.format,
-                "subs": this.subs,
-                "danmaku": this.danmaku,
-                "extra": this.extra,
-                "jx": this.jx
-            })
-        } else {
-            return JSON.stringify({
-                "url": url,
-                "parse": this.parse,
-                "header": this.header,
-                "format": this.format,
-                "subs": this.subs,
-                "extra": this.extra,
-                "jx": this.jx
-            })
-        }
-    }
-
-    playTxt(url) {
-        return url
-    }
-
-    errorCategory(error_message) {
-        let vodShort = new VodShort()
-        vodShort.vod_name = "错误:打开无效"
-        vodShort.vod_id = "error"
-        vodShort.vod_pic = Utils.RESOURCEURL + "/resources/error.png"
-        vodShort.vod_remarks = error_message
-        return JSON.stringify({
-            page: parseInt(0), pagecount: 0, limit: 0, total: 0, list: [vodShort],
-        })
-    }
-
-    setClass(classes) {
-        this.class = classes;
-        return this;
-    }
-
-    setVod(list) {
-        if (typeof list === "object" && Array.isArray(list)) {
-            this.list = list;
-        } else if (list !== undefined) {
-            this.list = [list]
-        }
-        return this;
-    }
-
-    setFilters(filters) {
-        this.filters = filters;
-        return this;
-    }
-
-    setHeader(header) {
-        this.header = header;
-        return this;
-    }
-
-    setParse(parse) {
-        this.parse = parse;
-        return this;
-    }
-
-    setJx() {
-        this.jx = 1;
-        return this;
-    }
-
-    setUrl(url) {
-        this.url = url;
-        return this;
-    }
-
-    danmu(danmaku) {
-        this.danmaku = danmaku;
-        return this;
-    }
-
-    setFormat(format) {
-        this.format = format;
-        return this;
-    }
-
-    setSubs(subs) {
-        this.subs = subs;
-        return this;
-    }
-
-    dash() {
-        this.format = "application/dash+xml";
-        return this;
-    }
-
-    m3u8() {
-        this.format = "application/x-mpegURL";
-        return this;
-    }
-
-    rtsp() {
-        this.format = "application/x-rtsp";
-        return this;
-    }
-
-    octet() {
-        this.format = "application/octet-stream";
-        return this;
-    }
-
-
-    setPage(page, count, limit, total) {
-        this.page = page
-        this.limit = limit
-        this.total = total
-        this.pagecount = count
-        return this;
-    }
-
-    toString() {
-        return JSON.stringify(this);
-    }
-}
-
-class Spider {
-    constructor() {
-        this.siteKey = ""
-        this.siteType = 0
-        this.jadeLog = new JadeLogging(this.getAppName(), "DEBUG")
-        this.classes = []
-        this.filterObj = {}
-        this.result = new Result()
-        this.catOpenStatus = true
-        this.danmuStaus = false
-        this.reconnectTimes = 0
-        this.maxReconnectTimes = 5
-        this.siteUrl = ""
-        this.vodList = []
-        this.homeVodList = []
-        this.count = 0
-        this.limit = 0
-        this.total = 0
-        this.page = 0
-        this.vodDetail = new VodDetail()
-        this.playUrl = ""
-        this.header = {}
-        this.remove18 = false
-        this.type_id_18 = 0
-        this.type_name_18 = "伦理片"
-        this.episodeObj = {}
-        this.danmuUrl = ""
-        this.cfgObj = {}
-
-    }
-
-    async reconnnect(reqUrl, params, headers, redirect_url, return_cookie, buffer) {
-        await this.jadeLog.error("请求失败,请检查url:" + reqUrl + ",两秒后重试")
-        Utils.sleep(2)
-        if (this.reconnectTimes < this.maxReconnectTimes) {
-            this.reconnectTimes = this.reconnectTimes + 1
-            return await this.fetch(reqUrl, params, headers, redirect_url, return_cookie, buffer)
-        } else {
-            await this.jadeLog.error("请求失败,重连失败")
-            return null
-        }
-    }
-
-    getClassIdList() {
-        let class_id_list = []
-        for (const class_dic of this.classes) {
-            class_id_list.push(class_dic["type_id"])
-        }
-        return class_id_list
-    }
-
-    getTypeDic(type_name, type_id) {
-        return {"type_name": type_name, "type_id": type_id}
-    }
-    getFliterDic(type_name, type_id) {
-        return {"n": type_name, "v": type_id}
-    }
-
-
-    async getHtml(url = this.siteUrl, proxy = false, headers = this.getHeader()) {
-        let html = await this.fetch(url, null, headers, false, false, 0, proxy)
-        if (!_.isEmpty(html)) {
-            return load(html)
-        } else {
-            await this.jadeLog.error(`html获取失败`, true)
-        }
-    }
-
-    getClassNameList() {
-        let class_name_list = []
-        for (const class_dic of this.classes) {
-            class_name_list.push(class_dic["type_name"])
-        }
-        return class_name_list
-    }
-
-    async postReconnect(reqUrl, params, headers,postType,buffer) {
-        await this.jadeLog.error("请求失败,请检查url:" + reqUrl + ",两秒后重试")
-        Utils.sleep(2)
-        if (this.reconnectTimes < this.maxReconnectTimes) {
-            this.reconnectTimes = this.reconnectTimes + 1
-            return await this.post(reqUrl, params, headers,postType,buffer)
-        } else {
-            await this.jadeLog.error("请求失败,重连失败")
-            return null
-        }
-    }
-
-    getHeader() {
-        return {"User-Agent": Utils.CHROME, "Referer": this.siteUrl + "/"};
-    }
-
-    async getResponse(reqUrl, params, headers, redirect_url, return_cookie, buffer, response,proxy) {
-        {
-            if (response.headers["location"] !== undefined) {
-                if (redirect_url) {
-                    await this.jadeLog.debug(`返回重定向连接:${response.headers["location"]}`)
-                    return response.headers["location"]
-                } else {
-                    return this.fetch(response.headers["location"], params, headers, redirect_url, return_cookie, buffer,proxy)
-                }
-            } else if (response.content.length > 0) {
-                this.reconnectTimes = 0
-                if (return_cookie) {
-                    return {"cookie": response.headers["set-cookie"], "content": response.content}
-                } else {
-                    return response.content
-                }
-            } else if (buffer === 1) {
-                this.reconnectTimes = 0
-                return response.content
-            } else {
-                await this.jadeLog.error(`请求失败,请求url为:${reqUrl},回复内容为:${JSON.stringify(response)}`)
-                return await this.reconnnect(reqUrl, params, headers, redirect_url, return_cookie, buffer,proxy)
-            }
-        }
-    }
-
-
-    async fetch(reqUrl, params, headers, redirect_url = false, return_cookie = false, buffer = 0, proxy = false) {
-        let data = Utils.objectToStr(params)
-        let url = reqUrl
-        if (!_.isEmpty(data)) {
-            url = reqUrl + "?" + data
-        }
-        let uri = new Uri(url);
-        let response;
-        if (redirect_url) {
-            response = await req(uri.toString(), {
-                method: "get", headers: headers, buffer: buffer, data: null, redirect: 2, proxy: proxy
-            })
-        } else {
-            response = await req(uri.toString(), {method: "get", headers: headers, buffer: buffer, data: null,proxy:proxy,timeout:10000});
-        }
-        if (response.code === 200 || response.code === 302 || response.code === 301 || return_cookie) {
-            return await this.getResponse(reqUrl, params, headers, redirect_url, return_cookie, buffer, response,proxy)
-        } else {
-            await this.jadeLog.error(`请求失败,失败原因为:状态码出错,请求url为:${uri},回复内容为:${JSON.stringify(response)}`)
-            return await this.reconnnect(reqUrl, params, headers, redirect_url, return_cookie, buffer, response,proxy)
-        }
-    }
-
-    async redirect(response) {
-
-    }
-
-
-    async post(reqUrl, params, headers, postType = "form",buffer = 0) {
-        let uri = new Uri(reqUrl);
-        let response = await req(uri.toString(), {
-            method: "post", headers: headers, data: params, postType: postType,buffer: buffer
-        });
-        if (response.code === 200 || response.code === undefined || response.code === 302) {
-            // 重定向
-            if (response.headers["location"] !== undefined) {
-                return await this.redirect(response)
-            } else if (!_.isEmpty(response.content)) {
-                this.reconnectTimes = 0
-                return response.content
-            } else {
-                return await this.postReconnect(reqUrl, params, headers,postType,buffer)
-            }
-        } else {
-            await this.jadeLog.error(`请求失败,请求url为:${reqUrl},回复内容为${JSON.stringify(response)}`)
-            return await this.postReconnect(reqUrl, params, headers,postType,buffer)
-
-        }
-    }
-
-
-    getName() {
-        return `🍥┃基础┃🍥`
-    }
-
-    getAppName() {
-        return `基础`
-    }
-
-    getJSName() {
-        return "base"
-    }
-
-    getType() {
-        return 3
-    }
-
-    async parseVodShortListFromDoc($) {
-
-    }
-
-    async parseVodShortListFromJson(obj) {
-
-    }
-
-    parseVodShortFromElement($, element) {
-
-    }
-
-    async parseVodShortListFromDocByCategory($) {
-
-    }
-
-    async getFilter($) {
-
-    }
-
-    async setClasses() {
-
-    }
-
-    async setFilterObj() {
-
-    }
-
-    async parseVodShortListFromDocBySearch($) {
-        return []
-    }
-
-    async parseVodDetailFromDoc($) {
-
-    }
-
-    async parseVodDetailfromJson(obj) {
-
-    }
-
-
-    async parseVodPlayFromUrl(flag, play_url) {
-
-    }
-
-    async parseVodPlayFromDoc(flag, $) {
-
-    }
-
-    async SpiderInit(cfg) {
-        try {
-            this.siteKey = cfg["skey"]
-            this.siteType = parseInt(cfg["stype"].toString())
-            let extObj = null;
-            if (typeof cfg.ext === "string") {
-                await this.jadeLog.info(`读取配置文件,ext为:${cfg.ext}`)
-                extObj = JSON.parse(cfg.ext)
-
-            } else if (typeof cfg.ext === "object") {
-                await this.jadeLog.info(`读取配置文件,所有参数为:${JSON.stringify(cfg)}`)
-                await this.jadeLog.info(`读取配置文件,ext为:${JSON.stringify(cfg.ext)}`)
-                extObj = cfg.ext
-            } else {
-                await this.jadeLog.error(`不支持的数据类型,数据类型为${typeof cfg.ext}`)
-            }
-            let boxType = extObj["box"]
-            extObj["CatOpenStatus"] = boxType === "CatOpen";
-            return extObj
-        } catch (e) {
-            await this.jadeLog.error("初始化失败,失败原因为:" + e.message)
-            return {"token": null, "CatOpenStatus": false, "code": 0}
-        }
-
-    }
-
-    async initCloud(token) {
-        await initCloud(token)
-    }
-
-    async spiderInit() {
-    }
-
-    async init(cfg) {
-        this.danmuSpider = new DanmuSpider()
-        this.cfgObj = await this.SpiderInit(cfg)
-        await this.jadeLog.debug(`初始化参数为:${JSON.stringify(cfg)}`)
-        this.catOpenStatus = this.cfgObj.CatOpenStatus
-        this.danmuStaus = this.cfgObj["danmu"] ?? this.danmuStaus
-        try {
-            if (await this.loadFilterAndClasses()) {
-                await this.jadeLog.debug(`读取缓存列表和二级菜单成功`)
-            } else {
-                await this.jadeLog.warning(`读取缓存列表和二级菜单失败`)
-                await this.writeFilterAndClasses()
-            }
-        } catch (e) {
-            await local.set(this.siteKey, "classes", JSON.stringify([]));
-            await local.set(this.siteKey, "filterObj", JSON.stringify({}));
-            await this.jadeLog.error("读取缓存失败,失败原因为:" + e)
-        }
-        this.jsBase = await js2Proxy(true, this.siteType, this.siteKey, 'img/', {});
-        this.douBanjsBase = await js2Proxy(true, this.siteType, this.siteKey, 'douban/', {});
-        this.baseProxy = await js2Proxy(true, this.siteType, this.siteKey, 'img/', this.getHeader());
-        this.videoProxy = await js2Proxy(true, this.siteType, this.siteKey, 'm3u8/', {});
-        this.detailProxy = await js2Proxy(true, this.siteType, this.siteKey, 'detail/', this.getHeader());
-
-    }
-
-    async loadFilterAndClasses() {
-        // 强制清空
-        // await local.set(this.siteKey, "classes", JSON.stringify([]));
-        // await local.set(this.siteKey, "filterObj", JSON.stringify({}));
-        this.classes = await this.getClassesCache()
-        this.filterObj = await this.getFiletObjCache()
-        if (this.classes.length > 0) {
-            return true
-        } else {
-            await local.set(this.siteKey, "classes", JSON.stringify([]));
-            await local.set(this.siteKey, "filterObj", JSON.stringify({}));
-            return false
-        }
-    }
-
-    async writeFilterAndClasses() {
-        if (this.catOpenStatus) {
-            this.classes.push({"type_name": "最近更新", "type_id": "最近更新"})
-        }
-        await this.setClasses()
-        await this.setFilterObj()
-        await local.set(this.siteKey, "classes", JSON.stringify(this.classes));
-        await local.set(this.siteKey, "filterObj", JSON.stringify(this.filterObj));
-    }
-
-    async getClassesCache() {
-        let cacheClasses = await local.get(this.siteKey, "classes")
-        if (!_.isEmpty(cacheClasses)) {
-            return JSON.parse(cacheClasses)
-        } else {
-            return this.classes
-        }
-    }
-
-    async getFiletObjCache() {
-        let cacheFilterObj = await local.get(this.siteKey, "filterObj")
-        if (!_.isEmpty(cacheFilterObj)) {
-            return JSON.parse(cacheFilterObj)
-        } else {
-            return this.filterObj
-        }
-    }
-
-
-    async setHome(filter) {
-    }
-
-    async home(filter) {
-        this.vodList = []
-        await this.jadeLog.info("正在解析首页类别", true)
-        await this.setHome(filter)
-        await this.jadeLog.debug(`首页类别内容为:${this.result.home(this.classes, [], this.filterObj)}`)
-        await this.jadeLog.info("首页类别解析完成", true)
-        return this.result.home(this.classes, [], this.filterObj)
-    }
-
-    async setHomeVod() {
-
-    }
-
-    async homeVod() {
-        await this.jadeLog.info("正在解析首页内容", true)
-        await this.setHomeVod()
-        await this.jadeLog.debug(`首页内容为:${this.result.homeVod(this.homeVodList)}`)
-        await this.jadeLog.info("首页内容解析完成", true)
-        return this.result.homeVod(this.homeVodList)
-    }
-
-    async setCategory(tid, pg, filter, extend) {
-
-    }
-
-    async category(tid, pg, filter, extend) {
-        this.page = parseInt(pg)
-        await this.jadeLog.info(`正在解析分类页面,tid = ${tid},pg = ${pg},filter = ${filter},extend = ${JSON.stringify(extend)}`)
-        if (tid === "最近更新") {
-            this.page = 0
-            return await this.homeVod()
-        } else {
-            try {
-                this.vodList = []
-                await this.setCategory(tid, pg, filter, extend)
-                await this.jadeLog.debug(`分类页面内容为:${this.result.category(this.vodList, this.page, this.count, this.limit, this.total)}`)
-                await this.jadeLog.info("分类页面解析完成", true)
-                return this.result.category(this.vodList, this.page, this.count, this.limit, this.total)
-            } catch (e) {
-                await this.jadeLog.error(`分类页解析失败,失败原因为:${e}`)
-            }
-
-        }
-
-    }
-
-    async setDetail(id) {
-
-    }
-
-
-    setEpisodeCache() {
-        // 记录每个播放链接的集数
-        let episodeObj = {
-            "vodDetail": this.vodDetail.to_dict(),
-        }
-        let vod_url_channels_list = this.vodDetail.vod_play_url.split("$$$")
-        for (const vodItemsStr of vod_url_channels_list) {
-            let vodItems = vodItemsStr.split("#")
-            for (const vodItem of vodItems) {
-                let episodeName = vodItem.split("$")[0].split(" ")[0]
-                let episodeUrl = vodItem.split("$")[1]
-                let matchers = episodeName.match(/\d+/g)
-                if (matchers !== null && matchers.length > 0) {
-                    episodeName = matchers[0]
-                }
-                episodeObj[episodeUrl] = {"episodeName": episodeName, "episodeId": episodeName}
-            }
-        }
-        return episodeObj
-    }
-
-    async detail(id) {
-        this.vodDetail = new VodDetail();
-        await this.jadeLog.info(`正在获取详情页面,id为:${id}`)
-        try {
-            await this.setDetail(id)
-            await this.jadeLog.debug(`详情页面内容为:${this.result.detail(this.vodDetail)}`)
-            await this.jadeLog.info("详情页面解析完成", true)
-            this.vodDetail.vod_id = id
-            if (this.siteType === 3) {
-                this.episodeObj = this.setEpisodeCache()
-            }
-
-            return this.result.detail(this.vodDetail)
-        } catch (e) {
-            await this.jadeLog.error("详情界面获取失败,失败原因为:" + e)
-        }
-
-    }
-
-    async setPlay(flag, id, flags) {
-        this.playUrl = id
-    }
-
-    async setDanmu(id) {
-        await this.jadeLog.debug(`${JSON.stringify(this.episodeObj)}`)
-        let episodeId = this.episodeObj[id]
-        let vodDetail = JSON.parse(this.episodeObj["vodDetail"])
-        delete vodDetail.vod_content;
-        delete vodDetail.vod_play_from;
-        delete vodDetail.vod_play_url;
-        delete vodDetail.vod_pic;
-        await this.jadeLog.debug(`正在加载弹幕,视频详情为:${JSON.stringify(vodDetail)},集数:${JSON.stringify(this.episodeObj[id])}`)
-        //区分电影还是电视剧
-        return await this.danmuSpider.getDammu(vodDetail, episodeId)
-    }
-
-    async play(flag, id, flags) {
-        await this.jadeLog.info(`正在解析播放页面,flag:${flag},id:${id},flags:${flags}`, true)
-        try {
-            let return_result;
-            await this.setPlay(flag, id, flags)
-            if (this.playUrl["content"] !== undefined) {
-                return_result = this.result.playTxt(this.playUrl)
-            } else {
-                if (this.danmuStaus && !this.catOpenStatus) {
-                    if (!_.isEmpty(this.danmuUrl)) {
-                        await this.jadeLog.debug("播放详情页面有弹幕,所以不需要再查找弹幕")
-                        return_result = this.result.danmu(this.danmuUrl).play(this.playUrl)
-                    } else {
-                        let danmuUrl;
-                        try {
-                            danmuUrl = await this.setDanmu(id)
-                        } catch (e) {
-                            await this.jadeLog.error(`弹幕加载失败,失败原因为:${e}`)
-                        }
-                        return_result = this.result.danmu(danmuUrl).play(this.playUrl)
-                    }
-
-                } else {
-                    await this.jadeLog.debug("不需要加载弹幕", true)
-                    return_result = this.result.play(this.playUrl)
-                }
-            }
-            await this.jadeLog.info("播放页面解析完成", true)
-            await this.jadeLog.debug(`播放页面内容为:${return_result}`)
-            return return_result;
-
-        } catch (e) {
-            await this.jadeLog.error("解析播放页面出错,失败原因为:" + e)
-        }
-
-    }
-
-    async setSearch(wd, quick) {
-
-    }
-
-    async search(wd, quick) {
-        this.vodList = []
-        await this.jadeLog.info(`正在解析搜索页面,关键词为 = ${wd},quick = ${quick}`)
-        await this.setSearch(wd, quick,1)
-        if (this.vodList.length === 0) {
-            if (wd.indexOf(" ") > -1) {
-                await this.jadeLog.debug(`搜索关键词为:${wd},其中有空格,去除空格在搜索一次`)
-                await this.search(wd.replaceAll(" ", "").replaceAll("﻿", ""), quick)
-            }
-        }
-        await this.jadeLog.debug(`搜索页面内容为:${this.result.search(this.vodList)}`)
-        await this.jadeLog.info("搜索页面解析完成", true)
-        return this.result.search(this.vodList)
-    }
-
-    async getImg(url, headers) {
-        let resp;
-        let vpn_proxy = headers["Proxy"] // 使用代理不需要加headers
-        if (_.isEmpty(headers)) {
-            headers = {Referer: url, 'User-Agent': Utils.CHROME}
-        }
-        resp = await req(url, {buffer: 2, headers: headers,proxy:vpn_proxy});
-        try {
-            //二进制文件是不能使用Base64编码格式的
-            Utils.base64Decode(resp.content)
-            if (vpn_proxy){
-                await this.jadeLog.error(`使用VPN代理,图片地址为:${url},headers:${JSON.stringify(headers)},代理失败,准备重连,输出内容为:${JSON.stringify(resp)}`)
-            }else {
-                await this.jadeLog.error(`使用普通代理,图片地址为:${url},headers:${JSON.stringify(headers)},代理失败,准备重连,输出内容为:${JSON.stringify(resp)}`)
-            }
-            if (this.reconnectTimes < this.maxReconnectTimes){
-                this.reconnectTimes = this.reconnectTimes + 1
-                return await this.getImg(url,headers)
-            }else{
-                return {"code": 500, "headers": headers, "content": "加载失败"}
-            }
-        } catch (e) {
-            await this.jadeLog.debug("图片代理成功", true)
-            this.reconnectTimes = 0
-            return resp
-        }
-    }
-
-    async proxy(segments, headers) {
-        await this.jadeLog.debug(`正在设置反向代理 segments = ${segments.join(",")},headers = ${JSON.stringify(headers)}`)
-        let what = segments[0];
-        let url = Utils.base64Decode(segments[1]);
-        await this.jadeLog.debug(`反向代理参数为:${url}`)
-        if (what === 'img') {
-            await this.jadeLog.debug("通过代理获取图片", true)
-            let resp = await this.getImg(url, headers)
-            return JSON.stringify({
-                code: resp.code, buffer: 2, content: resp.content, headers: resp.headers,
-            });
-        } else if (what === "douban") {
-            let vod_list = await this.doubanSearch(url)
-            if (vod_list !== null) {
-                let vod_pic = vod_list[0].vod_pic
-                let resp;
-                if (!_.isEmpty(headers)) {
-                    resp = await req(vod_pic, {
-                        buffer: 2, headers: headers
-                    });
-                } else {
-                    resp = await req(vod_pic, {
-                        buffer: 2, headers: {
-                            Referer: vod_pic, 'User-Agent': Utils.CHROME,
-                        },
-                    });
-                }
-                return JSON.stringify({
-                    code: resp.code, buffer: 2, content: resp.content, headers: resp.headers,
-                });
-            }
-        } else if (what === "m3u8") {
-            let content;
-
-            if (!_.isEmpty(headers)) {
-                content = await this.fetch(url, null, headers, false, false, 2)
-            } else {
-                content = await this.fetch(url, null, {"Referer": url, 'User-Agent': Utils.CHROME}, false, false, 2)
-            }
-            await this.jadeLog.debug(`m3u8返回内容为:${Utils.base64Decode(content)}`)
-            if (!_.isEmpty(content)) {
-                return JSON.stringify({
-                    code: 200, buffer: 2, content: content, headers: {},
-                });
-            } else {
-                return JSON.stringify({
-                    code: 500, buffer: 2, content: content, headers: {},
-                })
-
-            }
-
-        } else if (what === 'hls') {
-            function hlsHeader(data, hls) {
-                let hlsHeaders = {};
-                if (data.headers['content-length']) {
-                    Object.assign(hlsHeaders, data.headers, {'content-length': hls.length.toString()});
-                } else {
-                    Object.assign(hlsHeaders, data.headers);
-                }
-                delete hlsHeaders['transfer-encoding'];
-                if (hlsHeaders['content-encoding'] == 'gzip') {
-                    delete hlsHeaders['content-encoding'];
-                }
-                return hlsHeaders;
-            }
-
-            const hlsData = await hlsCache(url, headers);
-            if (hlsData.variants) {
-                // variants -> variants -> .... ignore
-                const hls = HLS.stringify(hlsData.plist);
-                return {
-                    code: hlsData.code, content: hls, headers: hlsHeader(hlsData, hls),
-                };
-            } else {
-                const hls = HLS.stringify(hlsData.plist, (segment) => {
-                    return js2Proxy(false, this.siteType, this.siteKey, 'ts/' + encodeURIComponent(hlsData.key + '/' + segment.mediaSequenceNumber.toString()), headers);
-                });
-                return {
-                    code: hlsData.code, content: hls, headers: hlsHeader(hlsData, hls),
-                };
-            }
-        } else if (what === 'ts') {
-            const info = url.split('/');
-            const hlsKey = info[0];
-            const segIdx = parseInt(info[1]);
-            return await tsCache(hlsKey, segIdx, headers);
-        } else if (what === "detail") {
-            let $ = await this.getHtml(this.siteUrl + url)
-            let vodDetail = await this.parseVodDetailFromDoc($)
-            let resp = await this.getImg(vodDetail.vod_pic, headers)
-            return JSON.stringify({
-                code: resp.code, buffer: 2, content: resp.content, headers: resp.headers,
-            });
-        } else {
-            return JSON.stringify({
-                code: 500, content: '',
-            });
-        }
-    }
-
-
-    getSearchHeader() {
-        const UserAgents = ["api-client/1 com.douban.frodo/7.22.0.beta9(231) Android/23 product/Mate 40 vendor/HUAWEI model/Mate 40 brand/HUAWEI  rom/android  network/wifi  platform/AndroidPad", "api-client/1 com.douban.frodo/7.18.0(230) Android/22 product/MI 9 vendor/Xiaomi model/MI 9 brand/Android  rom/miui6  network/wifi  platform/mobile nd/1", "api-client/1 com.douban.frodo/7.1.0(205) Android/29 product/perseus vendor/Xiaomi model/Mi MIX 3  rom/miui6  network/wifi  platform/mobile nd/1", "api-client/1 com.douban.frodo/7.3.0(207) Android/22 product/MI 9 vendor/Xiaomi model/MI 9 brand/Android  rom/miui6  network/wifi platform/mobile nd/1"]
-        let randomNumber = Math.floor(Math.random() * UserAgents.length); // 生成一个介于0到9之间的随机整数
-        return {
-            'User-Agent': UserAgents[randomNumber]
-
-        }
-    }
-
-    async parseDoubanVodShortListFromJson(obj) {
-        let vod_list = []
-        for (const item of obj) {
-            let vod_short = new VodShort()
-            vod_short.vod_id = "msearch:" + item["id"]
-            if (item["title"] === undefined) {
-                vod_short.vod_name = item["target"]["title"]
-            } else {
-                vod_short.vod_name = item["title"]
-            }
-            if (item["pic"] === undefined) {
-                vod_short.vod_pic = item["target"]["cover_url"]
-            } else {
-                vod_short.vod_pic = item["pic"]["normal"]
-            }
-            if (item["rating"] === undefined) {
-                vod_short.vod_remarks = "评分:" + item["target"]["rating"]["value"].toString()
-            } else {
-                vod_short.vod_remarks = "评分:" + item["rating"]["value"].toString()
-            }
-            vod_list.push(vod_short);
-        }
-        return vod_list
-    }
-
-    sign(url, ts, method = 'GET') {
-        let _api_secret_key = "bf7dddc7c9cfe6f7"
-        let url_path = "%2F" + url.split("/").slice(3).join("%2F")
-        let raw_sign = [method.toLocaleUpperCase(), url_path, ts.toString()].join("&")
-        return CryptoJS.HmacSHA1(raw_sign, _api_secret_key).toString(CryptoJS.enc.Base64)
-    }
-
-    async doubanSearch(wd) {
-        try {
-            let _api_url = "https://frodo.douban.com/api/v2"
-            let _api_key = "0dad551ec0f84ed02907ff5c42e8ec70"
-            let url = _api_url + "/search/movie"
-            let date = new Date()
-            let ts = date.getFullYear().toString() + (date.getMonth() + 1).toString() + date.getDate().toString()
-            let params = {
-                '_sig': this.sign(url, ts),
-                '_ts': ts,
-                'apiKey': _api_key,
-                'count': 20,
-                'os_rom': 'android',
-                'q': encodeURIComponent(wd),
-                'start': 0
-            }
-            let content = await this.fetch(url, params, this.getSearchHeader())
-            if (!_.isEmpty(content)) {
-                let content_json = JSON.parse(content)
-                await this.jadeLog.debug(`豆瓣搜索结果:${content}`)
-                return await this.parseDoubanVodShortListFromJson(content_json["items"])
-            }
-            return null
-
-        } catch (e) {
-            await this.jadeLog.error("反向代理出错,失败原因为:" + e)
-        }
-    }
-
-}
-
-
-export {Spider, Result}
+//bbAYcDbmh0dHBzOi8vYW5kcm9pZGNhdHZvZHNwaWRlci5wYWdlcy5kZXYvanNvbi9qcy9zcGlkZXIu
+anMaLi4vbGliL2xvZy5qcx4uLi9saWIvdXRpbHMuanMaLi4vbGliL3ZvZC5qcxouLi9saWIvY2F0
+LmpzGi4uL2xpYi9obHMuanMqLi4vbGliL2ZmbTN1OF9vcGVuLmpzKi4uL2xpYi9kYW5tdVNwaWRl
+ci5qcx4uLi9saWIvY2xvdWQuanMMU3BpZGVyDFJlc3VsdBZKYWRlTG9nZ2luZxJWb2REZXRhaWwQ
+Vm9kU2hvcnQCXwhsb2FkBlVyaRBobHNDYWNoZQ50c0NhY2hlFkRhbm11U3BpZGVyEmluaXRDbG91
+ZApVdGlscwZITFMIaG9tZQ5ob21lVm9kEGNhdGVnb3J5DHNlYXJjaAxkZXRhaWwIcGxheQ5wbGF5
+VHh0GmVycm9yQ2F0ZWdvcnkQc2V0Q2xhc3MMc2V0Vm9kFHNldEZpbHRlcnMSc2V0SGVhZGVyEHNl
+dFBhcnNlCnNldEp4DHNldFVybApkYW5tdRJzZXRGb3JtYXQOc2V0U3VicwhkYXNoCG0zdTgIcnRz
+cApvY3RldA5zZXRQYWdlFHJlY29ubm5lY3QcZ2V0Q2xhc3NJZExpc3QUZ2V0VHlwZURpYxhnZXRG
+bGl0ZXJEaWMOZ2V0SHRtbCBnZXRDbGFzc05hbWVMaXN0GnBvc3RSZWNvbm5lY3QSZ2V0SGVhZGVy
+FmdldFJlc3BvbnNlCmZldGNoEHJlZGlyZWN0CHBvc3QOZ2V0TmFtZRRnZXRBcHBOYW1lEmdldEpT
+TmFtZQ5nZXRUeXBlMHBhcnNlVm9kU2hvcnRMaXN0RnJvbURvYzJwYXJzZVZvZFNob3J0TGlzdEZy
+b21Kc29uMHBhcnNlVm9kU2hvcnRGcm9tRWxlbWVudERwYXJzZVZvZFNob3J0TGlzdEZyb21Eb2NC
+eUNhdGVnb3J5EmdldEZpbHRlchRzZXRDbGFzc2VzGHNldEZpbHRlck9iakBwYXJzZVZvZFNob3J0
+TGlzdEZyb21Eb2NCeVNlYXJjaCpwYXJzZVZvZERldGFpbEZyb21Eb2MscGFyc2VWb2REZXRhaWxm
+cm9tSnNvbiZwYXJzZVZvZFBsYXlGcm9tVXJsJnBhcnNlVm9kUGxheUZyb21Eb2MUU3BpZGVySW5p
+dBRzcGlkZXJJbml0CGluaXQobG9hZEZpbHRlckFuZENsYXNzZXMqd3JpdGVGaWx0ZXJBbmRDbGFz
+c2VzHmdldENsYXNzZXNDYWNoZSBnZXRGaWxldE9iakNhY2hlDnNldEhvbWUUc2V0SG9tZVZvZBZz
+ZXRDYXRlZ29yeRJzZXREZXRhaWwec2V0RXBpc29kZUNhY2hlDnNldFBsYXkQc2V0RGFubXUSc2V0
+U2VhcmNoDGdldEltZx5nZXRTZWFyY2hIZWFkZXI+cGFyc2VEb3ViYW5Wb2RTaG9ydExpc3RGcm9t
+SnNvbghzaWduGGRvdWJhblNlYXJjaAhsaXN0DmZpbHRlcnMMQ0hST01FFFVzZXItQWdlbnQMaGVh
+ZGVyDGZvcm1hdA5kYW5tYWt1BnVybAhzdWJzCnBhcnNlBGp4CHBhZ2UScGFnZWNvdW50CmxpbWl0
+CnRvdGFsCmV4dHJhDmNsYXNzZXMSc3RyaW5naWZ5EHZvZF9saXN0CmNvdW50EHBhcnNlSW50FHZv
+ZF9kZXRhaWwOaXNFbXB0eRplcnJvcl9tZXNzYWdlEHZvZFNob3J0DxmV74s6AFNiAF/gZUhlEHZv
+ZF9uYW1lCmVycm9yDHZvZF9pZBZSRVNPVVJDRVVSTCgvcmVzb3VyY2VzL2Vycm9yLnBuZw52b2Rf
+cGljFnZvZF9yZW1hcmtzDmlzQXJyYXkoYXBwbGljYXRpb24vZGFzaCt4bWwqYXBwbGljYXRpb24v
+eC1tcGVnVVJMJGFwcGxpY2F0aW9uL3gtcnRzcDBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0Oc2l0
+ZUtleRBzaXRlVHlwZQpERUJVRw5qYWRlTG9nEmZpbHRlck9iagxyZXN1bHQaY2F0T3BlblN0YXR1
+cxRkYW5tdVN0YXVzHHJlY29ubmVjdFRpbWVzIm1heFJlY29ubmVjdFRpbWVzDnNpdGVVcmwOdm9k
+TGlzdBZob21lVm9kTGlzdBJ2b2REZXRhaWwOcGxheVVybBByZW1vdmUxOBR0eXBlX2lkXzE4ByZP
+BnRHchh0eXBlX25hbWVfMTgUZXBpc29kZU9iahBkYW5tdVVybAxjZmdPYmoMcmVxVXJsDHBhcmFt
+cw5oZWFkZXJzGHJlZGlyZWN0X3VybBpyZXR1cm5fY29va2llDGJ1ZmZlchn3i0JsMVkljSwA94vA
+aOVndQByAGwAOgANLAAkTtJ5DlTNkdWLCnNsZWVwE/eLQmwxWSWNLADNkd6PMVkljRpjbGFzc19p
+ZF9saXN0EmNsYXNzX2RpYwhwdXNoDnR5cGVfaWQSdHlwZV9uYW1lAm4CdghodG1sEWgAdABtAGwA
+t4PWUzFZJY0eY2xhc3NfbmFtZV9saXN0EHBvc3RUeXBlAi8OUmVmZXJlchByZXNwb25zZRBsb2Nh
+dGlvbgpkZWJ1ZxHUj95WzZGaWxFU3o+lYzoADmNvbnRlbnQUc2V0LWNvb2tpZQxjb29raWUZ94tC
+bDFZJY0sAPeLQmx1AHIAbAA6TjoADywA3lYNWYVRuVs6TjoACGRhdGEGdXJpFm9iamVjdFRvU3Ry
+Aj8GcmVxDG1ldGhvZA50aW1lb3V0CGNvZGUx94tCbDFZJY0sADFZJY2fU+BWOk46ALZyAWABePpR
+GZUsAPeLQmx1AHIAbAA6TjoACGZvcm0NLADeVg1ZhVG5WzpOETzYZd8DJfpXQHgDJTzYZd8F+ldA
+eAhiYXNlAiQGb2JqDmVsZW1lbnQIZmxhZxBwbGF5X3VybAZjZmcMZXh0T2JqDmJveFR5cGUCZQhz
+a2V5CnN0eXBlBmV4dAhpbmZvGfuL1lNNkW5/h2X2TiwAZQB4AHQAOk46ABv7i9ZTTZFuf4dl9k4s
+AEBiCWfCU3BlOk46AB0NTi9lAWOEdnBlbmN7fItXLABwZW5je3yLVzpOBmJveBpDYXRPcGVuU3Rh
+dHVzDkNhdE9wZW4ZHVLLWRZTMVkljSwAMVkljZ9T4FY6TjoACnRva2VuFmRhbm11U3BpZGVyDx1S
+y1kWU8JTcGU6TjoAG/uL1lMTf1hbF1JoiIxUjE6nftyDVVMQYp9SDndhcm5pbmcb+4vWUxN/WFsX
+UmiIjFSMTqd+3INVUzFZJY0KbG9jYWwb+4vWUxN/WFsxWSWNLAAxWSWNn1PgVjpOOgAQanMyUHJv
+eHkIaW1nLwxqc0Jhc2UOZG91YmFuLxhkb3VCYW5qc0Jhc2USYmFzZVByb3h5Cm0zdTgvFHZpZGVv
+UHJveHkOZGV0YWlsLxZkZXRhaWxQcm94eQkAZ9GP9GawZRhjYWNoZUNsYXNzZXMcY2FjaGVGaWx0
+ZXJPYmoMZmlsdGVyEWNrKFfjiZBnlpl1mHt8K1IRlpl1mHt8K1KFUblbOk46ABGWmXWYe3wrUuOJ
+kGeMWxBiEWNrKFfjiZBnlpl1mIVRuVsNlpl1mIVRuVs6TjoAEZaZdZiFUblb44mQZ4xbEGIGdGlk
+BHBnDGV4dGVuZB9jayhX44mQZwZSe3x1mGKXLAB0AGkAZAAgAD0AIAAMLHBnID0gFCxmaWx0ZXIg
+PSAULGV4dGVuZCA9IBEGUnt8dZhil4VRuVs6TjoAEQZSe3x1mGKX44mQZ4xbEGIdBlJ7fHWY44mQ
+ZzFZJY0sADFZJY2fU+BWOk46AARpZCp2b2RfdXJsX2NoYW5uZWxzX2xpc3QWdm9kSXRlbXNTdHIQ
+dm9kSXRlbXMOdm9kSXRlbRZlcGlzb2RlTmFtZRRlcGlzb2RlVXJsEG1hdGNoZXJzDnRvX2RpY3QY
+dm9kX3BsYXlfdXJsBiQkJAIjAiAKbWF0Y2gSZXBpc29kZUlkG2NrKFe3g9ZT5ovFYHWYYpcsAGkA
+ZAA6TjoAEeaLxWB1mGKXhVG5WzpOOgAR5ovFYHWYYpfjiZBnjFsQYh/mi8VgTHVil7eD1lMxWSWN
+LAAxWSWNn1PgVjpOOgAWdm9kX2NvbnRlbnQadm9kX3BsYXlfZnJvbRtjayhXoFJ9jzlfVV4sAMaJ
+kZjmi8VgOk46AAksAMaWcGU6ABBnZXREYW1tdRpyZXR1cm5fcmVzdWx0HWNrKFfjiZBnrWQ+ZXWY
+YpcsAGYAbABhAGcAOgAILGlkOg4sZmxhZ3M6Ka1kPmXmi8VgdZhilwlnOV9VXiwAQGLlTg1OAJeB
+iY1R5Wd+YjlfVV4bOV9VXqBSfY8xWSWNLAAxWSWNn1PgVjpOOgAPDU4Al4GJoFJ9jzlfVV4RrWQ+
+ZXWYYpfjiZBnjFsQYhGtZD5ldZhil4VRuVs6TjoAH+OJkGetZD5ldZhil/pRGZUsADFZJY2fU+BW
+Ok46AAR3ZApxdWljayFjayhX44mQZxxkIn11mGKXLABzUS6VzYs6TiAAPQAgABIscXVpY2sgPSAO
+aW5kZXhPZg8cZCJ9c1Eulc2LOk46ACEsAHZRLU4JZ3p6PGgsALtTZJZ6ejxoKFccZCJ9AE4haxRy
+ZXBsYWNlQWxsA//+ERxkIn11mGKXhVG5WzpOOgARHGQifXWYYpfjiZBnjFsQYghyZXNwEnZwbl9w
+cm94eRhiYXNlNjREZWNvZGUdf08odVYAUABOAONOBnQsAP5WR3IwV0BXOk46ABIsaGVhZGVyczoj
+LADjTgZ0MVkljSwAxlEHWc2R3o8sAJOP+lGFUblbOk46ABt/Tyh1bmYakONOBnQsAP5WR3IwV0BX
+Ok46AAmgUn2PMVkljQ3+Vkdy404GdBBin1IQc2VnbWVudHMId2hhdBJobHNIZWFkZXIOaGxzRGF0
+YQZobHMMaGxzS2V5DHNlZ0lkeCljayhXvotuf81TEVTjTgZ0IABzAGUAZwBtAGUAbgB0AHMAIAA9
+ACAAAiwWLGhlYWRlcnMgPSARzVMRVONOBnTCU3BlOk46AAZpbWcRGpDHj+NOBnS3g9ZT/lZHcgxk
+b3ViYW4VbQAzAHUAOADUj95WhVG5WzpOOgAQdmFyaWFudHMKcGxpc3QEdHMUaGxzSGVhZGVycxxj
+b250ZW50LWxlbmd0aAxhc3NpZ24idHJhbnNmZXItZW5jb2RpbmcgY29udGVudC1lbmNvZGluZwhn
+emlwDnNlZ21lbnQGdHMvJGVuY29kZVVSSUNvbXBvbmVudAZrZXkmbWVkaWFTZXF1ZW5jZU51bWJl
+chRVc2VyQWdlbnRzGHJhbmRvbU51bWJlcsYCYXBpLWNsaWVudC8xIGNvbS5kb3ViYW4uZnJvZG8v
+Ny4yMi4wLmJldGE5KDIzMSkgQW5kcm9pZC8yMyBwcm9kdWN0L01hdGUgNDAgdmVuZG9yL0hVQVdF
+SSBtb2RlbC9NYXRlIDQwIGJyYW5kL0hVQVdFSSAgcm9tL2FuZHJvaWQgIG5ldHdvcmsvd2lmaSAg
+cGxhdGZvcm0vQW5kcm9pZFBhZK4CYXBpLWNsaWVudC8xIGNvbS5kb3ViYW4uZnJvZG8vNy4xOC4w
+KDIzMCkgQW5kcm9pZC8yMiBwcm9kdWN0L01JIDkgdmVuZG9yL1hpYW9taSBtb2RlbC9NSSA5IGJy
+YW5kL0FuZHJvaWQgIHJvbS9taXVpNiAgbmV0d29yay93aWZpICBwbGF0Zm9ybS9tb2JpbGUgbmQv
+MZ4CYXBpLWNsaWVudC8xIGNvbS5kb3ViYW4uZnJvZG8vNy4xLjAoMjA1KSBBbmRyb2lkLzI5IHBy
+b2R1Y3QvcGVyc2V1cyB2ZW5kb3IvWGlhb21pIG1vZGVsL01pIE1JWCAzICByb20vbWl1aTYgIG5l
+dHdvcmsvd2lmaSAgcGxhdGZvcm0vbW9iaWxlIG5kLzGqAmFwaS1jbGllbnQvMSBjb20uZG91YmFu
+LmZyb2RvLzcuMy4wKDIwNykgQW5kcm9pZC8yMiBwcm9kdWN0L01JIDkgdmVuZG9yL1hpYW9taSBt
+b2RlbC9NSSA5IGJyYW5kL0FuZHJvaWQgIHJvbS9taXVpNiAgbmV0d29yay93aWZpIHBsYXRmb3Jt
+L21vYmlsZSBuZC8xCmZsb29yDHJhbmRvbQhpdGVtEnZvZF9zaG9ydBBtc2VhcmNoOgp0aXRsZQZw
+aWMSY292ZXJfdXJsDG5vcm1hbAxyYXRpbmcHxIsGUjoAHl9hcGlfc2VjcmV0X2tleRB1cmxfcGF0
+aBByYXdfc2lnbgZHRVQgYmY3ZGRkYzdjOWNmZTZmNwYlMkYKc2xpY2UidG9Mb2NhbGVVcHBlckNh
+c2UCJhBDcnlwdG9KUxBIbWFjU0hBMQZlbmMMQmFzZTY0EF9hcGlfdXJsEF9hcGlfa2V5CGRhdGUY
+Y29udGVudF9qc29uPmh0dHBzOi8vZnJvZG8uZG91YmFuLmNvbS9hcGkvdjJAMGRhZDU1MWVjMGY4
+NGVkMDI5MDdmZjVjNDJlOGVjNzAaL3NlYXJjaC9tb3ZpZRZnZXRGdWxsWWVhchBnZXRNb250aA5n
+ZXREYXRlCF9zaWcGX3RzDGFwaUtleQ5hbmRyb2lkDG9zX3JvbQJxCnN0YXJ0D0aM43QcZCJ9036c
+ZzoACml0ZW1zG81TEVTjTgZ0+lEZlSwAMVkljZ9T4FY6TjoAD6QDCKYDqAOqA6wDrgOwA7IDtAMC
+AA22AwAMuAMADAC6AwAB+gEBArwDAgO+AwIEwAMDBcIDAwbEAwMH+gEECMYDBQnIAwUKygMGC8wD
+Bw4ABgGgAQAEAAMOU8IFBLgDAgBw7AEDAXC2AwQAMOwBBQNwugMADM4DAQ28AwIMvgMDDMADBAzC
+AwUMxAMGDNADBw3GAwgMyAMJDMoDCgzMAwsMuAMACbYDAQkI6AIpYQAABmEBAL0AVtwAAAAAvgFU
+QQAAAAC+AlTpAAAAAL4DVOoAAAAAvgRU6wAAAAC+BVTsAAAAAL4GVO0AAAAAvgdU7gAAAAC+CFTv
+AAAAAL4JVPAAAAAAvgpU8QAAAAC+C1TyAAAAAL4MVPMAAAAAvg1U9AAAAAC+DlT1AAAAAL4PVPYA
+AAAAvhBU9wAAAAC+EVT4AAAAAL4SVPkAAAAAvhNU+gAAAAC+FFT7AAAAAL4VVPwAAAAAvhZU/QAA
+AAC+F1T+AAAAAL4YVP8AAAAAvhlUNwAAAAAGyA7LaAEAaAAAXwwAYQIABmEDAL0aVtsAAAAAvhtU
+AAEAAAC+HFQBAQAAAL4dVAIBAAAAvh5UAwEAAAC+H1QEAQAAAL4gVAUBAAAAviFUBgEAAAC+IlQH
+AQAAAL4jVAgBAAAAviRUCQEAAAC+JVQKAQAAAL4mVAsBAAAAvidUDAEAAAC+KFQNAQAAAL4pVA4B
+AAAAvipUDwEAAAC+K1QQAQAAAL4sVBEBAAAAvi1UEgEAAAC+LlQTAQAAAL4vVBQBAAAAvjBUFQEA
+AAC+MVQWAQAAAL4yVBcBAAAAvjNUGAEAAAC+NFQZAQAAAL41VBoBAAAAvjZUGwEAAAC+N1QcAQAA
+AL44VOYAAAAAvjlUHQEAAAC+OlQeAQAAAL47VB8BAAAAvjxUIAEAAAC+PVQhAQAAAL4+VCIBAAAA
+vj9UIwEAAAC+QFTpAAAAAL5BVCQBAAAAvkJU6gAAAAC+Q1QlAQAAAL5EVOsAAAAAvkVUJgEAAAC+
+RlQnAQAAAL5HVO0AAAAAvkhUKAEAAAC+SVQpAQAAAL5KVO4AAAAAvktUKgEAAAC+TFTsAAAAAL5N
+VCsBAAAAvk5UgwAAAAC+T1QsAQAAAL5QVC0BAAAAvlFULgEAAAC+UlQvAQAAAAbKDs1oAwBfDQAp
+pAMB+gEBAAQkAA8sAAgMAAgIAAgMAAgIAAgIAAgyAAgIAAgWAAgKAAgSAAgKAAgKAAgKAAgKAAgK
+AAgKAAgKAAgKAAgKAAgKAAgKAAgKAAgSAAgIK0UAD1IACBAACAgtAAgUAAgQAAgYAAgIAAg0AAgw
+AAgIAAguAAgKAAgIAAgIAAgIAAgIAAgIAAgIAAgIAAgIAAgIAAgIAAgIAAgIAAgIAAgKAAgIAAg0
+AAgILQAINAAIHgAIFAAIEgAIEgAICAAIEgAICAAIEAAICAAIKgAICAAILAAIJgAICAAIGgAISgAI
+CAAIHgAIOAAIyAEACBQACDIACA4ACDosAAoIDkIHAQAAAQADAgCOAQEQAAEA7AEBDc4DAQwIxytl
+AAAR6AbDGyQAAA7DJgAAQx4AAADDJgAAQzABAADDJgAAQzEBAADDC2UBAEEyAQAATDMBAABDNAEA
+AMO/QzUBAADDv0M2AQAAw79DNwEAAMMmAABDOAEAAMOzQzkBAADDs0M6AQAAw7NDOwEAAMOzQzwB
+AADDs0M9AQAAw7NDPgEAAMMLQz8BAAAppAMTEE4wMDBnJiYmMCYmJiYmJigOQgcBAAAAAAIBAAgA
+uAMADWUAABEhAAAopAMmAgMmDkIHAQADAAMEAAAgA4AFAAEA4AQAAQDiBAABADiYAAAAQkEBAAAL
+z0weAAAA0EwwAQAA0UwxAQAAJQEApAMqAwM6XQ5CBwEAAQEBBAAANwKEBQABABAAAQAIxziYAAAA
+QkEBAAALw0E7AQAATDsBAADPTDABAADDQTsBAABMPAEAAMNBOwEAAEw+AQAAJQEApAMwAQ0OQgcB
+AAUABQUAADQFhAUAAQD2BAABAIYFAAEA+gQAAQD8BAABADiYAAAAQkEBAAALOEQBAADQ7Uw7AQAA
+0Uw8AQAA0kw9AQAAWwQATD4BAADPTDABAAAlAQCkAzQDAzrBDkIHAQABAQEEAAA3AoQFAAEAEAAB
+AAjHOJgAAABCQQEAAAvPTDABAADDQTsBAABMOwEAAMNBPAEAAEw8AQAAw0E+AQAATD4BAAAlAQCk
+AzoBDQ5CBwEAAQABBAAAFwGKBQABADiYAAAAQkEBAAALzyYBAEwwAQAAJQEApAM+AQMOQgcBAAEB
+AQQBAM0BAu4EAAEAEAABAMADBAwIx2UAAEJGAQAAw0E2AQAAJAEAluhiOJgAAABCQQEAAAvPTDcB
+AADDQTkBAABMOQEAAMNBNAEAAEw0AQAAw0E1AQAATDUBAADDQTgBAABMOAEAAMNBNgEAAEw2AQAA
+w0E/AQAATD8BAADDQToBAABMOgEAACUBADiYAAAAQkEBAAALz0w3AQAAw0E5AQAATDkBAADDQTQB
+AABMNAEAAMNBNQEAAEw1AQAAw0E4AQAATDgBAADDQT8BAABMPwEAAMNBOgEAAEw6AQAAJQEApANC
+FA1nOiE6Ojo6Ojo6EzohOjo6Ojo6DkIHAQABAAEBAAACAe4EAAEAzyikA1sCAwgOQgcBAAEBAQUC
+AHsCjgUAAQCQBQEAIL4DAwzOAwEMYQAAZQAAESEAAMdiAAAESQEAAENKAQAAYgAABEsBAABDTAEA
+AGIAAGUBAEFNAQAABE4BAACdQ08BAABiAADPQ1ABAAA4mAAAAEJBAQAACzhEAQAAs+1MOwEAALNM
+PAEAALNMPQEAALNMPgEAAGIAACYBAEwwAQAAJQEApANfCBIrRERxMDrQDkIHAQABAQECAAALAoAF
+AAEAEAABAAjHw89DHgAAAMMopANqAw0mCA5CBwEAAQEBAwAAOgLgBAABABAAAQAIx8+XBEkAAACr
+6Bo4kAAAAEJRAQAAzyQBAOgKw89DMAEAAOoUzzhFAAAArOgLw88mAQBDMAEAAMMopANvBg2FJjo2
+CA5CBwEAAQEBAgAACwLiBAABABAAAQAIx8PPQzEBAADDKKQDeAMNJggOQgcBAAEBAQIAAAsC6AQA
+AQAQAAEACMfDz0M0AQAAwyikA30DDSYIDkIHAQABAQECAAALAvIEAAEAEAABAAjHw89DOQEAAMMo
+pAOCAQMNJggOQgcBAAABAAIAAAsBEAABAAjHw7RDOgEAAMMopAOHAQMNJggOQgcBAAEBAQIAAAsC
+7gQAAQAQAAEACMfDz0M3AQAAwyikA4wBAw0mCA5CBwEAAQEBAgAACwLsBAABABAAAQAIx8PPQzYB
+AADDKKQDkQEDDSYIDkIHAQABAQECAAALAuoEAAEAEAABAAjHw89DNQEAAMMopAOWAQMNJggOQgcB
+AAEBAQIAAAsC8AQAAQAQAAEACMfDz0M4AQAAwyikA5sBAw0mCA5CBwEAAAEAAgAADwEQAAEACMfD
+BFIBAABDNQEAAMMopAOgAQMNOggOQgcBAAABAAIAAA8BEAABAAjHwwRTAQAAQzUBAADDKKQDpQED
+DToIDkIHAQAAAQACAAAPARAAAQAIx8MEVAEAAEM1AQAAwyikA6oBAw06CA5CBwEAAAEAAgAADwEQ
+AAEACMfDBFUBAABDNQEAAMMopAOvAQMNOggOQgcBAAQBBAIAACAF9gQAAQCGBQABAPoEAAEA/AQA
+AQAQAAEACMfDz0M7AQAAw9FDPQEAAMPSQz4BAADD0EM8AQAAwyikA7UBBg0mJiYmCA5CBwEAAAEA
+AwAAEAEQAAEACMc4mAAAAEJBAQAAwyUBAKQDvQEBDQ5CBwEAAAEABQQA8AEBEAABAOwBAw26AwAM
+uAMMCLwDAgwIxytlAAAR6AbDGyQAAA7Dv0NWAQAAw7NDVwEAAMNlAQARw0INAQAAJAAABFgBAAAh
+AgBDWQEAAMMmAABDQAEAAMMLQ1oBAADDZQIAESEAAENbAQAAwwpDXAEAAMMJQ10BAADDs0NeAQAA
+w7hDXwEAAMO/Q2ABAADDJgAAQ2EBAADDJgAAQ2IBAADDs0NDAQAAw7NDPQEAAMOzQz4BAADDs0M7
+AQAAw2UDABEhAABDYwEAAMO/Q2QBAADDC0M0AQAAwwlDZQEAAMOzQ2YBAADDBGcBAABDaAEAAMML
+Q2kBAADDv0NqAQAAwwtDawEAACmkA8MBG04mJoowJkQmJiYmJjAwJiYmJkQmJiYmOiYmKA5iBwEA
+BgEGCAEAdQfYBQABANoFAAEA3AUAAQDeBQABAOAFAAEA4gUAAQAQAAEAzgMBDAjHw0FZAQAAQksB
+AAAEcgEAAM+dBHMBAACdJAEAiw5lAABCdAEAALUkAQAOw0FeAQAAw0FfAQAAo+gkw8NBXgEAALSd
+Q14BAADDQgkBAADP0NHSWwQAWwUAJAYAiy7DQVkBAABCSwEAAAR1AQAAJAEAiw4HLqQD4QEJDZRE
+TklnCGwJDkIHAQAAAwAHAAA1A+wFAQAg7gUCATAQAAEACMlhAAAmAADHYQEAxUFAAQAAfeoXyGIA
+AEJ4AQAAYgEABHkBAABHJAEADoAA6OcOg2IAACikA+0BBhwXRGwhEg5CBwEAAgACAgAADgL0BQAB
+APIFAAEAC89MegEAANBMeQEAACikA/UBAgNEDkIHAQACAAICAAAOAvQFAAEA8gUAAQALz0x7AQAA
+0Ex8AQAAKKQD+AECA0QOYAcBAAMFAAkCAH4I7gQAAQCGAgABANwFAAEA7gQB/////w8ghgIBASDc
+BQECIPoFAgAgEAABAMADBAzCAwUMCMEEYQIAYQEAYQAAzxHw6AoOwARBYAEAANfH0BHw6AQOCdjI
+0RHw6A0OwARCBwEAACQAANnJYQMAwARCCQEAAM8H0QkJs9AkBwCLymUAAEJGAQAAYgMAJAEAlugJ
+ZQEAYgMA7S7ABEFZAQAAQksBAAAEfgEAAAokAgCLDgYupAP9AQgAOQJiWCYIdw5CBwEAAAMABwAA
+NQP+BQEAIO4FAgEwEAABAAjJYQAAJgAAx2EBAMVBQAEAAH3qF8hiAABCeAEAAGIBAAR6AQAARyQB
+AA6AAOjnDoNiAAAopAOGAgYcF0RsIRIOYgcBAAUBBQcBAHIG2AUAAQDaBQABANwFAAEAgAYAAQDi
+BQABABAAAQDOAwEMCMfDQVkBAABCSwEAAARyAQAAz50EcwEAAJ0kAQCLDmUAAEJ0AQAAtSQBAA7D
+QV4BAADDQV8BAACj6CHDw0FeAQAAtJ1DXgEAAMNCCwEAAM/Q0dJbBAAkBQCLLsNBWQEAAEJLAQAA
+BHUBAAAkAQCLDgcupAOOAgkNlEROSVgIbAkOQgcBAAABAAMBACIBEAABAM4DAQwIxwtlAABBMgEA
+AEwzAQAAw0FgAQAABIEBAACdTIIBAAAopAOaAgINng5iBwEACAEICQAAnwIJ2AUAAQDaBQABANwF
+AAEA3gUAAQDgBQABAOIFAAEAhgYAAQCGAgABABAAAQAIx1sGAEFuAQAABIQBAABHOEUAAACs6GLS
+6DvDQVkBAABChQEAAASGAQAAQlwAAABbBgBBbgEAAASEAQAARyQBACQBAIsOWwYAQW4BAAAEhAEA
+AEcuw0IJAQAAWwYAQW4BAAAEhAEAAEfQ0dJbBABbBQBbBwAkBwAuWwYAQYcBAADns6XoOMOzQ14B
+AABbBADoIwtbBgBBbgEAAASIAQAAR0yJAQAAWwYAQYcBAABMhwEAAC5bBgBBhwEAAC5bBQC0q+gR
+w7NDXgEAAFsGAEGHAQAALsNBWQEAAEJLAQAABIoBAABCXAAAAM8EiwEAADiYAAAAQkEBAABbBgAk
+AQAkAwAkAQCLDsNCAAEAAM/Q0dJbBABbBQBbBwAkBwCLLqQDngIVDnES2kkIs0kmHKgILCsmKwgA
+MwJ4DmAHAQAHDAMKAwDQAxPYBQABANoFAAEA3AUAAQDeBQABAOAFAAEA4gUAAQCGAgABANgFAf//
+//8PINoFAQEg3AUBAiDeBQEDIOAFAQQg4gUBBSCGAgEGIJgGAgAg7gQCCCCaBgIJIIYGAgogEAAB
+AM4DAQzAAwQMxAMGDAjBC2EGAGEFAGEEAGEDAGECAGEBAGEAAM/H0MjRydIR8OgEDgnaylsEABHw
+6AYOCV0EAMEEWwUAEfDoBg6zXQUAwQVbBgAR8OgGDgldBgDBBmEKAGEJAGEIAGEHAGUAAEKOAQAA
+0CQBAMEHz8EIZQEAQkYBAABiBwAkAQCW6BHPBI8BAACdYgcAnRFjCAAOZQIAEWIIACEBAMEJBsEK
+0uhHOJABAABiCQBCNwAAACQAAAsEQQAAAEyRAQAA0UxuAQAAWwUATHEBAAAHTIwBAAC1TAoBAABb
+BgBMgwAAAO6LEWMKAA7qRziQAQAAYgkAQjcAAAAkAAALBEEAAABMkQEAANFMbgEAAFsFAExxAQAA
+B0yMAQAAWwYATIMAAAC8ECdMkgEAAO6LEWMKAA5iCgBBkwEAALzIAKsR6SUOYgoAQZMBAAC8LgGr
+EekVDmIKAEGTAQAAvC0BqxHpBQ5bBADoHcALQggBAADP0NHSWwQAWwUAYgoAWwYAJAgAiy7AC0FZ
+AQAAQksBAAAElAEAAEJcAAAAYgkABIsBAAA4mAAAAEJBAQAAYgoAJAEAJAMAJAEAiw7AC0IAAQAA
+z9DR0lsEAFsFAGIKAFsGACQIAIsupAO5AhoAXQJJElhUPxISWN8mDQBGBAA1AooIADYCiw5iBwEA
+AQABAQAAAgGGBgABAAYupAPQAgEEDmAHAQAFCAMJAgDSAg3YBQABANoFAAEA3AUAAQCABgABAOIF
+AAEA2AUB/////w8g2gUBASDcBQECIIAGAQMg4gUBBCCaBgIAIIYGAgYgEAABAMQDBgzAAwQMCMEH
+YQQAYQMAYQIAYQEAYQAAz8fQyNHJ0hHw6AgOBJUBAADaylsEABHw6AYOs10EAMEEYQYAYQUAZQAA
+Ec8hAQDBBTiQAQAAYgUAQjcAAAAkAAALBAsBAABMkQEAANFMbgEAANBMjAEAANJMgAEAAFsEAExx
+AQAA7ovBBmIGAEGTAQAAvMgAqxHpIA5iBgBBkwEAADhFAAAAqxHpDg5iBgBBkwEAALwuAavoYGIG
+AEFuAQAABIQBAABHOEUAAACs6BDAB0IKAQAAYgYAJAEAiy5lAQBCRgEAAGIGAEGHAQAAJAEAlugS
+wAezQ14BAABiBgBBhwEAAC7AB0IGAQAAz9DR0lsEACQFAIsuwAdBWQEAAEJLAQAABIoBAABCXAAA
+AM8ElgEAADiYAAAAQkEBAABiBgAkAQAkAwAkAQCLDsAHQgYBAADP0NHSWwQAJAUAiy6kA9UCFAA5
+AjVYtxf0cUl2KysIXggANAJfDkIHAQAAAAABAAAGAASXAQAAKKQD7AICAxwOQgcBAAAAAAEAAAYA
+BJgBAAAopAPwAgIDHA5CBwEAAAAAAQAABgAEmQEAACikA/QCAgMcDkIHAQAAAAABAAACALYopAP4
+AgIDCA5iBwEAAQABAQAAAgG0BgABAAYupAP8AgEEDmIHAQABAAEBAAACAbYGAAEABi6kA4ADAQQO
+QgcBAAIAAgAAAAECtAYAAQC4BgABACmkA4QDAQUOYgcBAAEAAQEAAAIBtAYAAQAGLqQDiAMBBA5i
+BwEAAQABAQAAAgG0BgABAAYupAOMAwEEDmIHAQAAAAABAAACAAYupAOQAwEEDmIHAQAAAAABAAAC
+AAYupAOUAwEEDmIHAQABAAEBAAAEAbQGAAEAJgAALqQDmAMBAw5iBwEAAQABAQAAAgG0BgABAAYu
+pAOcAwEEDmIHAQABAAEBAAACAbYGAAEABi6kA6ADAQQOYgcBAAIAAgEAAAICugYAAQC8BgABAAYu
+pAOlAwEEDmIHAQACAAIBAAACAroGAAEAtAYAAQAGLqQDqQMBBA5iBwEAAQQBCAAA+QIFvgYAAQDA
+BgIAIMIGAgEgxAYIAAMQAAEACMpsPgEAAGEBAGEAAMbPBKMBAABHQ1YBAADGOEQBAADPBKQBAABH
+QjcAAAAkAADtQ1cBAAAHx89BpQEAAJcESAAAAKvoP8ZBWQEAAEKmAQAABKcBAABCXAAAAM9BpQEA
+ACQBACQBAIsOOJgAAABCOQEAAM9BpQEAACQBABFjAAAO650Az0GlAQAAlwRJAAAAq+hpxkFZAQAA
+QqYBAAAEqAEAAEJcAAAAOJgAAABCQQEAAM8kAQAkAQAkAQCLDsZBWQEAAEKmAQAABKcBAABCXAAA
+ADiYAAAAQkEBAADPQaUBAAAkAQAkAQAkAQCLDs9BpQEAABFjAAAO6iXGQVkBAABCSwEAAASpAQAA
+QlwAAADPQaUBAACXJAEAJAEAiw5iAAAEqgEAAEfIYgAABKsBAABxYgEABKwBAACrSWIAAA8uyWw1
+AAAAxkFZAQAAQksBAAAErQEAAMVBMwAAAJ0kAQCLDgsHTK4BAAAJTKsBAACzTJMBAAAPLi+kA60D
+FQ06RIoNTrJ8XdrzOg24NWIXJo9nCQ5iBwEAAQABAgEACQHcBgABAMwDCwxlAADP7YsOBi6kA8cD
+AgMmDmIHAQAAAAABAAACAAYupAPLAwEDDmIHAQABAgEIAQDzAwO+BgABAMQGBgADEAABAMoDCgwI
+yMRlAAARIQAAQ68BAADExEIcAQAAzyQBAItDawEAAMRBWQEAAEKFAQAABLABAABCXAAAADiYAAAA
+QkEBAADPJAEAJAEAJAEAiw7ExEFrAQAAQasBAABDXAEAAMTEQWsBAAAE+AAAAEcRsOgIDsRBXQEA
+AENdAQAAbEoAAADEQh8BAAAkAACL6BjEQVkBAABChQEAAASxAQAAJAEAiw7qIcRBWQEAAEKyAQAA
+BLMBAAAkAQCLDsRCIAEAACQAAIsODup0x2xwAAAAOLQBAABCQgAAAMRBVgEAAARAAQAAOJgAAABC
+QQEAACYAACQBACQDAIsOOLQBAABCQgAAAMRBVgEAAARaAQAAOJgAAABCQQEAAAskAQAkAwCLDsRB
+WQEAAEJLAQAABLUBAADDnSQBAIsODuoCL8Q4tgEAAArEQVcBAADEQVYBAAAEtwEAAAsiBQCLQ7gB
+AADEOLYBAAAKxEFXAQAAxEFWAQAABLkBAAALIgUAi0O6AQAAxDi2AQAACsRBVwEAAMRBVgEAAAS3
+AQAAxEIHAQAAJAAAIgUAi0O7AQAAxDi2AQAACsRBVwEAAMRBVgEAAAS8AQAACyIFAItDvQEAAMQ4
+tgEAAArEQVcBAADEQVYBAAAEvgEAAMRCBwEAACQAACIFAItDvwEAAAYupAPOAxYNRFjaWJQcP2wN
+bDsw1ct2F62t1a3WDmIHAQAAAQAHAACDAQEQAAEACMfDw0IhAQAAJAAAi0NAAQAAw8NCIgEAACQA
+AItDWgEAAMNBQAEAAOezpegDCi44tAEAAEJCAAAAw0FWAQAABEABAAA4mAAAAEJBAQAAJgAAJAEA
+JAMAiw44tAEAAEJCAAAAw0FWAQAABFoBAAA4mAAAAEJBAQAACyQBACQDAIsOCS6kA+gDCwACCFNT
+OggI1csJDmIHAQAAAQAHAACgAQEQAAEACMfDQVwBAADoJcNBQAEAAEJ4AQAACwTAAQAATHoBAAAE
+wAEAAEx5AQAAJAEADsNCFQEAACQAAIsOw0IWAQAAJAAAiw44tAEAAEJCAAAAw0FWAQAABEABAAA4
+mAAAAEJBAQAAw0FAAQAAJAEAJAMAiw44tAEAAEJCAAAAw0FWAQAABFoBAAA4mAAAAEJBAQAAw0Fa
+AQAAJAEAJAMAiw4GLqQD9wMHDSu4Ojrk5A5iBwEAAAIABAEASAKCBwEAIBAAAQDAAwQMCMhhAAA4
+tAEAAEJBAAAAxEFWAQAABEABAAAkAgCLx2UAAEJGAQAAYgAAJAEAlugSOJgAAABCOQEAAGIAACQB
+AC7EQUABAAAupAOBBAYchVhTCCIOYgcBAAACAAQBAEgChAcBACAQAAEAwAMEDAjIYQAAOLQBAABC
+QQAAAMRBVgEAAARaAQAAJAIAi8dlAABCRgEAAGIAACQBAJboEjiYAAAAQjkBAABiAAAkAQAuxEFa
+AQAALqQDigQGHIVYUwgiDmIHAQABAAEBAAACAYYHAAEABi6kA5QEAQMOYgcBAAEBAQkAAJsBAoYH
+AAEAEAABAAjHwyYAAENhAQAAw0FZAQAAQqYBAAAExAEAAAokAgCLDsNCIwEAAM8kAQCLDsNBWQEA
+AEKFAQAABMUBAABCXAAAAMNBWwEAAELpAAAAw0FAAQAAJgAAw0FaAQAAJAMAJAEAJAEAiw7DQVkB
+AABCpgEAAATGAQAACiQCAIsOw0FbAQAAQukAAADDQUABAAAmAADDQVoBAAAkAwAupAOXBAgNMHE/
+ADoCcQ5iBwEAAAAAAQAAAgAGLqQDoAQBBA5iBwEAAAEABwAAfwEQAAEACMfDQVkBAABCpgEAAATH
+AQAACiQCAIsOw0IkAQAAJAAAiw7DQVkBAABChQEAAATIAQAAQlwAAADDQVsBAABC6gAAAMNBYgEA
+ACQBACQBACQBAIsOw0FZAQAAQqYBAAAEyQEAAAokAgCLDsNBWwEAAELqAAAAw0FiAQAAJAEALqQD
+pAQFDXE6+HEOYgcBAAQABAEAAAIElAcAAQCWBwABAIYHAAEAmAcAAQAGLqQDrAQBBA5iBwEABAIE
+DQAAuwIGlAcAAQCWBwABAIYHAAEAmAcAAQDEBgYAAxAAAQAIyMQ4RAEAANDtQzsBAADEQVkBAABC
+pgEAAATNAQAAQlwAAADPBM4BAADQBM8BAADRBNABAAA4mAAAAEJBAQAA0iQBACQHACQBAIsOzwTA
+AQAAq+gTxLNDOwEAAMRC6gAAACQAAIsubKkAAADEJgAAQ2EBAADEQiUBAADP0NHSJAQAiw7EQVkB
+AABChQEAAATRAQAAQlwAAADEQVsBAABC6wAAAMRBYQEAAMRBOwEAAMRBQwEAAMRBPQEAAMRBPgEA
+ACQFACQBACQBAIsOxEFZAQAAQqYBAAAE0gEAAAokAgCLDsRBWwEAAELrAAAAxEFhAQAAxEE7AQAA
+xEFDAQAAxEE9AQAAxEE+AQAAJAUADy7HbCUAAADEQVkBAABCSwEAAATTAQAAQlwAAADDJAEAJAEA
+iw4O6gIvBi6kA7AEFg1EAD0CMCY1CBwwTgBJAnHkJpkABAgOYgcBAAEAAQEAAAIBqAcAAQAGLqQD
+xQQBBA5CBwEAAAkACgAC/QEJ0gUBACCqBwEBIKwHAgIwrgcDAyCwBwQEMLIHBQUgtAcFBiC2BwUH
+IBAAAQAIwQhhAQBhAAALwAhBYwEAAELcAQAAJAAATGMBAADHwAhBYwEAAEHdAQAAQl0AAAAE3gEA
+ACQBAMhhAgBiAQB9668AyWEDAGICAEJdAAAABN8BAAAkAQDKYQQAYgMAfeuHAMEEYQcAYQYAYQUA
+YgQAQl0AAAAEmgEAACQBALNHQl0AAAAE4AEAACQBALNHwQViBABCXQAAAASaAQAAJAEAtEfBBmIF
+AELhAQAAvQC9ATMkAQDBB2IHAPHpE2IHAOezpegLYgcAs0cRYwUADmIAAGIGAHELYgUATNkBAABi
+BQBM4gEAAEmAAGl4////DoOAAGlQ////DoNiAAAopAPKBBExCGcIhUlYbLJnXUk2gDAwEgcGXGQr
+B2ABAQApAAAACAYAAAAEB/X///8LABwIAAAAAQAAAP///38BAAAAFQEAMAA5AAoMAAoOYgcBAAEC
+AQgBAOMBA6gHAAEAxAYFAAMQAAEAvAMCDAjIxGUAABEhAABDYwEAAMRBWQEAAEKmAQAABOMBAABC
+XAAAAM8kAQAkAQCLDmySAAAAxEImAQAAzyQBAIsOxEFZAQAAQoUBAAAE5AEAAEJcAAAAxEFbAQAA
+Qu0AAADEQWMBAAAkAQAkAQAkAQCLDsRBWQEAAEKmAQAABOUBAAAKJAIAiw7EQWMBAADPQ0wBAADE
+QVcBAAC2q+gQxMRCJwEAACQAAENpAQAAxEFbAQAAQu0AAADEQWMBAAAkAQAPLsdsHgAAAMRBWQEA
+AEJLAQAABOYBAADDnSQBAIsODuoCLwYupAPfBA4NRJkcP/hxPzVQbCZ2GA5iBwEAAwEDAgAACwS6
+BgABAKgHAAEA2gEAAQAQAAEACMfD0ENkAQAABi6kA/IEAg0mDmIHAQABAwEKAADcAQSoBwABAMQH
+AQAgxgUBASAQAAEACMlhAQBhAADFQVkBAABChQEAAL9CXAAAADiYAAAAQkEBAADFQWkBAAAkAQAk
+AQAkAQCLDsVBaQEAAM9HxziYAAAAQjkBAADFQWkBAAAEYwEAAEckAQDIYgEABOcBAACYDmIBAATo
+AQAAmA5iAQAE3QEAAJgOYgEABE8BAACYDsVBWQEAAEKFAQAABOkBAABCXAAAADiYAAAAQkEBAABi
+AQAkAQAE6gEAADiYAAAAQkEBAADFQWkBAADPRyQBACQDACQBAIsOxUGvAQAAQusBAABiAQBiAAAk
+AgCLLqQD9gQLK98whTU1NTUARwQOYgcBAAMFAwkBAO4DCLoGAAEAqAcAAQDaAQABANgHAgAg1AUK
+ASDEBgwCA8QGEAADEAABAMADBAwIwQTABEFZAQAAQqYBAAAE7QEAAEJcAAAAzwTuAQAA0ATvAQAA
+0SQFAAokAgCLDmyaAQAAYQAABsfABEIoAQAAz9DRJAMAiw7ABEFkAQAABIcBAABHOEUAAACs6B/A
+BEFbAQAAQu8AAADABEFkAQAAJAEAEWMAAA7rFAHABEFdAQAAadgAAADABEFcAQAAlmnLAAAAZQAA
+QkYBAADABEFqAQAAJAEAluhEwARBWQEAAEKFAQAABPABAAAkAQCLDsAEQVsBAABC+AAAAMAEQWoB
+AAAkAQBC7gAAAMAEQWQBAAAkAQARYwAADuujAGEBAAbIbBgAAADABEIpAQAA0CQBAIsRYwEADg7q
+KslsJgAAAMAEQVkBAABCSwEAAATxAQAAQlwAAADFJAEAJAEAiw4O6gIvwARBWwEAAEL4AAAAYgEA
+JAEAQu4AAADABEFkAQAAJAEAEWMAAA7qM8AEQVkBAABChQEAAATyAQAACiQCAIsOwARBWwEAAELu
+AAAAwARBZAEAACQBABFjAAAOwARBWQEAAEKmAQAABPMBAAAKJAIAiw7ABEFZAQAAQoUBAAAE9AEA
+AEJcAAAAYgAAJAEAJAEAiw5iAAAPLspsHwAAAMAEQVkBAABCSwEAAAT1AQAAxp0kAQCLDg7qAi8G
+LqQDgwUdEt8rDU5sihKAbHHVIQ0cWDCeF8MNdox2qBgmexgOYgcBAAIAAgEAAAIC7AcAAQDuBwAB
+AAYupAOoBQEEDmIHAQACAQIHAACCAgPsBwABAO4HAAEAEAABAAjHwyYAAENhAQAAw0FZAQAAQqYB
+AAAE+AEAAEJcAAAAzwT5AQAA0CQDACQBAIsOw0IqAQAAz9C0JAMAiw7DQWEBAADns6voX89C+gEA
+AATgAQAAJAEAsqXoTcNBWQEAAEKFAQAABPsBAABCXAAAAM8E/AEAACQCACQBAIsOw0LsAAAAz0L9
+AQAABOABAAC/JAIAQv0BAAAE/gEAAL8kAgDQJAIAiw7DQVkBAABChQEAAAT/AQAAQlwAAADDQVsB
+AABC7AAAAMNBYQEAACQBACQBACQBAIsOw0FZAQAAQqYBAAAEAAIAAAokAgCLDsNBWwEAAELsAAAA
+w0FhAQAAJAEALqQDrAUKDTC3STpdstL4cQ5iBwEAAgQCDAIA8gIG7gQAAQDcBQABAIIIAQAghAgB
+ASDEBgsCAxAAAQDAAwQMzgMBDAjKYQEAYQAABsfQBLQAAABHyGUAAEJGAQAA0CQBAOgWC89MggEA
+AGUBAEEyAQAATDMBAADUOJABAADPC7VMcQEAANBMbgEAAGIBAEyDAAAA7osRYwAADmzxAAAAZQEA
+QgMCAABiAABBhwEAACQBAA5iAQDoScZBWQEAAEJLAQAABAQCAABCXAAAAM8EBQIAADiYAAAAQkEB
+AADQJAEABAYCAAA4mAAAAEJBAQAAYgAAJAEAJAUAJAEAiw7qR8ZBWQEAAEJLAQAABAcCAABCXAAA
+AM8EBQIAADiYAAAAQkEBAADQJAEABAYCAAA4mAAAAEJBAQAAYgAAJAEAJAUAJAEAiw7GQV4BAADG
+QV8BAACj6B3GxkFeAQAAtJ1DXgEAAMZCKwEAAM/QJAIAiw8uC7z0AUyTAQAA0ExuAQAABAgCAABM
+hwEAAA8uyWwmAAAAxkFZAQAAQoUBAAAECQIAAAokAgCLDsazQ14BAABiAAAPLi+kA7sFGisNK0lt
+rR1nHABGAg0ARgROSUQIhiZxJhcIDmIHAQACEgIJBQLnCBSUCAABANwFAAFAlggBACDuBAEBIIII
+AwIghAUFAiCeBQcEIIIIBwUgjgYMAiCYCBQCIZoIFAhwnAgWCTCcCBcJMMwGGQIwnggZDDCgCBkN
+MLQGGwIgxgUbDyCCCBsQIBAAAUDOAwEMwAMEDMYDCAzQAwcMyAMJDAjBEWEBAGEAAMARQVkBAABC
+hQEAAAQRAgAAQlwAAADPQlsAAAAEEgIAACQBAAQTAgAAOJgAAABCQQEAANAkAQAkAwAkAQCLDs+z
+R8dlAABCAwIAAM+0RyQBAMjAEUFZAQAAQoUBAAAEFAIAAEJcAAAAYgEAJAEAJAEAiw5iAAAEFQIA
+AKvoZ2ECAMARQVkBAABChQEAAAQWAgAACiQCAIsOwBFCKwEAAGIBANAkAgCLyTiYAAAAQkEBAAAL
+YgIAQZMBAABMkwEAALVMcQEAAGICAEGHAQAATIcBAABiAgBBbgEAAExuAQAAJAEALmIAAAQXAgAA
+q2nRAAAAYQMAwBFCLwEAAGIBACQBAIvKYgMA8WqzAAAAYQUAYQQAYgMAs0dBTwEAAMEEBsEFZQEA
+QkYBAADQJAEAlugfOJABAABiBAALtUxxAQAA0ExuAQAA7osRYwUADuoyOJABAABiBAALtUxxAQAA
+C2IEAEyCAQAAZQAAQTIBAABMMwEAAExuAQAA7osRYwUADjiYAAAAQkEBAAALYgUAQZMBAABMkwEA
+ALVMcQEAAGIFAEGHAQAATIcBAABiBQBBbgEAAExuAQAAJAEALuufAmIAAAT8AAAAq2nzAAAAYQYA
+BsEGZQEAQkYBAADQJAEAlugbwBFCCQEAAGIBAAfQCQm1JAYAixFjBgAO6i7AEUIJAQAAYgEABwti
+AQBMggEAAGUAAEEyAQAATDMBAAAJCbUkBgCLEWMGAA7AEUFZAQAAQoUBAAAEGAIAAEJcAAAAZQAA
+QgMCAABiBgAkAQAkAQAkAQCLDmUBAEJGAQAAYgYAJAEAlugsOJgAAABCQQEAAAu8yABMkwEAALVM
+cQEAAGIGAEyHAQAAC0xuAQAAJAEALjiYAAAAQkEBAAALvPQBTJMBAAC1THEBAABiBgBMhwEAAAtM
+bgEAACQBAC5iAAAEDgIAAKtpoQAAAGEIAL4AwQe+AA5lAgBiAQDQ7ovBCGIIAEEZAgAA6D9hCQBl
+AwBCQQEAAGIIAEEaAgAAJAEAwQkLYggAQZMBAABMkwEAAGIJAEyHAQAAYgcAYggAYgkA7kxuAQAA
+LmEKAGUDAEJBAQAAYggAQRoCAAC+ASQCAMEKC2IIAEGTAQAATJMBAABiCgBMhwEAAGIHAGIIAGIK
+AO5MbgEAAC5iAAAEGwIAAKvoPWENAGEMAGELAGIBAEJdAAAABIEBAAAkAQDBC2ILALNHwQw4RAEA
+AGILALRH7cENZQQAYgwAYg0A0O+LLmIAAATtAAAAq2mHAAAAYRAAYQ8AYQ4AwBFCBAEAAMARQWAB
+AABiAQCdJAEAi8EOwBFCGAEAAGIOACQBAIvBD8ARQisBAABiDwBBTwEAANAkAgCLwRA4mAAAAEJB
+AQAAC2IQAEGTAQAATJMBAAC1THEBAABiEABBhwEAAEyHAQAAYhAAQW4BAABMbgEAACQBAC44mAAA
+AEJBAQAAC7z0AUyTAQAAv0yHAQAAJAEALgYupAPXBVAwAD8CF06oSXZTOuQSXU5OPxJOMD8mDTAm
+bBwnOuQSCGcTTnsN5d9YOo8SCDqPAAMIABYaEzpFbAi4F1QmCLlsXSZEP3t7U3E65BIIOkkSCA5D
+BgGYCAIBAgcAAHwDmAYAAQCcCAABALgIAQAgYQAAC8fPQW4BAAAEHQIAAEfoKjiPAAAAQh4CAABi
+AADPQW4BAAAL0OdCNwAAACQAAEwdAgAAJAMADuoYOI8AAABCHgIAAGIAAM9BbgEAACQCAA5iAAAE
+HwIAAJgOYgAABCACAABHBCECAACp6AtiAAAEIAIAAJgOYgAAKKQDiwYKEg1Jxg13NVg2Eg5CBwEA
+AQABCQMAPwHECAABABARAZoICA3cBQEDOLYBAAAJ20FXAQAA20FWAQAABCMCAAA4JAIAAGUBAEEl
+AgAABIEBAACdz0EmAgAAQjcAAAAkAACd7Z3dIwUApAOhBgEDDkIHAQAAAgAEAABMAs4IAQAw0AgB
+ASBhAQBhAAAEKQIAAAQqAgAABCsCAAAELAIAACYEAMc4lwAAAEItAgAAOJcAAABCLgIAACQAAGIA
+AOeaJAEAyAtiAABiAQBHTDMBAAAopAO8BgUhe6MIQQ5iBwEAAQMBBwEArQIEtgYAAQCEBQEAIN4I
+AgEw4AgDAiC+AwMMYQAAJgAAx2EBAM996xMByGECAGUAABEhAADJYgIABDECAABiAQAE1AEAAEed
+Q0wBAABiAQAEMgIAAEc4RQAAAKvoGmICAGIBAARWAAAARwQyAgAAR0NKAQAA6hJiAgBiAQAEMgIA
+AEdDSgEAAGIBAAQzAgAARzhFAAAAq+gaYgIAYgEABFYAAABHBDQCAABHQ08BAADqGGICAGIBAAQz
+AgAARwQ1AgAAR0NPAQAAYgEABDYCAABHOEUAAACr6C5iAgAENwIAAGIBAARWAAAARwQ2AgAARwRA
+AAAAR0I3AAAAJAAAnUNQAQAA6iZiAgAENwIAAGIBAAQ2AgAARwRAAAAAR0I3AAAAJAAAnUNQAQAA
+YgAAQngBAABiAgAkAQAOgABp7P7//w6DYgAALqQDxQYTEhc/K3ZYdg1ZWHYNd1jaDb1OMA5ABwEA
+AwYCBAAApgEJ7gQAAQC2CAABAKIGAAEA7gQB/////w8gtggBASCiBgECIPAIAgAg8ggCBCD0CAIF
+IGECAGEBAGEAAM/H0MjREfDoCA4EOwIAANnJYQUAYQQAYQMABDwCAADKBD0CAADPQl0AAAAEgQEA
+ACQBAEI+AgAAtiQBAEJbAAAABD0CAAAkAQCdwQTRQj8CAAAkAABiBADQQjcAAAAkAAAmAwBCWwAA
+AARAAgAAJAEAwQU4QQIAAEJCAgAAYgUAYgMAJAIAQjcAAAA4QQIAAEFDAgAAQUQCAAAlAQCkA94G
+BLIh38YOYgcBAAEKAQcBAOoCC+wHAAEAigkCACCMCQIBIO4EAgIgjgkCAyC2CAIEINoFAgUgjgYC
+BiCQCQQHIMQGBQADEAABAMADBAwIwQlsQAEAAGEGAGEFAGEEAGEDAGECAGEBAGEAAARJAgAAxwRK
+AgAAyGIAAARLAgAAnck4mQAAABEhAADKYgMAQkwCAAAkAABCNwAAACQAAGIDAEJNAgAAJAAAtJ1C
+NwAAACQAAJ1iAwBCTgIAACQAAEI3AAAAJAAAncEEC8AJQi4BAABiAgBiBAAkAgBMTwIAAGIEAExQ
+AgAAYgEATFECAAC7FExDAQAABFICAABMUwIAADgkAgAAz+1MVAIAALNMVQIAAMEFwAlCCQEAAGIC
+AGIFAMAJQiwBAAAkAAAkAwCLwQZlAABCRgEAAGIGACQBAJboTWEHADiYAAAAQjkBAABiBgAkAQDB
+B8AJQVkBAABChQEAAARWAgAAQlwAAABiBgAkAQAkAQCLDsAJQi0BAABiBwAEVwIAAEckAQCLDy4H
+Dy7BCGwgAAAAwAlBWQEAAEJLAQAABFgCAADACJ0kAQCLDg7qAi8GLqQD5QYcEoUhITU1AD8CCGwr
+KyY1PyENlGddqGwIDiuAFw==
