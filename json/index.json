@@ -192,7 +192,7 @@
     },
     {
       "key": "newvision",
-      "name":"(js)新视觉影院┃🐼",
+      "name":"(js)新视觉影院(不稳定)",
       "api": "https://androidcatvodspider.pages.dev/json/js/newvision.js",
       "timeout": 30,
       "ext": {
