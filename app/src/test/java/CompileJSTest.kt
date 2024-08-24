@@ -1,42 +1,63 @@
-import android.app.Application;
+import android.app.Application
+import com.dokar.quickjs.QuickJs
+import com.dokar.quickjs.binding.function
+import com.dokar.quickjs.quickJs
+import com.github.catvod.net.OkHttp
+import com.github.catvod.spider.ChangZhang
+import com.github.catvod.spider.Init
+import com.github.catvod.utils.FileUtil
+import com.github.catvod.utils.Util
+import junit.framework.TestCase.assertEquals
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import java.io.FileWriter
+import kotlin.io.encoding.Base64
 
-import com.github.catvod.net.OkHttp;
-import com.github.catvod.spider.ChangZhang;
-import com.github.catvod.spider.Init;
-import com.github.catvod.utils.Util;
-import com.whl.quickjs.android.QuickJSLoader;
-import com.whl.quickjs.wrapper.QuickJSContext;
 
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
-
-@RunWith(RobolectricTestRunner.class)
-public class CompileJSTest {
+class CompileJSTest {
     // @Mock
-    private Application mockContext;
 
-    private ChangZhang spider;
-    QuickJSContext context;
 
-    @org.junit.Before
-    public void setUp() throws Exception {
-        QuickJSLoader.init();
-        mockContext = RuntimeEnvironment.application;
-        Init.init(mockContext);
-        context = QuickJSContext.create();
-
+    @Before
+    @Throws(Exception::class)
+    fun setUp() {
 
     }
 
-    @org.junit.Test
-    public void homeContent() throws Exception {
-        String content = OkHttp.string("https://androidcatvodspider.pages.dev/json/js/newvision.js");
-        byte[] bytes = context.compileModule(content, "newvision.js");
-        String result = "//bb" + Util.base64Encode(bytes);
+    @Test
+    @Throws(Exception::class)
+    fun homeContent(): Unit {
 
-        //Assert.assertFalse(map.getAsJsonArray("list").isEmpty());
+        val content =
+            OkHttp.string("https://androidcatvodspider.pages.dev/json/js/jpyy2.js")/* val bytes = context!!.compileModule(content, "newvision.js")
+         val result = "//bb" + Util.base64Encode(bytes)*/
+
+        val scope = CoroutineScope(Dispatchers.Default)
+
+        fun startTask() = runBlocking {
+            launch {
+                quickJs {
+
+                    val bytecode = compile(
+                        code = content,
+                        filename = "jpyy",
+                        asModule = true,
+                    )
+                    val str = org.bouncycastle.util.encoders.Base64.encode(bytecode);
+                    FileWriter("jpyy.j").write("//bb" +String(str))
+                    System.out.println("//bb" +String(str))
+                    //assertEquals("Hi from the hello module!", result)
+                }
+            }
+        }
+        startTask()
+
     }
-
-
 }
