@@ -224,6 +224,17 @@
       "type": 3
     },
     {
+      "key": "jpyy2",
+      "name":"(js)金牌影院",
+      "api": "https://androidcatvodspider.pages.dev/json/js/jpyy2.js",
+      "timeout": 30,
+      "ext": {
+        "box": "TVBox"
+      },
+      "playerType": 0,
+      "type": 3
+    },
+    {
       "key": "tiantian",
       "name":"(js)天天影视┃⛄",
       "api": "https://androidcatvodspider.pages.dev/json/js/tiantian.js",
