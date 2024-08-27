@@ -1,5 +1,5 @@
 {
-  "spider": "https://androidcatvodspider.pages.dev/jar/custom_spider.jar;md5;0dcb7bdf2bfb2e77fdea1d66f53d1d60",
+  "spider": "https://androidcatvodspider.pages.dev/jar/custom_spider.jar;md5;1766329347d5e433c0983b6800348229",
   "lives": [
     {
       "name": "直播ipv6",
@@ -186,6 +186,15 @@
       "name": "七喜影视",
       "type": 3,
       "api": "csp_QxiTv",
+      "searchable": 1,
+      "changeable": 0,
+      "ext": {}
+    },
+    {
+      "key": "glod",
+      "name": "金牌 | 影视",
+      "type": 3,
+      "api": "csp_Glod",
       "searchable": 1,
       "changeable": 0,
       "ext": {}
