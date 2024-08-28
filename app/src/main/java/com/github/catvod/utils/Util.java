@@ -31,7 +31,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Util {
-
+    public static final String patternAli = "(https:\\/\\/www\\.aliyundrive\\.com\\/s\\/[^\"]+|https:\\/\\/www\\.alipan\\.com\\/s\\/[^\"]+)";
+    public static final String patternQuark = "(https:\\/\\/pan\\.quark\\.cn\\/s\\/[^\"]+)";
     public static final Pattern RULE = Pattern.compile("http((?!http).){12,}?\\.(m3u8|mp4|mkv|flv|mp3|m4a|aac)\\?.*|http((?!http).){12,}\\.(m3u8|mp4|mkv|flv|mp3|m4a|aac)|http((?!http).)*?video/tos*");
     public static final Pattern THUNDER = Pattern.compile("(magnet|thunder|ed2k):.*");
     public static final String CHROME = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
@@ -285,6 +286,7 @@ public class Util {
     public static String base64Decode(String s) {
         return new String(android.util.Base64.decode(s, Base64.DEFAULT), Charset.defaultCharset());
     }
+
     public static String base64Encode(byte[] bytes) {
         return new String(android.util.Base64.encode(bytes, Base64.DEFAULT), Charset.defaultCharset());
     }
@@ -347,8 +349,6 @@ public class Util {
         }
         return 0;
     }
-
-
 
 
     public static String sha1Hex(String input) throws NoSuchAlgorithmException {

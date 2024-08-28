@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 /**
  * @author zhixc
  */
-public class Wogg extends Ali {
+public class Wogg extends Cloud {
 
     private final String siteUrl = "https://www.wogg.net";
     private final Pattern regexCategory = Pattern.compile("/vodtype/(\\w+).html");
@@ -39,9 +39,9 @@ public class Wogg extends Ali {
     }
 
     @Override
-    public void init(Context context, String extend) {
-        JsonObject ext = Json.safeObject(extend);
-        super.init(context, ext.has("token") ? ext.get("token").getAsString() : "");
+    public void init(Context context, String extend) throws Exception {
+        //  JsonObject ext = Json.safeObject(extend);
+        super.init(context, extend);
     }
 
     @Override
@@ -100,10 +100,12 @@ public class Wogg extends Ali {
         item.setTypeName(String.join(",", doc.select(".video-info-header div.tag-link a").eachText()));
 
         List<String> shareLinks = doc.select(".module-row-text").eachAttr("data-clipboard-text");
-        for (int i = 0; i < shareLinks.size(); i++) shareLinks.set(i, shareLinks.get(i).trim());
-
-        item.setVodPlayFrom(detailContentVodPlayFrom(shareLinks));
-        item.setVodPlayUrl(detailContentVodPlayUrl(shareLinks));
+        for (int i = 0; i < shareLinks.size(); i++) {
+            shareLinks.set(i, shareLinks.get(i).trim());
+            //String detailContent = super.detailContent(List.of(shareLinks.get(i)));
+        }
+        item.setVodPlayFrom(super.detailContentVodPlayFrom(shareLinks));
+         item.setVodPlayUrl(super.detailContentVodPlayUrl(shareLinks));
 
         Elements elements = doc.select(".video-info-item");
         for (Element e : elements) {

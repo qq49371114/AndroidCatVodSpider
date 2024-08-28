@@ -1,0 +1,67 @@
+package com.github.catvod.spider;
+
+import android.content.Context;
+import android.text.TextUtils;
+import com.github.catvod.crawler.Spider;
+import com.github.catvod.utils.Json;
+import com.github.catvod.utils.Util;
+import com.google.gson.JsonObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author ColaMint & Adam & FongMi
+ */
+public class Cloud extends Spider {
+    private Quark quark = null;
+    private Ali ali = null;
+
+    @Override
+    public void init(Context context, String extend) throws Exception {
+        JsonObject ext = Json.safeObject(extend);
+        quark = new Quark();
+        ali = new Ali();
+        quark.init(context, ext.has("cookie") ? ext.get("cookie").getAsString() : "");
+        ali.init(context, ext.has("token") ? ext.get("token").getAsString() : "");
+    }
+
+    @Override
+    public String detailContent(List<String> shareUrl) throws Exception {
+        if (shareUrl.get(0).matches(Util.patternAli)) {
+            return ali.detailContent(shareUrl);
+        } else if (shareUrl.get(0).matches(Util.patternQuark)) {
+            return quark.detailContent(shareUrl);
+        }
+        return null;
+    }
+
+
+    protected String detailContentVodPlayFrom(List<String> shareLinks) {
+        List<String> from = new ArrayList<>();
+        List<String> aliShare = new ArrayList<>();
+        List<String> quarkShare = new ArrayList<>();
+        for (String shareLink : shareLinks) {
+            if (shareLink.matches(Util.patternAli)) {
+                aliShare.add(shareLink);
+            } else if (shareLink.matches(Util.patternQuark)) {
+                quarkShare.add(shareLink);
+            }
+        }
+        from.add(quark.detailContentVodPlayFrom(quarkShare));
+        from.add(ali.detailContentVodPlayFrom(aliShare));
+        return TextUtils.join("$$$", from);
+    }
+
+    protected String detailContentVodPlayUrl(List<String> shareLinks) throws Exception {
+        List<String> urls = new ArrayList<>();
+        for (String shareLink : shareLinks) {
+            if (shareLink.matches(Util.patternAli)) {
+                urls.add(ali.detailContentVodPlayUrl(List.of(shareLink)));
+            } else if (shareLink.matches(Util.patternQuark)) {
+                urls.add(quark.detailContentVodPlayUrl(List.of(shareLink)));
+            }
+        }
+        return TextUtils.join("$$$", urls);
+    }
+}
