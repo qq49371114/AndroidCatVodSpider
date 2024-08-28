@@ -23,7 +23,7 @@ public class ProxyVideo {
     private static final String GO_SERVER = "http://127.0.0.1:7777/";
 
     public static String buildCommonProxyUrl(String url, Map<String, String> headers) {
-        return Proxy.getUrl() + "?do=proxy&url=" + Base64.encode(url.getBytes(Charset.defaultCharset()), Base64.DEFAULT) + "&header=" + Base64.encode((new Gson().toJson(headers)).getBytes(Charset.defaultCharset()), Base64.DEFAULT);
+        return Proxy.getUrl() + "?do=proxy&url=" + Util.base64Encode(url.getBytes(Charset.defaultCharset())) + "&header=" + Util.base64Encode((new Gson().toJson(headers)).getBytes(Charset.defaultCharset()));
     }
 
     public static void go() {
