@@ -136,6 +136,8 @@ public class Wogg extends Cloud {
         return searchContent(key, pg);
     }
 
+
+
     private String searchContent(String key, String pg) {
         String searchURL = siteUrl + String.format("/index.php/vodsearch/%s----------%s---.html", URLEncoder.encode(key), pg);
         String html = OkHttp.string(searchURL, getHeader());

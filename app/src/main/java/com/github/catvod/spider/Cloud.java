@@ -36,6 +36,10 @@ public class Cloud extends Spider {
         return null;
     }
 
+    @Override
+    public String playerContent(String flag, String id, List<String> vipFlags) throws Exception {
+        return flag.contains("quark") ? quark.playerContent(flag, id, vipFlags) : ali.playerContent(flag, id, vipFlags);
+    }
 
     protected String detailContentVodPlayFrom(List<String> shareLinks) {
         List<String> from = new ArrayList<>();
