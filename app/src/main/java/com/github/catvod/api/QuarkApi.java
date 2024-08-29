@@ -351,7 +351,7 @@ public class QuarkApi {
             String quarkFormat = getPlayFormatQuarkList().get(index);
             for (Map<String, Object> video : (List<Map<String, Object>>) ((Map<String, Object>) transcoding.get("data")).get("video_list")) {
                 if (video.get("resolution").equals(quarkFormat)) {
-                    return video.get("video_info").toString();
+                    return (String) ((Map<String, Object>) video.get("video_info")).get("url");
                 }
             }
             return (String) ((Map<String, Object>) ((List<Map<String, Object>>) ((Map<String, Object>) transcoding.get("data")).get("video_list")).get(index).get("video_info")).get("url");

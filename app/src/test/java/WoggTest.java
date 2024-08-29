@@ -78,7 +78,7 @@ public class WoggTest {
 
     @org.junit.Test
     public void playerContent() throws Exception {
-        String content = spider.playerContent("quark4K", "c3f6b5fa48234c53909c65a4ff0f1888++14a1d67e74187d2415c81ba04517a63c++38c5e16d71f7++bOf18g/ZQ/P1U6EoNgIjt4vYXxXOeXa+JiKzZdTHFsI=", new ArrayList<>());
+        String content = spider.playerContent("quark4K", "d787d13c003c40bf8149f52ab9e24bd5++1b3bb0d1ab4ef09276e2a1e50cacdd0f++154a891ab53e++h5qQJe8ZhapYxmFUdCX8rRYdnBnJ+kfoSaZJTCDgOtE=", new ArrayList<>());
         System.out.println("playerContent--" + content);
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
