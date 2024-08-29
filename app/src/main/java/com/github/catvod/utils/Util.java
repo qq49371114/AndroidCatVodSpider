@@ -14,6 +14,7 @@ import android.webkit.WebViewClient;
 
 import com.github.catvod.spider.Init;
 
+import kotlin.io.encoding.Base64Kt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mozilla.universalchardet.UniversalDetector;
@@ -284,11 +285,11 @@ public class Util {
     }
 
     public static String base64Decode(String s) {
-        return new String(android.util.Base64.decode(s, Base64.DEFAULT), Charset.defaultCharset());
+        return new String(android.util.Base64.decode(s, Base64.NO_WRAP), Charset.defaultCharset());
     }
 
     public static String base64Encode(byte[] bytes) {
-        return new String(android.util.Base64.encode(bytes, Base64.DEFAULT), Charset.defaultCharset());
+        return new String(android.util.Base64.encode(bytes, Base64.NO_WRAP), Charset.defaultCharset());
     }
 
     /**
