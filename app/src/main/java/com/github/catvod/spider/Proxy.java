@@ -46,7 +46,7 @@ public class Proxy extends Spider {
         for (Map.Entry<String, String> entry : params.entrySet()) {
             if (!keys.contains(entry.getKey())) header.put(entry.getKey(), entry.getValue());
         }
-        return new Object[]{ProxyVideo.proxy(url, header)};
+        return ProxyVideo.proxy(url, header);
     }
 
     static void adjustPort() {
