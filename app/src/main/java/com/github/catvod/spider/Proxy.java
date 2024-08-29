@@ -6,6 +6,7 @@ import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.ProxyVideo;
+import com.github.catvod.utils.Util;
 import com.google.gson.Gson;
 
 import java.io.ByteArrayInputStream;
@@ -40,12 +41,12 @@ public class Proxy extends Spider {
     private static final List<String> keys = Arrays.asList("url", "header", "do", "Content-Type", "User-Agent", "Host");
 
     private static Object[] commonProxy(Map<String, String> params) throws Exception {
-        String url = new String(Base64.decode(params.get("url"),Base64.DEFAULT), Charset.defaultCharset());
-        Map<String, String> header = new Gson().fromJson(new String(Base64.decode(params.get("header"),Base64.DEFAULT), Charset.defaultCharset()), Map.class);
+        String url = Util.base64Decode(params.get("url"));
+        Map<String, String> header = new Gson().fromJson(Util.base64Decode(params.get("header")), Map.class);
         if (header == null) header = new HashMap<>();
-        for (Map.Entry<String, String> entry : params.entrySet()) {
+       /* for (Map.Entry<String, String> entry : params.entrySet()) {
             if (!keys.contains(entry.getKey())) header.put(entry.getKey(), entry.getValue());
-        }
+        }*/
         return ProxyVideo.proxy(url, header);
     }
 
