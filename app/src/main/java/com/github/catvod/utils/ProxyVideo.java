@@ -4,6 +4,7 @@ import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Base64;
 
+import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.spider.Proxy;
 import com.google.gson.Gson;
@@ -49,12 +50,19 @@ public class ProxyVideo {
 
     public static Object[] proxy(String url, Map<String, String> headers) throws Exception {
         Response response = OkHttp.newCall(url, headers);
+        SpiderDebug.log("++start proxy:");
+        SpiderDebug.log(" ++proxy code:" + response.code());
+        SpiderDebug.log(" ++proxy header:" + Json.toJson(response.headers()));
+        SpiderDebug.log("++proxy data:" + Json.toJson(response.body()));
         String contentType = response.headers().get("Content-Type");
         String contentDisposition = response.headers().get("Content-Disposition");
         if (contentDisposition != null) contentType = getMimeType(contentDisposition);
         Map<String, String> respHeaders = new HashMap<>();
         for (String key : response.headers().names())
             respHeaders.put(key, response.headers().get(key));
+        SpiderDebug.log("++proxy res contentType:" + contentType);
+        SpiderDebug.log("++proxy res body:" + response.body());
+        SpiderDebug.log("++proxy res respHeaders:" + Json.toJson(respHeaders));
         return new Object[]{206, contentType, response.body().byteStream(), respHeaders};
     }
 
