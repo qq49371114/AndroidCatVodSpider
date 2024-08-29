@@ -114,6 +114,7 @@ public class QuarkApi {
         }
         Map<String, String> header = getHeaders();
         header.remove("Host");
+        header.remove("Content-Type");
         return ProxyVideo.buildCommonProxyUrl(playUrl, header);
     }
 

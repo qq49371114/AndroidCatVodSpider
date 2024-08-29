@@ -1,5 +1,7 @@
 package com.github.catvod.bean.quark;
 
+import com.github.catvod.utils.Util;
+
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -100,7 +102,7 @@ public class Item {
                 name = numbers[0];
             }
         }
-        return name + " " + size;
+        return name + " " + Util.getSize(size);
     }
 
     public String getEpisodeUrl(String type_name) {
