@@ -2,6 +2,7 @@ package com.github.catvod.api;
 
 import android.text.TextUtils;
 
+import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
 import com.github.catvod.bean.ali.Cache;
 import com.github.catvod.bean.quark.Item;
@@ -115,7 +116,7 @@ public class QuarkApi {
         Map<String, String> header = getHeaders();
         header.remove("Host");
         header.remove("Content-Type");
-        return ProxyVideo.buildCommonProxyUrl(playUrl, header);
+        return Result.get().url(ProxyVideo.buildCommonProxyUrl(playUrl, header)).octet().header(header).string();
     }
 
 

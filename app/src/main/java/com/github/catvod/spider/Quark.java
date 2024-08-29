@@ -34,7 +34,8 @@ public class Quark extends Spider {
 
     @Override
     public String playerContent(String flag, String id, List<String> vipFlags) throws Exception {
-        return Result.get().url(QuarkApi.get().playerContent(id.split("\\+\\+"), flag)).string();
+        return  QuarkApi.get().playerContent(id.split("\\+\\+"), flag);
+
     }
 
     /**
