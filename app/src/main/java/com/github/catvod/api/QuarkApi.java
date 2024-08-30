@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+
 import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
 import com.github.catvod.bean.ali.Cache;
@@ -27,6 +28,7 @@ import com.github.catvod.spider.Init;
 import com.github.catvod.utils.*;
 
 import com.google.gson.JsonObject;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -37,6 +39,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -169,7 +172,8 @@ public class QuarkApi {
         }
         if (leftRetry > 0 && okResult.getCode() == 401 && refreshAccessToken())
             return api(url, params, data, leftRetry - 1, method);
-        if (leftRetry > 0 && okResult.getCode() == 429) return api(url, params, data, leftRetry - 1, method);
+        if (leftRetry > 0 && okResult.getCode() == 429)
+            return api(url, params, data, leftRetry - 1, method);
 
 
         if (okResult.getResp().get("Set-Cookie") != null) {
@@ -508,7 +512,9 @@ public class QuarkApi {
         } catch (Exception e) {
             showQRCode(json);
         } finally {
-            Init.execute(() -> startService(new HashMap<>()));
+            Map<String, String> map = new HashMap<>();
+            map.put("token", json);
+            Init.execute(() -> startService(map));
         }
     }
 
@@ -530,11 +536,19 @@ public class QuarkApi {
     }
 
     private void startService(Map<String, String> params) {
+        params.put("client_id", "532");
+        params.put("v", "1.2");
+        params.put("request_id", UUID.randomUUID().toString());
         service = Executors.newScheduledThreadPool(1);
         service.scheduleWithFixedDelay(() -> {
-            String result = OkHttp.post("https://passport.aliyundrive.com/newlogin/qrcode/query.do?appName=aliyun_drive&fromSite=52&_bx-v=2.2.3", params);
-            Data data = Data.objectFrom(result).getContent().getData();
-            if (data.hasToken()) setToken(data.getToken());
+            String result = OkHttp.string("https://uop.quark.cn/cas/ajax/getServiceTicketByQrcodeToken", params, getHeaders());
+            Map<String, Map<String, Map<String, String>>> json = new HashMap<>();
+            json = Json.parseSafe(result, json.getClass());
+            if (json.get("status").equals(2000000)) {
+
+                setToken(json.get("data").get("members").get("service_ticket"));
+            }
+
         }, 1, 1, TimeUnit.SECONDS);
     }
 
