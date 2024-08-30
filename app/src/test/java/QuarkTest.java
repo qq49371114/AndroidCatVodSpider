@@ -40,6 +40,7 @@ public class QuarkTest {
     public void detailContent() throws Exception {
 
         String content = spider.detailContent(Arrays.asList("https://pan.quark.cn/s/38c5e16d71f7"));
+        System.out.println("detailContent--" + content);
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println("detailContent--" + gson.toJson(map));
@@ -49,7 +50,8 @@ public class QuarkTest {
     @org.junit.Test
     public void playerContent() throws Exception {
 
-        String content = spider.playerContent("4K","c3f6b5fa48234c53909c65a4ff0f1888++de2277b662f92024bc08531d40ba91da++38c5e16d71f7++s79mbHXUZ61kQSYREE5Y3rdTvey/pLM73lNNGsv8VBk=",new ArrayList<>());
+        String content = spider.playerContent("4K","c3f6b5fa48234c53909c65a4ff0f1888++0e042ee5e78d49bf0f37a298e98cc9aa++38c5e16d71f7++ix/AD/nd1YKvqquXoEA/uWlcxXYWz1hVf8VAbHm+Xbg=",new ArrayList<>());
+        System.out.println("playerContent--" + content);
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println("playerContent--" + gson.toJson(map));

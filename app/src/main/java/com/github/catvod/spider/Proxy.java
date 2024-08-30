@@ -38,12 +38,15 @@ public class Proxy extends Spider {
                 return null;
         }
     }
+
     private static final List<String> keys = Arrays.asList("url", "header", "do", "Content-Type", "User-Agent", "Host");
 
     private static Object[] commonProxy(Map<String, String> params) throws Exception {
         String url = Util.base64Decode(params.get("url"));
         Map<String, String> header = new Gson().fromJson(Util.base64Decode(params.get("header")), Map.class);
         if (header == null) header = new HashMap<>();
+        List<String> keys = Arrays.asList("referer", "range", "connection", "accept-encoding");
+        for (String key : params.keySet()) if (keys.contains(key)) header.put(key, params.get(key));
        /* for (Map.Entry<String, String> entry : params.entrySet()) {
             if (!keys.contains(entry.getKey())) header.put(entry.getKey(), entry.getValue());
         }*/
