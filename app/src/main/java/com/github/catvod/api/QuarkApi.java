@@ -1,20 +1,32 @@
 package com.github.catvod.api;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.os.SystemClock;
 import android.text.TextUtils;
 
+import android.view.Gravity;
+import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
 import com.github.catvod.bean.ali.Cache;
+import com.github.catvod.bean.ali.Data;
+import com.github.catvod.bean.ali.User;
 import com.github.catvod.bean.quark.Item;
 import com.github.catvod.bean.quark.ShareData;
+import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.net.OkResult;
 import com.github.catvod.spider.Init;
-import com.github.catvod.utils.Json;
-import com.github.catvod.utils.Path;
-import com.github.catvod.utils.ProxyVideo;
-import com.github.catvod.utils.Util;
+import com.github.catvod.utils.*;
 
+import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -25,6 +37,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,6 +56,8 @@ public class QuarkApi {
     private String saveDirName = "TV";
     private boolean isVip = false;
     private final Cache cache;
+    private ScheduledExecutorService service;
+    private AlertDialog dialog;
 
     private static class Loader {
         static volatile QuarkApi INSTANCE = new QuarkApi();
@@ -149,6 +167,9 @@ public class QuarkApi {
         } else {
             okResult = OkHttp.post(this.apiUrl + url, Json.toJson(data), getHeaders());
         }
+        if (leftRetry > 0 && okResult.getCode() == 401 && refreshAccessToken())
+            return api(url, params, data, leftRetry - 1, method);
+        if (leftRetry > 0 && okResult.getCode() == 429) return api(url, params, data, leftRetry - 1, method);
 
 
         if (okResult.getResp().get("Set-Cookie") != null) {
@@ -167,6 +188,58 @@ public class QuarkApi {
         }
         return okResult.getBody();
     }
+
+    private boolean refreshAccessToken() {
+        try {
+            SpiderDebug.log("refreshCookie...");
+            JsonObject param = new JsonObject();
+            String token = cache.getUser().getRefreshToken();
+            if (token.isEmpty()) token = cookie;
+
+            cache.setUser(User.objectFrom(json));
+
+            return true;
+        } catch (Exception e) {
+            cache.getUser().clean();
+            e.printStackTrace();
+            stopService();
+            startFlow();
+            return true;
+        } finally {
+            while (cache.getUser().getAccessToken().isEmpty()) SystemClock.sleep(250);
+        }
+    }
+
+    /**
+     * 获取二维码登录的令牌
+     *
+     * @return 返回包含二维码登录令牌的字符串
+     */
+    private String getTokenForQrcodeLogin() {
+        String res = OkHttp.post("https://api.quark.cn/v2/user/getTokenForQrcodeLogin", new HashMap<>());
+        Map<String, Map<String, Map<String, String>>> json = new HashMap<>();
+        json = Json.parseSafe(res, json.getClass());
+        if (json.get("message").equals("ok")) {
+            return json.get("data").get("members").get("token");
+        }
+        return "";
+    }
+
+
+    /**
+     * 获取二维码内容
+     * <p>
+     * 此方法用于生成二维码的URL内容该URL用于二维码登录，包含了登录所需的token和客户端信息
+     *
+     * @return 返回包含token的二维码URL字符串
+     */
+    private String getQrCodeContent() {
+        // 获取用于二维码登录的token
+        String token = getTokenForQrcodeLogin();
+        // 组装二维码URL，包含token和客户端标识
+        return "https://su.quark.cn/4_eMHBJ?uc_param_str=&token=" + token + "&client_id=532&uc_biz_str=S%3Acustom%7COPT%3ASAREA%400%7COPT%3AIMMERSIVE%401%7COPT%3ABACK_BTN_STYLE%400";
+    }
+
 
     public ShareData getShareData(String url) {
         Pattern pattern = Pattern.compile("https://pan\\.quark\\.cn/s/([^\\\\|#/]+)");
@@ -391,6 +464,103 @@ public class QuarkApi {
         }
     }
 
+    private void startFlow() {
+        Init.run(this::showInput);
+    }
+
+    private void showInput() {
+        try {
+            int margin = ResUtil.dp2px(16);
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            FrameLayout frame = new FrameLayout(Init.context());
+            params.setMargins(margin, margin, margin, margin);
+            EditText input = new EditText(Init.context());
+            frame.addView(input, params);
+            dialog = new AlertDialog.Builder(Init.getActivity()).setTitle("请输入cookie").setView(frame).setNeutralButton("QRCode", (dialog, which) -> onNeutral()).setNegativeButton(android.R.string.cancel, null).setPositiveButton(android.R.string.ok, (dialog, which) -> onPositive(input.getText().toString())).show();
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void onNeutral() {
+        dismiss();
+        Init.execute(this::getQRCode);
+    }
+
+    private void onPositive(String text) {
+        dismiss();
+        Init.execute(() -> {
+            if (text.startsWith("http")) setToken(OkHttp.string(text));
+            else setToken(text);
+        });
+    }
+
+    private void getQRCode() {
+        String content = getQrCodeContent();
+        Init.run(() -> openApp(content));
+    }
+
+    private void openApp(String json) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setClassName("com.alicloud.databox", "com.taobao.login4android.scan.QrScanActivity");
+            intent.putExtra("key_scanParam", json);
+            Init.getActivity().startActivity(intent);
+        } catch (Exception e) {
+            showQRCode(json);
+        } finally {
+            Init.execute(() -> startService(new HashMap<>()));
+        }
+    }
+
+    private void showQRCode(String content) {
+        try {
+            int size = ResUtil.dp2px(240);
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(size, size);
+            ImageView image = new ImageView(Init.context());
+            image.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            image.setImageBitmap(QRCode.getBitmap(content, size, 2));
+            FrameLayout frame = new FrameLayout(Init.context());
+            params.gravity = Gravity.CENTER;
+            frame.addView(image, params);
+            dialog = new AlertDialog.Builder(Init.getActivity()).setView(frame).setOnCancelListener(this::dismiss).setOnDismissListener(this::dismiss).show();
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            Notify.show("请使用夸克网盘App扫描二维码");
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void startService(Map<String, String> params) {
+        service = Executors.newScheduledThreadPool(1);
+        service.scheduleWithFixedDelay(() -> {
+            String result = OkHttp.post("https://passport.aliyundrive.com/newlogin/qrcode/query.do?appName=aliyun_drive&fromSite=52&_bx-v=2.2.3", params);
+            Data data = Data.objectFrom(result).getContent().getData();
+            if (data.hasToken()) setToken(data.getToken());
+        }, 1, 1, TimeUnit.SECONDS);
+    }
+
+    private void setToken(String value) {
+        cache.getUser().setRefreshToken(value);
+        SpiderDebug.log("Token:" + value);
+        Notify.show("Token:" + value);
+        refreshAccessToken();
+        stopService();
+    }
+
+    private void stopService() {
+        if (service != null) service.shutdownNow();
+        Init.run(this::dismiss);
+    }
+
+    private void dismiss(DialogInterface dialog) {
+        stopService();
+    }
+
+    private void dismiss() {
+        try {
+            if (dialog != null) dialog.dismiss();
+        } catch (Exception ignored) {
+        }
+    }
 
 }
 
