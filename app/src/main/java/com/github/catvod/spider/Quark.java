@@ -10,7 +10,6 @@ import com.github.catvod.crawler.Spider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.regex.Matcher;
 
 /**
  * @author ColaMint & Adam & FongMi
@@ -21,7 +20,7 @@ public class Quark extends Spider {
     @Override
     public void init(Context context, String extend) throws Exception {
 
-        QuarkApi.get().initQuark(extend);
+        QuarkApi.get().setRefreshToken(extend);
     }
 
     @Override
@@ -34,7 +33,7 @@ public class Quark extends Spider {
 
     @Override
     public String playerContent(String flag, String id, List<String> vipFlags) throws Exception {
-        return  QuarkApi.get().playerContent(id.split("\\+\\+"), flag);
+        return QuarkApi.get().playerContent(id.split("\\+\\+"), flag);
 
     }
 

@@ -56,6 +56,10 @@ public class QuarkApi {
         return QuarkApi.Loader.INSTANCE;
     }
 
+    public void setRefreshToken(String token) {
+        this.cookie = token;
+    }
+
 
     public void initQuark(String cookie) throws Exception {
         this.ckey = Util.MD5(cookie);
@@ -193,6 +197,7 @@ public class QuarkApi {
                 String cook = result.getResp().get("my-set-cookie").get(0);
                 cache.setUser(User.objectFrom(cook));
                 if (cache.getUser().getCookie().isEmpty()) throw new Exception(cook);
+                initQuark(cook);
                 return true;
             }
             return false;
