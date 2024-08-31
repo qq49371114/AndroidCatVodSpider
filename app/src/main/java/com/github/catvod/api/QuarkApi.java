@@ -7,43 +7,29 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.SystemClock;
 import android.text.TextUtils;
-
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-
 import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
-import com.github.catvod.bean.ali.Cache;
-import com.github.catvod.bean.ali.Data;
-import com.github.catvod.bean.ali.User;
+import com.github.catvod.bean.quark.Cache;
 import com.github.catvod.bean.quark.Item;
 import com.github.catvod.bean.quark.ShareData;
+import com.github.catvod.bean.quark.User;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.net.OkResult;
 import com.github.catvod.spider.Init;
 import com.github.catvod.utils.*;
-
-import com.google.gson.JsonObject;
-
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -172,8 +158,7 @@ public class QuarkApi {
         }
         if (leftRetry > 0 && okResult.getCode() == 401 && refreshAccessToken())
             return api(url, params, data, leftRetry - 1, method);
-        if (leftRetry > 0 && okResult.getCode() == 429)
-            return api(url, params, data, leftRetry - 1, method);
+        if (leftRetry > 0 && okResult.getCode() == 429) return api(url, params, data, leftRetry - 1, method);
 
 
         if (okResult.getResp().get("Set-Cookie") != null) {
@@ -196,13 +181,22 @@ public class QuarkApi {
     private boolean refreshAccessToken() {
         try {
             SpiderDebug.log("refreshCookie...");
-            JsonObject param = new JsonObject();
-            String token = cache.getUser().getRefreshToken();
+
+            String token = cache.getUser().getCookie();
             if (token.isEmpty()) token = cookie;
 
-            cache.setUser(User.objectFrom(json));
 
-            return true;
+            OkResult result = OkHttp.get("https://pan.quark.cn/account/info?st=" + token, new HashMap<>(), Map.of("set-cookie", "my-set-cookie"));
+            Map<String, Map<String, Map<String, String>>> json = new HashMap<>();
+            json = Json.parseSafe(result.getBody(), json.getClass());
+            if (json.get("message").equals("ok")) {
+                String cook = result.getResp().get("my-set-cookie").get(0);
+                cache.setUser(User.objectFrom(cook));
+                if (cache.getUser().getCookie().isEmpty()) throw new Exception(cook);
+                return true;
+            }
+            return false;
+
         } catch (Exception e) {
             cache.getUser().clean();
             e.printStackTrace();
@@ -210,7 +204,7 @@ public class QuarkApi {
             startFlow();
             return true;
         } finally {
-            while (cache.getUser().getAccessToken().isEmpty()) SystemClock.sleep(250);
+            while (cache.getUser().getCookie().isEmpty()) SystemClock.sleep(250);
         }
     }
 
@@ -553,7 +547,7 @@ public class QuarkApi {
     }
 
     private void setToken(String value) {
-        cache.getUser().setRefreshToken(value);
+        cache.getUser().setCookie(value);
         SpiderDebug.log("Token:" + value);
         Notify.show("Token:" + value);
         refreshAccessToken();
