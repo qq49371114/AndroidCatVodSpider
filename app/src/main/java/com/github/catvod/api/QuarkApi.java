@@ -154,18 +154,19 @@ public class QuarkApi {
 
 
         int leftRetry = retry != null ? retry : 3;
+        if (StringUtils.isAllBlank(cookie)) {
+            this.refreshAccessToken();
+            return api(url, params, data, leftRetry - 1, method);
+        }
         OkResult okResult;
         if ("GET".equals(method)) {
             okResult = OkHttp.get(this.apiUrl + url, params, getHeaders());
         } else {
             okResult = OkHttp.post(this.apiUrl + url, Json.toJson(data), getHeaders());
         }
-        if (leftRetry > 0 && okResult.getCode() == 401 && refreshAccessToken())
-            return api(url, params, data, leftRetry - 1, method);
-        if (leftRetry > 0 && okResult.getCode() == 429) return api(url, params, data, leftRetry - 1, method);
 
 
-        if (okResult.getResp().get("Set-Cookie") != null) {
+        /*if (okResult.getResp().get("Set-Cookie") != null) {
             Matcher matcher = Pattern.compile("__puus=([^;]+)").matcher(StringUtils.join(okResult.getResp().get("Set-Cookie"), ";;;"));
             if (matcher.find()) {
                 Matcher cookieMatcher = Pattern.compile("__puus=([^;]+)").matcher(this.cookie);
@@ -173,7 +174,7 @@ public class QuarkApi {
                     this.cookie = this.cookie.replaceAll("__puus=[^;]+", "__puus=" + matcher.group(1));
                 }
             }
-        }
+        }*/
 
         if (okResult.getCode() != 200 && leftRetry > 0) {
             Thread.sleep(1000);
@@ -191,9 +192,9 @@ public class QuarkApi {
 
 
             OkResult result = OkHttp.get("https://pan.quark.cn/account/info?st=" + token, new HashMap<>(), Map.of("set-cookie", "my-set-cookie"));
-            Map<String, Map<String, Map<String, String>>> json = new HashMap<>();
-            json = Json.parseSafe(result.getBody(), json.getClass());
-            if (json.get("message").equals("ok")) {
+
+            Map<String, Object> json = Json.parseSafe(result.getBody(), Map.class);
+            if (json.get("code").equals("ok")) {
                 String cook = result.getResp().get("my-set-cookie").get(0);
                 cache.setUser(User.objectFrom(cook));
                 if (cache.getUser().getCookie().isEmpty()) throw new Exception(cook);
