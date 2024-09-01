@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+
 import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
 import com.github.catvod.bean.quark.Cache;
@@ -23,6 +24,7 @@ import com.github.catvod.net.OkHttp;
 import com.github.catvod.net.OkResult;
 import com.github.catvod.spider.Init;
 import com.github.catvod.utils.*;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -186,7 +188,10 @@ public class QuarkApi {
     private boolean refreshAccessToken() {
         try {
             SpiderDebug.log("refreshCookie...");
-
+            if (cookie.isEmpty()) {
+                SpiderDebug.log("cookie为空");
+                throw new RuntimeException("cookie为空");
+            }
             String token = cache.getUser().getCookie();
             if (token.isEmpty()) token = cookie;
 
@@ -220,11 +225,15 @@ public class QuarkApi {
      * @return 返回包含二维码登录令牌的字符串
      */
     private String getTokenForQrcodeLogin() {
-        String res = OkHttp.post("https://api.quark.cn/v2/user/getTokenForQrcodeLogin", new HashMap<>());
-        Map<String, Map<String, Map<String, String>>> json = new HashMap<>();
+        Map<String, String> params = new HashMap<>();
+        params.put("client_id", "386");
+        params.put("v", "1.2");
+        params.put("request_id", UUID.randomUUID().toString());
+        String res = OkHttp.string("https://uop.quark.cn/cas/ajax/getTokenForQrcodeLogin", params);
+        Map<String, Object> json = new HashMap<>();
         json = Json.parseSafe(res, json.getClass());
         if (json.get("message").equals("ok")) {
-            return json.get("data").get("members").get("token");
+            return (String) ((Map<String, Object>) ((Map<String, Object>) json.get("data")).get("members")).get("token");
         }
         return "";
     }
@@ -542,11 +551,11 @@ public class QuarkApi {
         service = Executors.newScheduledThreadPool(1);
         service.scheduleWithFixedDelay(() -> {
             String result = OkHttp.string("https://uop.quark.cn/cas/ajax/getServiceTicketByQrcodeToken", params, getHeaders());
-            Map<String, Map<String, Map<String, String>>> json = new HashMap<>();
+            Map<String, Object> json = new HashMap<>();
             json = Json.parseSafe(result, json.getClass());
             if (json.get("status").equals(2000000)) {
 
-                setToken(json.get("data").get("members").get("service_ticket"));
+                setToken((String) ((Map<String, Object>) ((Map<String, Object>) json.get("data")).get("members")).get("service_ticket"));
             }
 
         }, 1, 1, TimeUnit.SECONDS);
