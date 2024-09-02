@@ -221,8 +221,6 @@ public class Item {
         return getDisplayName(type_name) + "$" + getFid() + "++" + getShareFidToken() + "++" + getShareId() + "++" + getShareToken();
     }
 
-    public Item() {
-    }
 
     public String getFid() {
         return fid;
