@@ -41,6 +41,3 @@
     public static ** valueOf(java.lang.String);
 }
 
--keepclassmembers class com.github.catvod.bean.quark.** {
-  <init>();
-}
