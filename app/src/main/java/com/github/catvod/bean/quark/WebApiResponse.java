@@ -5,10 +5,6 @@ import com.google.gson.annotations.SerializedName;
 public class WebApiResponse {
     private int status;
     private String message;
-
-    public WebApiResponse() {
-    }
-
     private Data data;
 
     public int getStatus() {
@@ -36,9 +32,6 @@ public class WebApiResponse {
     }
 
     public static class Data {
-        public Data() {
-        }
-
         private Members members;
 
         public Members getMembers() {
@@ -54,9 +47,6 @@ public class WebApiResponse {
         private String token;
         @SerializedName("service_ticket")
         private String serviceTicket;
-
-        public Members() {
-        }
 
         public String getServiceTicket() {
             return serviceTicket;

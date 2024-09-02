@@ -19,9 +19,7 @@ public class Metadata {
     @SerializedName("_t_group")
     private String tGroup;
 
-    public Metadata() {
-    }
-// Getters and Setters
+    // Getters and Setters
 
     public int getSize() {
         return size;
