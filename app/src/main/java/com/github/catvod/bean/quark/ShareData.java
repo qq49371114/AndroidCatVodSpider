@@ -5,6 +5,9 @@ public class ShareData {
     private String folderId;
     private String sharePwd ;
 
+    public ShareData() {
+    }
+
     public ShareData(String shareId, String folderId) {
         this.shareId = shareId;
         this.folderId = folderId;
