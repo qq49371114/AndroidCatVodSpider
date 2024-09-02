@@ -418,13 +418,13 @@ public class QuarkApi {
             getShareToken(new ShareData(shareId, null));
             if (!this.shareTokenCache.containsKey(shareId)) return null;
         }
-        Type type = new TypeToken<ApiResponse<Map<String, String>>>() {
+        Type type = new TypeToken<ApiResponse<HashMap<String, String>>>() {
         }.getType();
         ApiResponse<Map<String, String>> saveResult = Json.parseSafe(api("share/sharepage/save?" + this.pr, null, Map.of("fid_list", List.of(fileId), "fid_token_list", List.of(fileToken), "to_pdir_fid", this.saveDirId, "pwd_id", shareId, "stoken", stoken != null ? stoken : (String) this.shareTokenCache.get(shareId).get("stoken"), "pdir_fid", "0", "scene", "link"), 0, "POST"), type);
         if (saveResult.getData() != null && (saveResult.getData()).get("task_id") != null) {
             int retry = 0;
             while (true) {
-                Type type2 = new TypeToken<ApiResponse<Map<String, Object>>>() {
+                Type type2 = new TypeToken<ApiResponse<HashMap<String, Object>>>() {
                 }.getType();
                 ApiResponse<Map<String, Object>> taskResult = Json.parseSafe(api("task?" + this.pr + "&task_id=" + (saveResult.getData()).get("task_id") + "&retry_index=" + retry, Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), type2);
                 if (taskResult.getData() != null && taskResult.getData().get("save_as") != null && ((Map<String, Object>) taskResult.getData().get("save_as")).get("save_as_top_fids") != null && ((List<String>) ((Map<String, Object>) ((Map<String, Object>) taskResult.getData()).get("save_as")).get("save_as_top_fids")).size() > 0) {
@@ -444,7 +444,7 @@ public class QuarkApi {
             if (saveFileId == null) return null;
             this.saveFileIdCaches.put(fileId, saveFileId);
         }
-        Type type2 = new TypeToken<ApiResponse<Map<String, Object>>>() {
+        Type type2 = new TypeToken<ApiResponse<HashMap<String, Object>>>() {
         }.getType();
         ApiResponse<Map<String, Object>> transcoding = Json.parseSafe(api("file/v2/play?" + this.pr, Collections.emptyMap(), Map.of("fid", this.saveFileIdCaches.get(fileId), "resolutions", "normal,low,high,super,2k,4k", "supports", "fmp4"), 0, "POST"), type2);
         if (transcoding.getData() != null && (transcoding.getData()).get("video_list") != null) {
