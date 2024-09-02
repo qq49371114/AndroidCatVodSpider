@@ -12,22 +12,19 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-
 import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
-import com.github.catvod.bean.quark.Cache;
-import com.github.catvod.bean.quark.Item;
-import com.github.catvod.bean.quark.ShareData;
-import com.github.catvod.bean.quark.User;
+import com.github.catvod.bean.quark.*;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.net.OkResult;
 import com.github.catvod.spider.Init;
 import com.github.catvod.utils.*;
-
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -49,6 +46,7 @@ public class QuarkApi {
     private final Cache cache;
     private ScheduledExecutorService service;
     private AlertDialog dialog;
+    private String serviceTicket;
 
     private static class Loader {
         static volatile QuarkApi INSTANCE = new QuarkApi();
@@ -62,6 +60,23 @@ public class QuarkApi {
         this.cookie = token;
     }
 
+    private Map<String, String> getHeaders() {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) quark-cloud-drive/2.5.20 Chrome/100.0.4896.160 Electron/18.3.5.4-b478491100 Safari/537.36 Channel/pckk_other_ch");
+        headers.put("Referer", "https://pan.quark.cn/");
+        headers.put("Content-Type", "application/json");
+        headers.put("Cookie", this.cookie);
+        headers.put("Host", "drive-pc.quark.cn");
+        return headers;
+    }
+
+    private Map<String, String> getWebHeaders() {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) quark-cloud-drive/2.5.20 Chrome/100.0.4896.160 Electron/18.3.5.4-b478491100 Safari/537.36 Channel/pckk_other_ch");
+        headers.put("Referer", "https://pan.quark.cn/");
+        headers.put("Cookie", this.cookie);
+        return headers;
+    }
 
     public void initQuark(String cookie) throws Exception {
         this.ckey = Util.MD5(cookie);
@@ -83,7 +98,7 @@ public class QuarkApi {
         getShareToken(shareData);
         List<Item> files = new ArrayList<>();
         List<Item> subs = new ArrayList<>();
-        List<Map<String, Object>> listData = listFile(1, shareData, files, subs, shareData.getShareId(), shareData.getFolderId(), 1);
+        List<Item> listData = listFile(1, shareData, files, subs, shareData.getShareId(), shareData.getFolderId(), 1);
 
         List<String> playFrom = QuarkApi.get().getPlayFormatList();
 
@@ -118,8 +133,7 @@ public class QuarkApi {
 
     public String playerContent(String[] split, String flag) throws Exception {
 
-        String[] id_list = split;
-        String shareId = id_list[2], stoken = id_list[3], fileId = id_list[0], fileToken = id_list[1];
+        String fileId = split[0], fileToken = split[1], shareId = split[2], stoken = split[3];
         String playUrl = "";
         if (flag.contains("原画")) {
             playUrl = this.getDownload(shareId, stoken, fileId, fileToken, true);
@@ -132,16 +146,6 @@ public class QuarkApi {
         return Result.get().url(ProxyVideo.buildCommonProxyUrl(playUrl, header)).octet().header(header).string();
     }
 
-
-    private Map<String, String> getHeaders() {
-        Map<String, String> headers = new HashMap<>();
-        headers.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) quark-cloud-drive/2.5.20 Chrome/100.0.4896.160 Electron/18.3.5.4-b478491100 Safari/537.36 Channel/pckk_other_ch");
-        headers.put("Referer", "https://pan.quark.cn/");
-        headers.put("Content-Type", "application/json");
-        headers.put("Cookie", this.cookie);
-        headers.put("Host", "drive-pc.quark.cn");
-        return headers;
-    }
 
     /**
      * @param url
@@ -168,16 +172,6 @@ public class QuarkApi {
         }
 
 
-        /*if (okResult.getResp().get("Set-Cookie") != null) {
-            Matcher matcher = Pattern.compile("__puus=([^;]+)").matcher(StringUtils.join(okResult.getResp().get("Set-Cookie"), ";;;"));
-            if (matcher.find()) {
-                Matcher cookieMatcher = Pattern.compile("__puus=([^;]+)").matcher(this.cookie);
-                if (cookieMatcher.find() && !cookieMatcher.group(1).equals(matcher.group(1))) {
-                    this.cookie = this.cookie.replaceAll("__puus=[^;]+", "__puus=" + matcher.group(1));
-                }
-            }
-        }*/
-
         if (okResult.getCode() != 200 && leftRetry > 0) {
             Thread.sleep(1000);
             return api(url, params, data, leftRetry - 1, method);
@@ -192,18 +186,20 @@ public class QuarkApi {
                 SpiderDebug.log("cookie为空");
                 throw new RuntimeException("cookie为空");
             }
-            String token = cache.getUser().getCookie();
-            if (token.isEmpty()) token = cookie;
+            String token = serviceTicket;
+            OkResult result = OkHttp.get("https://pan.quark.cn/account/info?st=" + token + "&lw=scan", new HashMap<>(), getWebHeaders());
+            AccountInfo json = Json.parseSafe(result.getBody(), AccountInfo.class);
+            if (json.isSuccess()) {
+                List<String> cookies = result.getResp().get("set-Cookie");
+                List<String> cookieList = new ArrayList<>();
+                for (String cookie : cookies) {
+                    cookieList.add(cookie.split(";")[0]);
+                }
+                this.cookie += TextUtils.join(";", cookieList);
 
-
-            OkResult result = OkHttp.get("https://pan.quark.cn/account/info?st=" + token, new HashMap<>(), Map.of("set-cookie", "my-set-cookie"));
-
-            Map<String, Object> json = Json.parseSafe(result.getBody(), Map.class);
-            if (json.get("code").equals("ok")) {
-                String cook = result.getResp().get("my-set-cookie").get(0);
-                cache.setUser(User.objectFrom(cook));
-                if (cache.getUser().getCookie().isEmpty()) throw new Exception(cook);
-                initQuark(cook);
+                cache.setUser(User.objectFrom(this.cookie));
+                if (cache.getUser().getCookie().isEmpty()) throw new Exception(this.cookie);
+                initQuark(this.cookie);
                 return true;
             }
             return false;
@@ -229,11 +225,18 @@ public class QuarkApi {
         params.put("client_id", "386");
         params.put("v", "1.2");
         params.put("request_id", UUID.randomUUID().toString());
-        String res = OkHttp.string("https://uop.quark.cn/cas/ajax/getTokenForQrcodeLogin", params);
-        Map<String, Object> json = new HashMap<>();
-        json = Json.parseSafe(res, json.getClass());
-        if (json.get("message").equals("ok")) {
-            return (String) ((Map<String, Object>) ((Map<String, Object>) json.get("data")).get("members")).get("token");
+        OkResult res = OkHttp.get("https://uop.quark.cn/cas/ajax/getTokenForQrcodeLogin", params, new HashMap<>());
+        if (this.cookie.isEmpty()) {
+            List<String> cookies = res.getResp().get("set-Cookie");
+            List<String> cookieList = new ArrayList<>();
+            for (String cookie : cookies) {
+                cookieList.add(cookie.split(";")[0]);
+            }
+            this.cookie = TextUtils.join(";", cookieList);
+        }
+        WebApiResponse json = Json.parseSafe(res.getBody(), WebApiResponse.class);
+        if (json.getMessage().equals("ok")) {
+            return json.getData().getMembers().getToken();
         }
         return "";
     }
@@ -246,11 +249,11 @@ public class QuarkApi {
      *
      * @return 返回包含token的二维码URL字符串
      */
-    private String getQrCodeContent() {
+    private String getQrCodeToken() {
         // 获取用于二维码登录的token
         String token = getTokenForQrcodeLogin();
         // 组装二维码URL，包含token和客户端标识
-        return "https://su.quark.cn/4_eMHBJ?uc_param_str=&token=" + token + "&client_id=532&uc_biz_str=S%3Acustom%7COPT%3ASAREA%400%7COPT%3AIMMERSIVE%401%7COPT%3ABACK_BTN_STYLE%400";
+        return token;
     }
 
 
@@ -294,31 +297,33 @@ public class QuarkApi {
         }
     }
 
-    private List<Map<String, Object>> listFile(int shareIndex, ShareData shareData, List<Item> videos, List<Item> subtitles, String shareId, String folderId, Integer page) throws Exception {
+    private List<Item> listFile(int shareIndex, ShareData shareData, List<Item> videos, List<Item> subtitles, String shareId, String folderId, Integer page) throws Exception {
         int prePage = 200;
         page = page != null ? page : 1;
-        Map<String, Object> listData = Json.parseSafe(api("share/sharepage/detail?" + this.pr + "&pwd_id=" + shareId + "&stoken=" + encodeURIComponent((String) this.shareTokenCache.get(shareId).get("stoken")) + "&pdir_fid=" + folderId + "&force=0&_page=" + page + "&_size=" + prePage + "&_sort=file_type:asc,file_name:asc", Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), Map.class);
-        if (listData.get("data") == null) return Collections.emptyList();
-        List<Map<String, Object>> items = (List<Map<String, Object>>) ((Map<String, Object>) listData.get("data")).get("list");
+        Type type = new TypeToken<ApiResponse<Data>>() {
+        }.getType();
+        ApiResponse<Data> listData = Json.parseSafe(api("share/sharepage/detail?" + this.pr + "&pwd_id=" + shareId + "&stoken=" + encodeURIComponent((String) this.shareTokenCache.get(shareId).get("stoken")) + "&pdir_fid=" + folderId + "&force=0&_page=" + page + "&_size=" + prePage + "&_sort=file_type:asc,file_name:asc", Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), type);
+        if (listData.getData() == null) return Collections.emptyList();
+        List<Item> items = listData.getData().getList();
         if (items == null) return Collections.emptyList();
-        List<Map<String, Object>> subDir = new ArrayList<>();
-        for (Map<String, Object> item : items) {
-            if (Boolean.TRUE.equals(item.get("dir"))) {
+        List<Item> subDir = new ArrayList<>();
+        for (Item item : items) {
+            if (Boolean.TRUE.equals(item.isDir())) {
                 subDir.add(item);
-            } else if (Boolean.TRUE.equals(item.get("file")) && "video".equals(item.get("obj_category"))) {
-                if ((Double) item.get("size") < 1024 * 1024 * 5) continue;
-                item.put("stoken", this.shareTokenCache.get(shareData.getShareId()).get("stoken"));
+            } else if (Boolean.TRUE.equals(item.isFile()) && "video".equals(item.getObjCategory())) {
+                if (item.getSize() < 1024 * 1024 * 5) continue;
+                item.setShareToken((String) this.shareTokenCache.get(shareData.getShareId()).get("stoken"));
                 videos.add(Item.objectFrom(item, shareData.getShareId(), shareIndex));
-            } else if ("file".equals(item.get("type")) && this.subtitleExts.contains("." + Util.getExt((String) item.get("file_name")))) {
+            } else if ("file".equals(item.getFileType()) && this.subtitleExts.contains("." + Util.getExt(item.getFileName()))) {
                 subtitles.add(Item.objectFrom(item, shareData.getShareId(), shareIndex));
             }
         }
-        if (page < Math.ceil((double) ((Map<String, Object>) listData.get("metadata")).get("_total") / prePage)) {
-            List<Map<String, Object>> nextItems = listFile(shareIndex, shareData, videos, subtitles, shareId, folderId, page + 1);
+        if (page < Math.ceil((double) listData.getMetadata().getTotal() / prePage)) {
+            List<Item> nextItems = listFile(shareIndex, shareData, videos, subtitles, shareId, folderId, page + 1);
             items.addAll(nextItems);
         }
-        for (Map<String, Object> dir : subDir) {
-            List<Map<String, Object>> subItems = listFile(shareIndex, shareData, videos, subtitles, shareId, dir.get("fid").toString(), null);
+        for (Item dir : subDir) {
+            List<Item> subItems = listFile(shareIndex, shareData, videos, subtitles, shareId, dir.getFid(), null);
             items.addAll(subItems);
         }
         return items;
@@ -328,7 +333,7 @@ public class QuarkApi {
         List<Map<String, Object>> results = new ArrayList<>();
         int bestMatchIndex = 0;
         for (int i = 0; i < targetItems.size(); i++) {
-            Util.LCSResult currentLCS = Util.lcs(mainItem.getName(), targetItems.get(i).getName());
+            Util.LCSResult currentLCS = Util.lcs(mainItem.getFileName(), targetItems.get(i).getFileName());
             Map<String, Object> result = new HashMap<>();
             result.put("target", targetItems.get(i));
             result.put("lcs", currentLCS);
@@ -366,11 +371,13 @@ public class QuarkApi {
     }
 
     private void clearSaveDir() throws Exception {
-        Map<String, Object> listData = Json.parseSafe(api("file/sort?" + this.pr + "&pdir_fid=" + this.saveDirId + "&_page=1&_size=200&_sort=file_type:asc,updated_at:desc", Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), Map.class);
-        if (listData.get("data") != null && ((List<Map<String, Object>>) ((Map<String, Object>) listData.get("data")).get("list")).size() > 0) {
+        Type type = new TypeToken<ApiResponse<Data>>() {
+        }.getType();
+        ApiResponse<Data> listData = Json.parseSafe(api("file/sort?" + this.pr + "&pdir_fid=" + this.saveDirId + "&_page=1&_size=200&_sort=file_type:asc,updated_at:desc", Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), type);
+        if (listData.getData() != null && !listData.getData().getList().isEmpty()) {
             List<String> list = new ArrayList<>();
-            for (Map<String, Object> stringStringMap : ((List<Map<String, Object>>) ((Map<String, Object>) listData.get("data")).get("list"))) {
-                list.add((String) stringStringMap.get("fid"));
+            for (Item stringStringMap : listData.getData().getList()) {
+                list.add(stringStringMap.getFid());
             }
             api("file/delete?" + this.pr, Collections.emptyMap(), Map.of("action_type", "2", "filelist", Json.toJson(list), "exclude_fids", ""), 0, "POST");
         }
@@ -381,11 +388,13 @@ public class QuarkApi {
             if (clean) clearSaveDir();
             return;
         }
-        Map<String, Object> listData = Json.parseSafe(api("file/sort?" + this.pr + "&pdir_fid=0&_page=1&_size=200&_sort=file_type:asc,updated_at:desc", Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), Map.class);
-        if (listData.get("data") != null) {
-            for (Map<String, Object> item : (List<Map<String, Object>>) ((Map<String, Object>) listData.get("data")).get("list")) {
-                if (this.saveDirName.equals(item.get("file_name"))) {
-                    this.saveDirId = item.get("fid").toString();
+        Type type = new TypeToken<ApiResponse<Data>>() {
+        }.getType();
+        ApiResponse<Data> listData = Json.parseSafe(api("file/sort?" + this.pr + "&pdir_fid=0&_page=1&_size=200&_sort=file_type:asc,updated_at:desc", Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), type);
+        if (listData.getData() != null) {
+            for (Item item : listData.getData().getList()) {
+                if (this.saveDirName.equals(item.getFileName())) {
+                    this.saveDirId = item.getFid();
                     clearSaveDir();
                     break;
                 }
@@ -409,13 +418,17 @@ public class QuarkApi {
             getShareToken(new ShareData(shareId, null));
             if (!this.shareTokenCache.containsKey(shareId)) return null;
         }
-        Map<String, Object> saveResult = Json.parseSafe(api("share/sharepage/save?" + this.pr, null, Map.of("fid_list", List.of(fileId), "fid_token_list", List.of(fileToken), "to_pdir_fid", this.saveDirId, "pwd_id", shareId, "stoken", stoken != null ? stoken : (String) this.shareTokenCache.get(shareId).get("stoken"), "pdir_fid", "0", "scene", "link"), 0, "POST"), Map.class);
-        if (saveResult.get("data") != null && ((Map<String, Object>) saveResult.get("data")).get("task_id") != null) {
+        Type type = new TypeToken<ApiResponse<Map<String, String>>>() {
+        }.getType();
+        ApiResponse<Map<String, String>> saveResult = Json.parseSafe(api("share/sharepage/save?" + this.pr, null, Map.of("fid_list", List.of(fileId), "fid_token_list", List.of(fileToken), "to_pdir_fid", this.saveDirId, "pwd_id", shareId, "stoken", stoken != null ? stoken : (String) this.shareTokenCache.get(shareId).get("stoken"), "pdir_fid", "0", "scene", "link"), 0, "POST"), type);
+        if (saveResult.getData() != null && (saveResult.getData()).get("task_id") != null) {
             int retry = 0;
             while (true) {
-                Map<String, Object> taskResult = Json.parseSafe(api("task?" + this.pr + "&task_id=" + ((Map<String, Object>) saveResult.get("data")).get("task_id") + "&retry_index=" + retry, Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), Map.class);
-                if (taskResult.get("data") != null && ((Map<String, Object>) taskResult.get("data")).get("save_as") != null && ((Map<String, Object>) ((Map<String, Object>) taskResult.get("data")).get("save_as")).get("save_as_top_fids") != null && ((List<String>) ((Map<String, Object>) ((Map<String, Object>) taskResult.get("data")).get("save_as")).get("save_as_top_fids")).size() > 0) {
-                    return ((List<String>) ((Map<String, Object>) ((Map<String, Object>) taskResult.get("data")).get("save_as")).get("save_as_top_fids")).get(0);
+                Type type2 = new TypeToken<ApiResponse<Map<String, Object>>>() {
+                }.getType();
+                ApiResponse<Map<String, Object>> taskResult = Json.parseSafe(api("task?" + this.pr + "&task_id=" + (saveResult.getData()).get("task_id") + "&retry_index=" + retry, Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), type2);
+                if (taskResult.getData() != null && taskResult.getData().get("save_as") != null && ((Map<String, Object>) taskResult.getData().get("save_as")).get("save_as_top_fids") != null && ((List<String>) ((Map<String, Object>) ((Map<String, Object>) taskResult.getData()).get("save_as")).get("save_as_top_fids")).size() > 0) {
+                    return ((List<String>) ((Map<String, Object>) (taskResult.getData()).get("save_as")).get("save_as_top_fids")).get(0);
                 }
                 retry++;
                 if (retry > 2) break;
@@ -431,17 +444,19 @@ public class QuarkApi {
             if (saveFileId == null) return null;
             this.saveFileIdCaches.put(fileId, saveFileId);
         }
-        Map<String, Object> transcoding = Json.parseSafe(api("file/v2/play?" + this.pr, Collections.emptyMap(), Map.of("fid", this.saveFileIdCaches.get(fileId), "resolutions", "normal,low,high,super,2k,4k", "supports", "fmp4"), 0, "POST"), Map.class);
-        if (transcoding.get("data") != null && ((Map<String, Object>) transcoding.get("data")).get("video_list") != null) {
+        Type type2 = new TypeToken<ApiResponse<Map<String, Object>>>() {
+        }.getType();
+        ApiResponse<Map<String, Object>> transcoding = Json.parseSafe(api("file/v2/play?" + this.pr, Collections.emptyMap(), Map.of("fid", this.saveFileIdCaches.get(fileId), "resolutions", "normal,low,high,super,2k,4k", "supports", "fmp4"), 0, "POST"), type2);
+        if (transcoding.getData() != null && (transcoding.getData()).get("video_list") != null) {
             String flagId = flag.split("-")[flag.split("-").length - 1];
             int index = Util.findAllIndexes(getPlayFormatList(), flagId);
             String quarkFormat = getPlayFormatQuarkList().get(index);
-            for (Map<String, Object> video : (List<Map<String, Object>>) ((Map<String, Object>) transcoding.get("data")).get("video_list")) {
+            for (Map<String, Object> video : (List<Map<String, Object>>) (transcoding.getData()).get("video_list")) {
                 if (video.get("resolution").equals(quarkFormat)) {
                     return (String) ((Map<String, Object>) video.get("video_info")).get("url");
                 }
             }
-            return (String) ((Map<String, Object>) ((List<Map<String, Object>>) ((Map<String, Object>) transcoding.get("data")).get("video_list")).get(index).get("video_info")).get("url");
+            return (String) ((Map<String, Object>) ((List<Map<String, Object>>) (transcoding.getData()).get("video_list")).get(index).get("video_info")).get("url");
         }
         return null;
     }
@@ -508,21 +523,22 @@ public class QuarkApi {
     }
 
     private void getQRCode() {
-        String content = getQrCodeContent();
-        Init.run(() -> openApp(content));
+        String token = getQrCodeToken();
+
+        Init.run(() -> openApp(token));
     }
 
-    private void openApp(String json) {
+    private void openApp(String token) {
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setClassName("com.alicloud.databox", "com.taobao.login4android.scan.QrScanActivity");
-            intent.putExtra("key_scanParam", json);
+            intent.putExtra("key_scanParam", token);
             Init.getActivity().startActivity(intent);
         } catch (Exception e) {
-            showQRCode(json);
+            showQRCode("https://su.quark.cn/4_eMHBJ?uc_param_str=&token=" + token + "&client_id=532&uc_biz_str=S%3Acustom%7COPT%3ASAREA%400%7COPT%3AIMMERSIVE%401%7COPT%3ABACK_BTN_STYLE%400");
         } finally {
             Map<String, String> map = new HashMap<>();
-            map.put("token", json);
+            map.put("token", token);
             Init.execute(() -> startService(map));
         }
     }
@@ -550,21 +566,21 @@ public class QuarkApi {
         params.put("request_id", UUID.randomUUID().toString());
         service = Executors.newScheduledThreadPool(1);
         service.scheduleWithFixedDelay(() -> {
-            String result = OkHttp.string("https://uop.quark.cn/cas/ajax/getServiceTicketByQrcodeToken", params, getHeaders());
-            Map<String, Object> json = new HashMap<>();
-            json = Json.parseSafe(result, json.getClass());
-            if (json.get("status").equals(2000000)) {
+            String result = OkHttp.string("https://uop.quark.cn/cas/ajax/getServiceTicketByQrcodeToken", params, getWebHeaders());
 
-                setToken((String) ((Map<String, Object>) ((Map<String, Object>) json.get("data")).get("members")).get("service_ticket"));
+            WebApiResponse json = Json.parseSafe(result, WebApiResponse.class);
+            if (json.getStatus() == 2000000) {
+
+                setToken(json.getData().getMembers().getServiceTicket());
             }
 
         }, 1, 1, TimeUnit.SECONDS);
     }
 
     private void setToken(String value) {
-        cache.getUser().setCookie(value);
-        SpiderDebug.log("Token:" + value);
-        Notify.show("Token:" + value);
+        this.serviceTicket = value;
+        SpiderDebug.log("ServiceTicket:" + value);
+        Notify.show("ServiceTicket:" + value);
         refreshAccessToken();
         stopService();
     }
