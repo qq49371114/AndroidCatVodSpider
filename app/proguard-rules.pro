@@ -41,8 +41,3 @@
     public static ** valueOf(java.lang.String);
 }
 
--if class *
--keepclasseswithmembers class <1> {
-    <init>(...);
-    @com.google.gson.annotations.SerializedName <fields>;
-}

@@ -15,7 +15,8 @@ public class ApiResponse<T> {
     private T data;
     @SerializedName("metadata")
     private Metadata metadata;
-
+    public ApiResponse() {
+    }
     // Getters and Setters
 
     public int getStatus() {

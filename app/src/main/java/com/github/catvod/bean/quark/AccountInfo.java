@@ -5,6 +5,9 @@ public class AccountInfo {
     private Data data;
     private String code;
 
+    public AccountInfo() {
+    }
+
     public boolean isSuccess() {
         return success;
     }
@@ -34,7 +37,8 @@ public class AccountInfo {
         private String avatarUri;
         private String mobilekps;
         private Config config;
-
+        public Data() {
+        }
         public String getNickname() {
             return nickname;
         }
@@ -70,5 +74,7 @@ public class AccountInfo {
 
     public static class Config {
         // 可以根据实际情况添加属性
+        public Config() {
+        }
     }
 }

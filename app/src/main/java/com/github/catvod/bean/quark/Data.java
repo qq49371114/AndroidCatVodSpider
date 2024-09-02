@@ -10,7 +10,9 @@ public class Data {
     @SerializedName("list")
     private List<Item> list;
 
-    // Getters and Setters
+    public Data() {
+    }
+// Getters and Setters
 
     public int getIsOwner() {
         return isOwner;

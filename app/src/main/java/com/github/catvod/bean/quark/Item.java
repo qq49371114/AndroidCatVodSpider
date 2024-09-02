@@ -94,6 +94,9 @@ public class Item {
     private String shareToken;
     private String subtitle;
 
+    public Item() {
+    }
+
     public static Item objectFrom(Item item, String shareId, int shareIndex) {
         item.setShareId(shareId);
         item.setShareIndex(shareIndex);

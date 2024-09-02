@@ -7,6 +7,9 @@ public class WebApiResponse {
     private String message;
     private Data data;
 
+    public WebApiResponse() {
+    }
+
     public int getStatus() {
         return status;
     }
@@ -32,6 +35,8 @@ public class WebApiResponse {
     }
 
     public static class Data {
+        public Data() {
+        }
         private Members members;
 
         public Members getMembers() {
@@ -44,6 +49,8 @@ public class WebApiResponse {
     }
 
     public static class Members {
+        public Members() {
+        }
         private String token;
         @SerializedName("service_ticket")
         private String serviceTicket;
