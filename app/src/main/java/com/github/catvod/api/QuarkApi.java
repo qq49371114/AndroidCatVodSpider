@@ -20,11 +20,9 @@ import com.github.catvod.net.OkHttp;
 import com.github.catvod.net.OkResult;
 import com.github.catvod.spider.Init;
 import com.github.catvod.utils.*;
-import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -300,9 +298,8 @@ public class QuarkApi {
     private List<Item> listFile(int shareIndex, ShareData shareData, List<Item> videos, List<Item> subtitles, String shareId, String folderId, Integer page) throws Exception {
         int prePage = 200;
         page = page != null ? page : 1;
-        Type type = new TypeToken<ApiResponse<Data>>() {
-        }.getType();
-        ApiResponse<Data> listData = Json.parseSafe(api("share/sharepage/detail?" + this.pr + "&pwd_id=" + shareId + "&stoken=" + encodeURIComponent((String) this.shareTokenCache.get(shareId).get("stoken")) + "&pdir_fid=" + folderId + "&force=0&_page=" + page + "&_size=" + prePage + "&_sort=file_type:asc,file_name:asc", Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), type);
+
+        ApiResponse listData = Json.parseSafe(api("share/sharepage/detail?" + this.pr + "&pwd_id=" + shareId + "&stoken=" + encodeURIComponent((String) this.shareTokenCache.get(shareId).get("stoken")) + "&pdir_fid=" + folderId + "&force=0&_page=" + page + "&_size=" + prePage + "&_sort=file_type:asc,file_name:asc", Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), ApiResponse.class);
         if (listData.getData() == null) return Collections.emptyList();
         List<Item> items = listData.getData().getList();
         if (items == null) return Collections.emptyList();
@@ -371,9 +368,8 @@ public class QuarkApi {
     }
 
     private void clearSaveDir() throws Exception {
-        Type type = new TypeToken<ApiResponse<Data>>() {
-        }.getType();
-        ApiResponse<Data> listData = Json.parseSafe(api("file/sort?" + this.pr + "&pdir_fid=" + this.saveDirId + "&_page=1&_size=200&_sort=file_type:asc,updated_at:desc", Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), type);
+
+        ApiResponse listData = Json.parseSafe(api("file/sort?" + this.pr + "&pdir_fid=" + this.saveDirId + "&_page=1&_size=200&_sort=file_type:asc,updated_at:desc", Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), ApiResponse.class);
         if (listData.getData() != null && !listData.getData().getList().isEmpty()) {
             List<String> list = new ArrayList<>();
             for (Item stringStringMap : listData.getData().getList()) {
@@ -388,9 +384,8 @@ public class QuarkApi {
             if (clean) clearSaveDir();
             return;
         }
-        Type type = new TypeToken<ApiResponse<Data>>() {
-        }.getType();
-        ApiResponse<Data> listData = Json.parseSafe(api("file/sort?" + this.pr + "&pdir_fid=0&_page=1&_size=200&_sort=file_type:asc,updated_at:desc", Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), type);
+
+        ApiResponse listData = Json.parseSafe(api("file/sort?" + this.pr + "&pdir_fid=0&_page=1&_size=200&_sort=file_type:asc,updated_at:desc", Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), ApiResponse.class);
         if (listData.getData() != null) {
             for (Item item : listData.getData().getList()) {
                 if (this.saveDirName.equals(item.getFileName())) {
@@ -418,17 +413,15 @@ public class QuarkApi {
             getShareToken(new ShareData(shareId, null));
             if (!this.shareTokenCache.containsKey(shareId)) return null;
         }
-        Type type = new TypeToken<ApiResponse<HashMap<String, String>>>() {
-        }.getType();
-        ApiResponse<HashMap<String, String>> saveResult = Json.parseSafe(api("share/sharepage/save?" + this.pr, null, Map.of("fid_list", List.of(fileId), "fid_token_list", List.of(fileToken), "to_pdir_fid", this.saveDirId, "pwd_id", shareId, "stoken", stoken != null ? stoken : (String) this.shareTokenCache.get(shareId).get("stoken"), "pdir_fid", "0", "scene", "link"), 0, "POST"), type);
-        if (saveResult.getData() != null && (saveResult.getData()).get("task_id") != null) {
+
+        Map<String, Object> saveResult = Json.parseSafe(api("share/sharepage/save?" + this.pr, null, Map.of("fid_list", List.of(fileId), "fid_token_list", List.of(fileToken), "to_pdir_fid", this.saveDirId, "pwd_id", shareId, "stoken", stoken != null ? stoken : (String) this.shareTokenCache.get(shareId).get("stoken"), "pdir_fid", "0", "scene", "link"), 0, "POST"), Map.class);
+        if (saveResult.get("data") != null && ((Map<Object, Object>) saveResult.get("data")).get("task_id") != null) {
             int retry = 0;
             while (true) {
-                Type type2 = new TypeToken<ApiResponse<HashMap<String, Object>>>() {
-                }.getType();
-                ApiResponse<HashMap<String, Object>> taskResult = Json.parseSafe(api("task?" + this.pr + "&task_id=" + (saveResult.getData()).get("task_id") + "&retry_index=" + retry, Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), type2);
-                if (taskResult.getData() != null && taskResult.getData().get("save_as") != null && ((Map<String, Object>) taskResult.getData().get("save_as")).get("save_as_top_fids") != null && ((List<String>) ((Map<String, Object>) ((Map<String, Object>) taskResult.getData()).get("save_as")).get("save_as_top_fids")).size() > 0) {
-                    return ((List<String>) ((Map<String, Object>) (taskResult.getData()).get("save_as")).get("save_as_top_fids")).get(0);
+
+                Map<String, Object> taskResult = Json.parseSafe(api("task?" + this.pr + "&task_id=" + ((Map<String, Object>) saveResult.get("data")).get("task_id") + "&retry_index=" + retry, Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), Map.class);
+                if (taskResult.get("data") != null && ((Map<Object, Object>) taskResult.get("data")).get("save_as") != null && ((Map<Object, Object>) ((Map<Object, Object>) taskResult.get("data")).get("save_as")).get("save_as_top_fids") != null && ((List<String>) ((Map<String, Object>) ((Map<String, Object>) taskResult.get("data")).get("save_as")).get("save_as_top_fids")).size() > 0) {
+                    return ((List<String>) ((Map<String, Object>) ((Map<Object, Object>) taskResult.get("data")).get("save_as")).get("save_as_top_fids")).get(0);
                 }
                 retry++;
                 if (retry > 2) break;
@@ -444,19 +437,18 @@ public class QuarkApi {
             if (saveFileId == null) return null;
             this.saveFileIdCaches.put(fileId, saveFileId);
         }
-        Type type2 = new TypeToken<ApiResponse<HashMap<String, Object>>>() {
-        }.getType();
-        ApiResponse<HashMap<String, Object>> transcoding = Json.parseSafe(api("file/v2/play?" + this.pr, Collections.emptyMap(), Map.of("fid", this.saveFileIdCaches.get(fileId), "resolutions", "normal,low,high,super,2k,4k", "supports", "fmp4"), 0, "POST"), type2);
-        if (transcoding.getData() != null && (transcoding.getData()).get("video_list") != null) {
+
+        Map<String, Object> transcoding = Json.parseSafe(api("file/v2/play?" + this.pr, Collections.emptyMap(), Map.of("fid", this.saveFileIdCaches.get(fileId), "resolutions", "normal,low,high,super,2k,4k", "supports", "fmp4"), 0, "POST"), Map.class);
+        if (transcoding.get("data") != null && ((Map<Object, Object>) transcoding.get("data")).get("video_list") != null) {
             String flagId = flag.split("-")[flag.split("-").length - 1];
             int index = Util.findAllIndexes(getPlayFormatList(), flagId);
             String quarkFormat = getPlayFormatQuarkList().get(index);
-            for (Map<String, Object> video : (List<Map<String, Object>>) (transcoding.getData()).get("video_list")) {
+            for (Map<String, Object> video : (List<Map<String, Object>>) ((Map<Object, Object>) transcoding.get("data")).get("video_list")) {
                 if (video.get("resolution").equals(quarkFormat)) {
                     return (String) ((Map<String, Object>) video.get("video_info")).get("url");
                 }
             }
-            return (String) ((Map<String, Object>) ((List<Map<String, Object>>) (transcoding.getData()).get("video_list")).get(index).get("video_info")).get("url");
+            return (String) ((Map<String, Object>) ((List<Map<String, Object>>) ((Map<Object, Object>) transcoding.get("data")).get("video_list")).get(index).get("video_info")).get("url");
         }
         return null;
     }

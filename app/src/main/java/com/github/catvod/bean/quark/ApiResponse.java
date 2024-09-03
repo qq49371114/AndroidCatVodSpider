@@ -12,7 +12,7 @@ public class ApiResponse<T> {
     @SerializedName("timestamp")
     private long timestamp;
     @SerializedName("data")
-    private T data;
+    private Data data;
     @SerializedName("metadata")
     private Metadata metadata;
     public ApiResponse() {
@@ -51,11 +51,11 @@ public class ApiResponse<T> {
         this.timestamp = timestamp;
     }
 
-    public T getData() {
+    public Data getData() {
         return data;
     }
 
-    public void setData(T data) {
+    public void setData(Data data) {
         this.data = data;
     }
 
