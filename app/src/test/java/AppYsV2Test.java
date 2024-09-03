@@ -1,13 +1,10 @@
 import android.app.Application;
-
 import com.github.catvod.spider.AppYsV2;
 import com.github.catvod.spider.Init;
-import com.github.catvod.spider.NG;
 import com.github.catvod.utils.Json;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-
 import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;

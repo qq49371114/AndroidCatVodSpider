@@ -96,7 +96,7 @@ public class QuarkApi {
         getShareToken(shareData);
         List<Item> files = new ArrayList<>();
         List<Item> subs = new ArrayList<>();
-        List<Item> listData = listFile(1, shareData, files, subs, shareData.getShareId(), shareData.getFolderId(), 1);
+        List<Map<String, Object>> listData = listFile(1, shareData, files, subs, shareData.getShareId(), shareData.getFolderId(), 1);
 
         List<String> playFrom = QuarkApi.get().getPlayFormatList();
 
@@ -186,8 +186,8 @@ public class QuarkApi {
             }
             String token = serviceTicket;
             OkResult result = OkHttp.get("https://pan.quark.cn/account/info?st=" + token + "&lw=scan", new HashMap<>(), getWebHeaders());
-            AccountInfo json = Json.parseSafe(result.getBody(), AccountInfo.class);
-            if (json.isSuccess()) {
+            Map json = Json.parseSafe(result.getBody(), Map.class);
+            if (json.get("success").equals(Boolean.TRUE)) {
                 List<String> cookies = result.getResp().get("set-Cookie");
                 List<String> cookieList = new ArrayList<>();
                 for (String cookie : cookies) {
@@ -232,9 +232,9 @@ public class QuarkApi {
             }
             this.cookie = TextUtils.join(";", cookieList);
         }
-        WebApiResponse json = Json.parseSafe(res.getBody(), WebApiResponse.class);
-        if (json.getMessage().equals("ok")) {
-            return json.getData().getMembers().getToken();
+        Map<String,Object> json = Json.parseSafe(res.getBody(), Map.class);
+        if (Objects.equals(json.get("message"), "ok")) {
+            return (String) (( Map<String,Object>)(( Map<String,Object>)json.get("data")).get("members")).get("token");
         }
         return "";
     }
@@ -295,32 +295,32 @@ public class QuarkApi {
         }
     }
 
-    private List<Item> listFile(int shareIndex, ShareData shareData, List<Item> videos, List<Item> subtitles, String shareId, String folderId, Integer page) throws Exception {
+    private List< Map<String,Object>> listFile(int shareIndex, ShareData shareData, List<Item> videos, List<Item> subtitles, String shareId, String folderId, Integer page) throws Exception {
         int prePage = 200;
         page = page != null ? page : 1;
 
-        ApiResponse listData = Json.parseSafe(api("share/sharepage/detail?" + this.pr + "&pwd_id=" + shareId + "&stoken=" + encodeURIComponent((String) this.shareTokenCache.get(shareId).get("stoken")) + "&pdir_fid=" + folderId + "&force=0&_page=" + page + "&_size=" + prePage + "&_sort=file_type:asc,file_name:asc", Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), ApiResponse.class);
-        if (listData.getData() == null) return Collections.emptyList();
-        List<Item> items = listData.getData().getList();
+        Map<String,Object> listData = Json.parseSafe(api("share/sharepage/detail?" + this.pr + "&pwd_id=" + shareId + "&stoken=" + encodeURIComponent((String) this.shareTokenCache.get(shareId).get("stoken")) + "&pdir_fid=" + folderId + "&force=0&_page=" + page + "&_size=" + prePage + "&_sort=file_type:asc,file_name:asc", Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), Map.class);
+        if (listData.get("data")== null) return Collections.emptyList();
+        List<Map<String, Object>> items = (List<Map<String, Object>>) ((Map<String, Object>) listData.get("data")).get("list");
         if (items == null) return Collections.emptyList();
-        List<Item> subDir = new ArrayList<>();
-        for (Item item : items) {
-            if (Boolean.TRUE.equals(item.isDir())) {
+        List<Map<String, Object>> subDir = new ArrayList<>();
+        for (Map<String, Object> item : items) {
+            if (Boolean.TRUE.equals(item.get("dir"))) {
                 subDir.add(item);
-            } else if (Boolean.TRUE.equals(item.isFile()) && "video".equals(item.getObjCategory())) {
-                if (item.getSize() < 1024 * 1024 * 5) continue;
-                item.setShareToken((String) this.shareTokenCache.get(shareData.getShareId()).get("stoken"));
+            } else if (Boolean.TRUE.equals(item.get("file")) && "video".equals(item.get("obj_category"))) {
+                if ((Double) item.get("size") < 1024 * 1024 * 5) continue;
+                item.put("stoken", this.shareTokenCache.get(shareData.getShareId()).get("stoken"));
                 videos.add(Item.objectFrom(item, shareData.getShareId(), shareIndex));
-            } else if ("file".equals(item.getFileType()) && this.subtitleExts.contains("." + Util.getExt(item.getFileName()))) {
+            } else if ("file".equals(item.get("type")) && this.subtitleExts.contains("." + Util.getExt((String) item.get("file_name")))) {
                 subtitles.add(Item.objectFrom(item, shareData.getShareId(), shareIndex));
             }
         }
-        if (page < Math.ceil((double) listData.getMetadata().getTotal() / prePage)) {
-            List<Item> nextItems = listFile(shareIndex, shareData, videos, subtitles, shareId, folderId, page + 1);
+        if (page < Math.ceil((double) ((Map<String, Object>) listData.get("metadata")).get("_total") / prePage)) {
+            List<Map<String, Object>> nextItems = listFile(shareIndex, shareData, videos, subtitles, shareId, folderId, page + 1);
             items.addAll(nextItems);
         }
-        for (Item dir : subDir) {
-            List<Item> subItems = listFile(shareIndex, shareData, videos, subtitles, shareId, dir.getFid(), null);
+        for (Map<String, Object> dir : subDir) {
+            List<Map<String, Object>> subItems = listFile(shareIndex, shareData, videos, subtitles, shareId, dir.get("fid").toString(), null);
             items.addAll(subItems);
         }
         return items;
@@ -330,7 +330,7 @@ public class QuarkApi {
         List<Map<String, Object>> results = new ArrayList<>();
         int bestMatchIndex = 0;
         for (int i = 0; i < targetItems.size(); i++) {
-            Util.LCSResult currentLCS = Util.lcs(mainItem.getFileName(), targetItems.get(i).getFileName());
+            Util.LCSResult currentLCS = Util.lcs(mainItem.getName(), targetItems.get(i).getName());
             Map<String, Object> result = new HashMap<>();
             result.put("target", targetItems.get(i));
             result.put("lcs", currentLCS);
@@ -369,11 +369,11 @@ public class QuarkApi {
 
     private void clearSaveDir() throws Exception {
 
-        ApiResponse listData = Json.parseSafe(api("file/sort?" + this.pr + "&pdir_fid=" + this.saveDirId + "&_page=1&_size=200&_sort=file_type:asc,updated_at:desc", Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), ApiResponse.class);
-        if (listData.getData() != null && !listData.getData().getList().isEmpty()) {
+        Map<String, Object> listData = Json.parseSafe(api("file/sort?" + this.pr + "&pdir_fid=" + this.saveDirId + "&_page=1&_size=200&_sort=file_type:asc,updated_at:desc", Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), Map.class);
+        if (listData.get("data") != null && ((List<Map<String, Object>>) ((Map<String, Object>) listData.get("data")).get("list")).size() > 0) {
             List<String> list = new ArrayList<>();
-            for (Item stringStringMap : listData.getData().getList()) {
-                list.add(stringStringMap.getFid());
+            for (Map<String, Object> stringStringMap : ((List<Map<String, Object>>) ((Map<String, Object>) listData.get("data")).get("list"))) {
+                list.add((String) stringStringMap.get("fid"));
             }
             api("file/delete?" + this.pr, Collections.emptyMap(), Map.of("action_type", "2", "filelist", Json.toJson(list), "exclude_fids", ""), 0, "POST");
         }
@@ -385,11 +385,11 @@ public class QuarkApi {
             return;
         }
 
-        ApiResponse listData = Json.parseSafe(api("file/sort?" + this.pr + "&pdir_fid=0&_page=1&_size=200&_sort=file_type:asc,updated_at:desc", Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), ApiResponse.class);
-        if (listData.getData() != null) {
-            for (Item item : listData.getData().getList()) {
-                if (this.saveDirName.equals(item.getFileName())) {
-                    this.saveDirId = item.getFid();
+        Map<String, Object> listData = Json.parseSafe(api("file/sort?" + this.pr + "&pdir_fid=0&_page=1&_size=200&_sort=file_type:asc,updated_at:desc", Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), Map.class);
+        if (listData.get("data") != null) {
+            for (Map<String, Object> item : (List<Map<String, Object>>) ((Map<String, Object>) listData.get("data")).get("list")) {
+                if (this.saveDirName.equals(item.get("file_name"))) {
+                    this.saveDirId = item.get("fid").toString();
                     clearSaveDir();
                     break;
                 }
@@ -558,12 +558,12 @@ public class QuarkApi {
         params.put("request_id", UUID.randomUUID().toString());
         service = Executors.newScheduledThreadPool(1);
         service.scheduleWithFixedDelay(() -> {
-            String result = OkHttp.string("https://uop.quark.cn/cas/ajax/getServiceTicketByQrcodeToken", params, getWebHeaders());
+            String result = OkHttp.string("https://uop.quark.cn/cas/ajax/getServiceTicketByQrcodeToken", params, getHeaders());
+            Map<String, Map<String, Map<String, String>>> json = new HashMap<>();
+            json = Json.parseSafe(result, json.getClass());
+            if (json.get("status").equals(2000000)) {
 
-            WebApiResponse json = Json.parseSafe(result, WebApiResponse.class);
-            if (json.getStatus() == 2000000) {
-
-                setToken(json.getData().getMembers().getServiceTicket());
+                setToken(json.get("data").get("members").get("service_ticket"));
             }
 
         }, 1, 1, TimeUnit.SECONDS);
