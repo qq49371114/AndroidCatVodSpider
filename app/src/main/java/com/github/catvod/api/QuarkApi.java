@@ -63,7 +63,7 @@ public class QuarkApi {
         headers.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) quark-cloud-drive/2.5.20 Chrome/100.0.4896.160 Electron/18.3.5.4-b478491100 Safari/537.36 Channel/pckk_other_ch");
         headers.put("Referer", "https://pan.quark.cn/");
         headers.put("Content-Type", "application/json");
-        headers.put("Cookie", this.cookie);
+        headers.put("Cookie", cache.getUser().getCookie());
         headers.put("Host", "drive-pc.quark.cn");
         return headers;
     }
@@ -72,7 +72,7 @@ public class QuarkApi {
         Map<String, String> headers = new HashMap<>();
         headers.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) quark-cloud-drive/2.5.20 Chrome/100.0.4896.160 Electron/18.3.5.4-b478491100 Safari/537.36 Channel/pckk_other_ch");
         headers.put("Referer", "https://pan.quark.cn/");
-        headers.put("Cookie", this.cookie);
+        headers.put("Cookie",  cache.getUser().getCookie());
         return headers;
     }
 
@@ -180,6 +180,7 @@ public class QuarkApi {
     private boolean refreshAccessToken() {
         try {
             SpiderDebug.log("refreshCookie...");
+            cookie=cache.getUser().getCookie();
             if (cookie.isEmpty()) {
                 SpiderDebug.log("cookie为空");
                 throw new RuntimeException("cookie为空");
@@ -553,12 +554,14 @@ public class QuarkApi {
     }
 
     private void startService(Map<String, String> params) {
+        SpiderDebug.log("----startservice");
         params.put("client_id", "532");
         params.put("v", "1.2");
         params.put("request_id", UUID.randomUUID().toString());
         service = Executors.newScheduledThreadPool(1);
         service.scheduleWithFixedDelay(() -> {
-            String result = OkHttp.string("https://uop.quark.cn/cas/ajax/getServiceTicketByQrcodeToken", params, getHeaders());
+            SpiderDebug.log("----scheduleAtFixedRate"+new Date().toString());
+            String result = OkHttp.string("https://uop.quark.cn/cas/ajax/getServiceTicketByQrcodeToken", params, getWebHeaders());
             Map<String, Map<String, Map<String, String>>> json = new HashMap<>();
             json = Json.parseSafe(result, json.getClass());
             if (json.get("status").equals(2000000)) {
@@ -566,7 +569,7 @@ public class QuarkApi {
                 setToken(json.get("data").get("members").get("service_ticket"));
             }
 
-        }, 1, 1, TimeUnit.SECONDS);
+        }, 1, 1000, TimeUnit.MICROSECONDS);
     }
 
     private void setToken(String value) {

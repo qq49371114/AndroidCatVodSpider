@@ -96,6 +96,7 @@ public class MainActivity extends Activity {
     public void detailContent() {
         try {
             Logger.t("detailContent").d(spider.detailContent(Arrays.asList("/voddetail/86346.html")));
+            // Logger.t("detailContent").d(spider.detailContent(Arrays.asList("/voddetail/81612.html")));
         } catch (Throwable e) {
             e.printStackTrace();
         }
