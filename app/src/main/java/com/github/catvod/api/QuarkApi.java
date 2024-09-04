@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.view.Gravity;
@@ -14,7 +15,10 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
-import com.github.catvod.bean.quark.*;
+import com.github.catvod.bean.quark.Cache;
+import com.github.catvod.bean.quark.Item;
+import com.github.catvod.bean.quark.ShareData;
+import com.github.catvod.bean.quark.User;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.net.OkResult;
@@ -43,6 +47,8 @@ public class QuarkApi {
     private boolean isVip = false;
     private final Cache cache;
     private ScheduledExecutorService service;
+    private Timer timer;
+
     private AlertDialog dialog;
     private String serviceTicket;
 
@@ -181,7 +187,7 @@ public class QuarkApi {
         try {
             SpiderDebug.log("refreshCookie...");
             cookie=cache.getUser().getCookie();
-            if (cookie.isEmpty()) {
+            if (cookie.isEmpty()&&serviceTicket.isBlank()) {
                 SpiderDebug.log("cookie为空");
                 throw new RuntimeException("cookie为空");
             }
@@ -559,17 +565,32 @@ public class QuarkApi {
         params.put("v", "1.2");
         params.put("request_id", UUID.randomUUID().toString());
         service = Executors.newScheduledThreadPool(1);
-        service.scheduleWithFixedDelay(() -> {
-            SpiderDebug.log("----scheduleAtFixedRate"+new Date().toString());
-            String result = OkHttp.string("https://uop.quark.cn/cas/ajax/getServiceTicketByQrcodeToken", params, getWebHeaders());
-            Map<String, Map<String, Map<String, String>>> json = new HashMap<>();
-            json = Json.parseSafe(result, json.getClass());
-            if (json.get("status").equals(2000000)) {
+      /*  timer = new Timer(true);
+         TimerTask task = new TimerTask()
+        {
+            @Override
+            public void run() {
+                SpiderDebug.log("----scheduleAtFixedRate"+new Date().toString());
+                String result = OkHttp.string("https://uop.quark.cn/cas/ajax/getServiceTicketByQrcodeToken", params, getWebHeaders());
+               Map<String,Object> json = Json.parseSafe(result, Map.class);
+                if (json.get("status").equals(2000000)) {
+                    setToken((String) ((Map<String,Object>)((Map<String,Object>)json.get("data")).get("members")).get("service_ticket"));
 
-                setToken(json.get("data").get("members").get("service_ticket"));
+                }
             }
+        };
+        timer.schedule(task, 1000, 2000);*/
 
-        }, 1, 1000, TimeUnit.MICROSECONDS);
+       service.scheduleWithFixedDelay(() -> {
+           SpiderDebug.log("----scheduleAtFixedRate"+new Date().toString());
+           String result = OkHttp.string("https://uop.quark.cn/cas/ajax/getServiceTicketByQrcodeToken", params, getWebHeaders());
+           Map<String,Object> json = Json.parseSafe(result, Map.class);
+           if (json.get("status").equals(new Double(2000000))) {
+               setToken((String) ((Map<String,Object>)((Map<String,Object>)json.get("data")).get("members")).get("service_ticket"));
+
+           }
+
+        }, 1, 3, TimeUnit.SECONDS);
     }
 
     private void setToken(String value) {
@@ -582,6 +603,8 @@ public class QuarkApi {
 
     private void stopService() {
         if (service != null) service.shutdownNow();
+        if (timer != null) timer.cancel();
+
         Init.run(this::dismiss);
     }
 
