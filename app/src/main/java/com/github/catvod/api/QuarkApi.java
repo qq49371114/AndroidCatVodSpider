@@ -69,7 +69,7 @@ public class QuarkApi {
         headers.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) quark-cloud-drive/2.5.20 Chrome/100.0.4896.160 Electron/18.3.5.4-b478491100 Safari/537.36 Channel/pckk_other_ch");
         headers.put("Referer", "https://pan.quark.cn/");
         headers.put("Content-Type", "application/json");
-        headers.put("Cookie", cache.getUser().getCookie());
+        headers.put("Cookie", cookie);
         headers.put("Host", "drive-pc.quark.cn");
         return headers;
     }
@@ -78,7 +78,7 @@ public class QuarkApi {
         Map<String, String> headers = new HashMap<>();
         headers.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) quark-cloud-drive/2.5.20 Chrome/100.0.4896.160 Electron/18.3.5.4-b478491100 Safari/537.36 Channel/pckk_other_ch");
         headers.put("Referer", "https://pan.quark.cn/");
-        headers.put("Cookie",  cache.getUser().getCookie());
+        headers.put("Cookie",  cookie);
         return headers;
     }
 

@@ -6,7 +6,10 @@ import com.github.catvod.net.OkHttp
 import com.github.catvod.spider.ChangZhang
 import com.github.catvod.spider.Init
 import com.github.catvod.utils.FileUtil
+import com.github.catvod.utils.Json
 import com.github.catvod.utils.Util
+import com.google.common.collect.ImmutableMap
+import com.google.common.collect.Maps
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,26 +38,37 @@ class CompileJSTest {
     @Throws(Exception::class)
     fun homeContent(): Unit {
 
-        val content =
-            OkHttp.string("https://androidcatvodspider.pages.dev/json/js/jpyy2.js")/* val bytes = context!!.compileModule(content, "newvision.js")
+        val content = OkHttp.string("https://androidcatvodspider.pages.dev/json/js/jpyy2.js")/* val bytes = context!!.compileModule(content, "newvision.js")
          val result = "//bb" + Util.base64Encode(bytes)*/
 
         val scope = CoroutineScope(Dispatchers.Default)
 
         fun startTask() = runBlocking {
             launch {
+                val json = Json.toJson(ImmutableMap.of("url", "https://androidcatvodspider.pages.dev/json/js/jpyy2.js"));
                 quickJs {
-
-                    val bytecode = compile(
-                        code = content,
-                        filename = "jpyy",
+                    val helloModuleCode = """
+                        export function greeting(to) {
+                            return "Hi from the hello module!"+ to.url;
+                        }
+                         """.trimIndent()
+                    addModule(name = "hello", code = helloModuleCode)
+                    var result: Any? = null
+                    function("returns") { result = it.first() }
+                    val to = "mike";
+                    evaluate<Any?>(
+                        """ 
+                              import * as hello from "hello";
+                              let map= JSON.parse('${json}')
+                              returns(hello.greeting(map))
+            
+                         """.trimIndent(),
                         asModule = true,
                     )
-                    val str = org.bouncycastle.util.encoders.Base64.encode(bytecode);
-                    FileWriter("jpyy.j").write("//bb" +String(str))
-                    System.out.println("//bb" +String(str))
-                    //assertEquals("Hi from the hello module!", result)
+                    println("result:" + result)
                 }
+
+
             }
         }
         startTask()
