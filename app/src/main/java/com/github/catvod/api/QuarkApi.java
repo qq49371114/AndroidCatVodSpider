@@ -37,6 +37,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class QuarkApi {
     private String apiUrl = "https://drive-pc.quark.cn/1/clouddrive/";
@@ -60,9 +61,52 @@ public class QuarkApi {
         String url = Util.base64Decode(params.get("url"));
         Map header = new Gson().fromJson(Util.base64Decode(params.get("header")), Map.class);
         if (header == null) header = new HashMap<>();
-        List<String> keys = Arrays.asList("referer", "icy-metadata", "range", "connection", "accept-encoding", "user-agent");
-        for (String key : params.keySet()) if (keys.contains(key)) header.put(key, params.get(key));
+        List<String> arr = List.of("Accept", "Accept-Encoding", "Accept-Language", "Cookie", "Origin", "Referer", "Sec-Ch-Ua", "Sec-Ch-Ua-Mobile", "Sec-Ch-Ua-Platform", "Sec-Fetch-Dest", "Sec-Fetch-Mode", "Sec-Fetch-Site", "User-Agent");
+        for (String key : params.keySet()) {
+            for (String s : arr) {
+                if (s.toLowerCase().equals(key)) {
+                    header.put(key, params.get(key));
+                }
+            }
+
+        }
+        if (Util.getExt(url).contains("m3u8")) {
+            return getM3u8(url, header);
+        }
         return ProxyVideo.proxy(url, header);
+    }
+
+    /**
+     * 代理m3u8
+     *
+     * @param url
+     * @param header
+     * @return
+     */
+    private Object[] getM3u8(String url, Map header) {
+
+        OkResult result = OkHttp.get(url, new HashMap<>(), header);
+        String[] m3u8Arr = result.getBody().split("\n");
+        List<String> listM3u8 = new ArrayList<>();
+
+        String site = url.substring(0, url.lastIndexOf("/")) + "/";
+        int mediaId = 0;
+        for (String oneLine : m3u8Arr) {
+            String thisOne = oneLine;
+            if (oneLine.contains(".ts")) {
+                thisOne = proxyVideoUrl(site + thisOne, header);
+                mediaId++;
+            }
+            listM3u8.add(thisOne);
+        }
+        String m3u8Str = TextUtils.join("\n", listM3u8);
+        String contentType = result.getResp().get("Content-Type").get(0);
+
+        Map<String, String> respHeaders = new HashMap<>();
+        for (String key : result.getResp().keySet()) {
+            respHeaders.put(key, result.getResp().get(key).get(0));
+        }
+        return new Object[]{result.getCode(), contentType, new ByteArrayInputStream(m3u8Str.getBytes(Charset.forName("UTF-8"))), respHeaders};
     }
 
     private static class Loader {
@@ -201,6 +245,7 @@ public class QuarkApi {
         }
 
         if (okResult.getCode() != 200 && leftRetry > 0) {
+            SpiderDebug.log("api error code:" + okResult.getCode());
             Thread.sleep(1000);
             return api(url, params, data, leftRetry - 1, method);
         }

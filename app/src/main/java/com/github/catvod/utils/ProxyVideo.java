@@ -57,17 +57,21 @@ public class ProxyVideo {
         SpiderDebug.log(" ++end proxy:");
         SpiderDebug.log(" ++proxy res code:" + response.code());
         SpiderDebug.log(" ++proxy res header:" + Json.toJson(headers));
-    //    SpiderDebug.log(" ++proxy res data:" + Json.toJson(response.body()));
+        //    SpiderDebug.log(" ++proxy res data:" + Json.toJson(response.body()));
         String contentType = response.headers().get("Content-Type");
         String contentDisposition = response.headers().get("Content-Disposition");
         if (contentDisposition != null) contentType = getMimeType(contentDisposition);
         Map<String, String> respHeaders = new HashMap<>();
-        for (String key : response.headers().names())
+       /* respHeaders.put("Access-Control-Allow-Credentials", "true");
+        respHeaders.put("Access-Control-Allow-Origin", "*");*/
+
+        for (String key : response.headers().names()) {
             respHeaders.put(key, response.headers().get(key));
+        }
         SpiderDebug.log("++proxy res contentType:" + contentType);
-     //   SpiderDebug.log("++proxy res body:" + response.body());
+        //   SpiderDebug.log("++proxy res body:" + response.body());
         SpiderDebug.log("++proxy res respHeaders:" + Json.toJson(respHeaders));
-        return new Object[]{206, contentType, response.body().byteStream(), respHeaders};
+        return new Object[]{response.code(), contentType, response.body().byteStream(), respHeaders};
     }
 
     private static String getMimeType(String contentDisposition) {

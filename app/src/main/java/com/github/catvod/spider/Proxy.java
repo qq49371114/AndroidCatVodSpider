@@ -47,11 +47,11 @@ public class Proxy extends Spider {
         String url = Util.base64Decode(params.get("url"));
         Map<String, String> header = new Gson().fromJson(Util.base64Decode(params.get("header")), Map.class);
         if (header == null) header = new HashMap<>();
-        List<String> keys = Arrays.asList("referer", "range", "connection", "accept-encoding");
-        for (String key : params.keySet()) if (keys.contains(key)) header.put(key, params.get(key));
-       /* for (Map.Entry<String, String> entry : params.entrySet()) {
+       /* List<String> keys = Arrays.asList("referer", "range", "connection", "accept-encoding");
+        for (String key : params.keySet()) if (keys.contains(key)) header.put(key, params.get(key));*/
+        for (Map.Entry<String, String> entry : params.entrySet()) {
             if (!keys.contains(entry.getKey())) header.put(entry.getKey(), entry.getValue());
-        }*/
+        }
         return ProxyVideo.proxy(url, header);
     }
 
