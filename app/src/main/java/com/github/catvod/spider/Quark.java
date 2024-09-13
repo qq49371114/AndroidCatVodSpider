@@ -2,6 +2,7 @@ package com.github.catvod.spider;
 
 import android.content.Context;
 import android.text.TextUtils;
+import com.github.catvod.api.AliYun;
 import com.github.catvod.api.QuarkApi;
 import com.github.catvod.bean.Result;
 import com.github.catvod.bean.quark.ShareData;
@@ -10,6 +11,7 @@ import com.github.catvod.crawler.Spider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author ColaMint & Adam & FongMi
@@ -73,4 +75,10 @@ public class Quark extends Spider {
         return TextUtils.join("$$$", playUrl);
     }
 
+    public static Object[] proxy(Map<String, String> params) throws Exception {
+        String type = params.get("type");
+        if ("video".equals(type)) return QuarkApi.get().proxyVideo(params);
+        //if ("sub".equals(type)) return AliYun.get().proxySub(params);
+        return null;
+    }
 }

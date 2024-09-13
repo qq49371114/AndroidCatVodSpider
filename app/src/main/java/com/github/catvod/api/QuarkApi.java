@@ -23,10 +23,14 @@ import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.net.OkResult;
 import com.github.catvod.spider.Init;
+import com.github.catvod.spider.Proxy;
 import com.github.catvod.utils.*;
+import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -51,6 +55,15 @@ public class QuarkApi {
 
     private AlertDialog dialog;
     private String serviceTicket;
+
+    public Object[] proxyVideo(Map<String, String> params) throws Exception {
+        String url = Util.base64Decode(params.get("url"));
+        Map header = new Gson().fromJson(Util.base64Decode(params.get("header")), Map.class);
+        if (header == null) header = new HashMap<>();
+        List<String> keys = Arrays.asList("referer", "icy-metadata", "range", "connection", "accept-encoding", "user-agent");
+        for (String key : params.keySet()) if (keys.contains(key)) header.put(key, params.get(key));
+        return ProxyVideo.proxy(url, header);
+    }
 
     private static class Loader {
         static volatile QuarkApi INSTANCE = new QuarkApi();
@@ -78,7 +91,7 @@ public class QuarkApi {
         Map<String, String> headers = new HashMap<>();
         headers.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) quark-cloud-drive/2.5.20 Chrome/100.0.4896.160 Electron/18.3.5.4-b478491100 Safari/537.36 Channel/pckk_other_ch");
         headers.put("Referer", "https://pan.quark.cn/");
-        headers.put("Cookie",  cookie);
+        headers.put("Cookie", cookie);
         return headers;
     }
 
@@ -147,9 +160,12 @@ public class QuarkApi {
         Map<String, String> header = getHeaders();
         header.remove("Host");
         header.remove("Content-Type");
-        return Result.get().url(ProxyVideo.buildCommonProxyUrl(playUrl, header)).octet().header(header).string();
+        return Result.get().url(proxyVideoUrl(playUrl, header)).octet().header(header).string();
     }
 
+    private String proxyVideoUrl(String url, Map<String, String> header) {
+        return String.format(Proxy.getUrl() + "?do=quark&type=video&url=%s&header=%s", Util.base64Encode(url.getBytes(Charset.defaultCharset())), Util.base64Encode(Json.toJson(header).getBytes(Charset.defaultCharset())));
+    }
 
     /**
      * @param url
@@ -174,7 +190,15 @@ public class QuarkApi {
         } else {
             okResult = OkHttp.post(this.apiUrl + url, Json.toJson(data), getHeaders());
         }
-
+        if (okResult.getResp().get("Set-Cookie") != null) {
+            Matcher matcher = Pattern.compile("__puus=([^;]+)").matcher(StringUtils.join(okResult.getResp().get("Set-Cookie"), ";;;"));
+            if (matcher.find()) {
+                Matcher cookieMatcher = Pattern.compile("__puus=([^;]+)").matcher(this.cookie);
+                if (cookieMatcher.find() && !cookieMatcher.group(1).equals(matcher.group(1))) {
+                    this.cookie = this.cookie.replaceAll("__puus=[^;]+", "__puus=" + matcher.group(1));
+                }
+            }
+        }
 
         if (okResult.getCode() != 200 && leftRetry > 0) {
             Thread.sleep(1000);
@@ -186,8 +210,8 @@ public class QuarkApi {
     private boolean refreshAccessToken() {
         try {
             SpiderDebug.log("refreshCookie...");
-            cookie=cache.getUser().getCookie();
-            if (cookie.isEmpty()&&serviceTicket.isBlank()) {
+            cookie = cache.getUser().getCookie();
+            if (cookie.isEmpty() && serviceTicket.isBlank()) {
                 SpiderDebug.log("cookie为空");
                 throw new RuntimeException("cookie为空");
             }
@@ -239,9 +263,9 @@ public class QuarkApi {
             }
             this.cookie = TextUtils.join(";", cookieList);
         }
-        Map<String,Object> json = Json.parseSafe(res.getBody(), Map.class);
+        Map<String, Object> json = Json.parseSafe(res.getBody(), Map.class);
         if (Objects.equals(json.get("message"), "ok")) {
-            return (String) (( Map<String,Object>)(( Map<String,Object>)json.get("data")).get("members")).get("token");
+            return (String) ((Map<String, Object>) ((Map<String, Object>) json.get("data")).get("members")).get("token");
         }
         return "";
     }
@@ -302,12 +326,12 @@ public class QuarkApi {
         }
     }
 
-    private List< Map<String,Object>> listFile(int shareIndex, ShareData shareData, List<Item> videos, List<Item> subtitles, String shareId, String folderId, Integer page) throws Exception {
+    private List<Map<String, Object>> listFile(int shareIndex, ShareData shareData, List<Item> videos, List<Item> subtitles, String shareId, String folderId, Integer page) throws Exception {
         int prePage = 200;
         page = page != null ? page : 1;
 
-        Map<String,Object> listData = Json.parseSafe(api("share/sharepage/detail?" + this.pr + "&pwd_id=" + shareId + "&stoken=" + encodeURIComponent((String) this.shareTokenCache.get(shareId).get("stoken")) + "&pdir_fid=" + folderId + "&force=0&_page=" + page + "&_size=" + prePage + "&_sort=file_type:asc,file_name:asc", Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), Map.class);
-        if (listData.get("data")== null) return Collections.emptyList();
+        Map<String, Object> listData = Json.parseSafe(api("share/sharepage/detail?" + this.pr + "&pwd_id=" + shareId + "&stoken=" + encodeURIComponent((String) this.shareTokenCache.get(shareId).get("stoken")) + "&pdir_fid=" + folderId + "&force=0&_page=" + page + "&_size=" + prePage + "&_sort=file_type:asc,file_name:asc", Collections.emptyMap(), Collections.emptyMap(), 0, "GET"), Map.class);
+        if (listData.get("data") == null) return Collections.emptyList();
         List<Map<String, Object>> items = (List<Map<String, Object>>) ((Map<String, Object>) listData.get("data")).get("list");
         if (items == null) return Collections.emptyList();
         List<Map<String, Object>> subDir = new ArrayList<>();
@@ -581,14 +605,14 @@ public class QuarkApi {
         };
         timer.schedule(task, 1000, 2000);*/
 
-       service.scheduleWithFixedDelay(() -> {
-           SpiderDebug.log("----scheduleAtFixedRate"+new Date().toString());
-           String result = OkHttp.string("https://uop.quark.cn/cas/ajax/getServiceTicketByQrcodeToken", params, getWebHeaders());
-           Map<String,Object> json = Json.parseSafe(result, Map.class);
-           if (json.get("status").equals(new Double(2000000))) {
-               setToken((String) ((Map<String,Object>)((Map<String,Object>)json.get("data")).get("members")).get("service_ticket"));
+        service.scheduleWithFixedDelay(() -> {
+            SpiderDebug.log("----scheduleAtFixedRate" + new Date().toString());
+            String result = OkHttp.string("https://uop.quark.cn/cas/ajax/getServiceTicketByQrcodeToken", params, getWebHeaders());
+            Map<String, Object> json = Json.parseSafe(result, Map.class);
+            if (json.get("status").equals(new Double(2000000))) {
+                setToken((String) ((Map<String, Object>) ((Map<String, Object>) json.get("data")).get("members")).get("service_ticket"));
 
-           }
+            }
 
         }, 1, 3, TimeUnit.SECONDS);
     }
