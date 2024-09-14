@@ -240,6 +240,8 @@ public class QuarkApi {
                 Matcher cookieMatcher = Pattern.compile("__puus=([^;]+)").matcher(this.cookie);
                 if (cookieMatcher.find() && !cookieMatcher.group(1).equals(matcher.group(1))) {
                     this.cookie = this.cookie.replaceAll("__puus=[^;]+", "__puus=" + matcher.group(1));
+                }else{
+                    this.cookie = this.cookie + ";__puus=" + matcher.group(1);
                 }
             }
         }
