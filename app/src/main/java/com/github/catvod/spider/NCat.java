@@ -1,5 +1,9 @@
 package com.github.catvod.spider;
 
+import cn.hutool.core.codec.Base64;
+import cn.hutool.crypto.Mode;
+import cn.hutool.crypto.Padding;
+import cn.hutool.crypto.symmetric.AES;
 import com.github.catvod.bean.Class;
 import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
@@ -17,6 +21,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -158,17 +164,34 @@ public class NCat extends Spider {
     }
 
     @Override
-    public String playerContent(String flag, String id, List<String> vipFlags) throws Exception {
+    public String playerContent(String flag, String id, List<String> vipFlags) throws Exception     {
         Document doc = Jsoup.parse(OkHttp.string(playUrl.concat(id), getHeaders()));
-        String regex = "src: \"(.*?)\",";
+        String regex = "window.whatTMDwhatTMDPPPP = '(.*?)'";
 
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(doc.html());
         String url = "";
         if (matcher.find()) {
             url = matcher.group(1);
-            url = url.replace("\\/", "/").replace(" ","");
+            url = decryptUrl(url);
         }
         return Result.get().url(url).header(getHeaders()).string();
     }
+
+    public   String decryptUrl(String encryptedData) {
+        try {
+            String encryptedKey = "VNF9aVQF!G*0ux@2hAigUeH3";
+
+            byte[] keyBytes = encryptedKey.getBytes(Charset.defaultCharset());
+            byte[] encryptedBytes =Base64.decode(encryptedData);
+            byte[] decryptedBytes = new AES(Mode.ECB, Padding.PKCS5Padding, keyBytes).decrypt(encryptedBytes);
+
+            return new String(decryptedBytes, "UTF-8");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "123456";
+        }
+    }
+
+
 }
