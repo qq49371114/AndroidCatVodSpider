@@ -4,6 +4,7 @@ import cn.hutool.core.codec.Base64;
 import cn.hutool.crypto.Mode;
 import cn.hutool.crypto.Padding;
 import cn.hutool.crypto.symmetric.AES;
+
 import com.github.catvod.bean.Class;
 import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
@@ -15,6 +16,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -164,7 +166,7 @@ public class NCat extends Spider {
     }
 
     @Override
-    public String playerContent(String flag, String id, List<String> vipFlags) throws Exception     {
+    public String playerContent(String flag, String id, List<String> vipFlags) throws Exception {
         Document doc = Jsoup.parse(OkHttp.string(playUrl.concat(id), getHeaders()));
         String regex = "window.whatTMDwhatTMDPPPP = '(.*?)'";
 
@@ -173,20 +175,28 @@ public class NCat extends Spider {
         String url = "";
         if (matcher.find()) {
             url = matcher.group(1);
-            url = decryptUrl(url);
+            String regex1 = "KKYS\\.safePlay\\(\\)\\.url(\"(.*?)\"),";
+            Pattern pattern1 = Pattern.compile(regex1);
+            Matcher matcher1 = pattern1.matcher(doc.html());
+            String iv = "";
+            if (matcher1.find()) {
+                iv = matcher1.group(1);
+            }
+            url = decryptUrl(url, iv);
         }
         return Result.get().url(url).header(getHeaders()).string();
     }
 
-    public   String decryptUrl(String encryptedData) {
+    public String decryptUrl(String encryptedData, String iv) {
         try {
             String encryptedKey = "VNF9aVQF!G*0ux@2hAigUeH3";
 
             byte[] keyBytes = encryptedKey.getBytes(Charset.defaultCharset());
-            byte[] encryptedBytes =Base64.decode(encryptedData);
-            byte[] decryptedBytes = new AES(Mode.ECB, Padding.PKCS5Padding, keyBytes).decrypt(encryptedBytes);
+            byte[] encryptedBytes = Base64.decode(encryptedData);
+            AES aes = StringUtils.isAllBlank(iv) ? new AES(Mode.ECB, Padding.PKCS5Padding, keyBytes) : new AES(Mode.ECB, Padding.PKCS5Padding, keyBytes, iv.getBytes(Charset.defaultCharset()));
+            byte[] decryptedBytes = aes.decrypt(encryptedBytes);
 
-            return new String(decryptedBytes, "UTF-8");
+            return new String(decryptedBytes, Charset.defaultCharset());
         } catch (Exception e) {
             e.printStackTrace();
             return "123456";
