@@ -47,7 +47,7 @@ public class NCat extends Spider {
         Document doc = Jsoup.parse(OkHttp.string(siteUrl, getHeaders()));
         for (Element element : doc.select("div.module-item")) {
             try {
-                String pic = element.select("img").attr("data-original");
+                String pic = element.select("img").last().attr("data-original");
                 String url = element.select("a").attr("href");
                 String name = element.select("img").attr("title");
                 if (!pic.startsWith("http")) {
@@ -69,7 +69,7 @@ public class NCat extends Spider {
         Document doc = Jsoup.parse(OkHttp.string(target, getHeaders()));
         for (Element element : doc.select("div.module-item")) {
             try {
-                String pic = element.select("img").attr("data-original");
+                String pic = element.select("img").last().attr("data-original");
                 String url = element.select("a").attr("href");
                 String name = element.select("img").attr("title");
                 if (!pic.startsWith("http")) {
@@ -89,17 +89,17 @@ public class NCat extends Spider {
     public String detailContent(List<String> ids) throws Exception {
         Document doc = Jsoup.parse(OkHttp.string(detailUrl.concat(ids.get(0)), getHeaders()));
         String name = doc.select("div.detail-title strong").text();
-        String pic = doc.select(".detail-pic img").attr("data-original");
+        String pic = doc.select(".detail-pic img").last().attr("data-original");
         String year = doc.select("a.detail-tags-item").get(0).text();
         String desc = doc.select("div.detail-desc p").text();
 
         // 播放源
-        Elements tabs = doc.select("a.source-item span");
+        Elements tabs = doc.select("a.source-item");
         Elements list = doc.select("div.episode-list");
         String PlayFrom = "";
         String PlayUrl = "";
         for (int i = 0; i < tabs.size(); i++) {
-            String tabName = tabs.get(i).text();
+            String tabName = tabs.get(i).select("span").last().text();
             if (!"".equals(PlayFrom)) {
                 PlayFrom = PlayFrom + "$$$" + tabName;
             } else {
