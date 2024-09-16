@@ -1,11 +1,16 @@
 package com.github.catvod.spider;
 
+import static com.github.catvod.utils.AESEncryption.CBC_PKCS_7_PADDING;
+
+import android.content.Context;
+
 import com.github.catvod.bean.Class;
 import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.AESEncryption;
+import com.github.catvod.utils.Json;
 import com.github.catvod.utils.Util;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -23,16 +28,18 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class W55Movie extends Spider {
 
-    private static final String siteUrl = "https://55flix.com";
+    private static String siteUrl = "https://55flix.com";
     private static final String cateUrl = siteUrl + "/index.php/api/vod";
-    private static final String detailUrl = siteUrl + "/voddetail/";
-    private static final String playUrl = siteUrl + "/vodplay/";
-    private static final String searchUrl = siteUrl + "/vodsearch/page/1/wd/";
+    private static String detailUrl = siteUrl + "/voddetail/";
+    private static String playUrl = siteUrl + "/vodplay/";
+    private static String searchUrl = siteUrl + "/vodsearch/page/1/wd/";
 
     private HashMap<String, String> getHeaders() {
         HashMap<String, String> headers = new HashMap<>();
@@ -41,11 +48,25 @@ public class W55Movie extends Spider {
     }
 
     @Override
+    public void init(Context context, String extend) throws Exception {
+        super.init(context, extend);
+        Document doc = Jsoup.parse(OkHttp.string(extend));
+
+        String data = doc.select("#domainData").attr("data-info");
+        String info = Util.base64Decode(data);
+        Map<String, Object> json = Json.parseSafe(info, Map.class);
+        siteUrl = "https://" + json.get("site_main").toString();
+        detailUrl = siteUrl + "/voddetail/";
+        playUrl = siteUrl + "/vodplay/";
+        searchUrl = siteUrl + "/vodsearch/page/1/wd/";
+    }
+
+    @Override
     public String homeContent(boolean filter) throws Exception {
         List<Vod> list = new ArrayList<>();
         List<Class> classes = new ArrayList<>();
-        String[] typeIdList = {"/label/netflix/page/","/vodshow/1","/vodshow/2","/vodshow/124","/vodshow/4","/vodshow/3"};
-        String[] typeNameList = {"Netflix","电影","连续剧","福利","动漫","综艺"};
+        String[] typeIdList = {"/label/netflix", "/vodshow/1", "/vodshow/2", "/vodshow/124", "/vodshow/4", "/vodshow/3"};
+        String[] typeNameList = {"Netflix", "电影", "连续剧", "福利", "动漫", "综艺"};
         for (int i = 0; i < typeNameList.length; i++) {
             classes.add(new Class(typeIdList[i], typeNameList[i]));
         }
@@ -95,9 +116,9 @@ public class W55Movie extends Spider {
     @Override
     public String categoryContent(String tid, String pg, boolean filter, HashMap<String, String> extend) throws Exception {
         List<Vod> list = new ArrayList<>();
-        if (tid.startsWith("/label/")){
+        if (tid.startsWith("/label/")) {
             tid = tid + pg + ".html";
-        }else {
+        } else {
             tid = tid + "--------" + pg + "---.html";
         }
         String target = siteUrl + tid;
@@ -147,9 +168,9 @@ public class W55Movie extends Spider {
             String liUrl = "";
             for (int i1 = 0; i1 < li.size(); i1++) {
                 if (!"".equals(liUrl)) {
-                    liUrl = liUrl + "#" + li.get(i1).text() + "$" + li.get(i1).attr("href").replace("/vodplay/","");
+                    liUrl = liUrl + "#" + li.get(i1).text() + "$" + li.get(i1).attr("href").replace("/vodplay/", "");
                 } else {
-                    liUrl = liUrl + li.get(i1).text() + "$" + li.get(i1).attr("href").replace("/vodplay/","");
+                    liUrl = liUrl + li.get(i1).text() + "$" + li.get(i1).attr("href").replace("/vodplay/", "");
                 }
             }
             if (!"".equals(PlayUrl)) {
@@ -192,6 +213,9 @@ public class W55Movie extends Spider {
         return Result.string(list);
     }
 
+    private static final String keyString = "a67e9a3a85049339";
+    private static final String ivString = "86ad9b37cc9f5b9501b3cecc7dc6377c";
+
     @Override
     public String playerContent(String flag, String id, List<String> vipFlags) throws Exception {
         String target = playUrl.concat(id);
@@ -206,14 +230,14 @@ public class W55Movie extends Spider {
             url = matcher.group(1);
             url_next = matcher.group(2);
         }
-        String encrytStr =url;// "{\"url\":\"" + url + "\",\"next_url\":\"" + url_next + "\"}";
+        String encrytStr = url;// "{\"url\":\"" + url + "\",\"next_url\":\"" + url_next + "\"}";
         // 加密
-        String encrypt = AESEncryption.encrypt(encrytStr);
+        String encrypt = AESEncryption.encrypt(encrytStr, keyString, ivString,CBC_PKCS_7_PADDING);
         String encodeURI = AESEncryption.encodeURIComponent(encrypt);
         // 请求获取url
         String data = OkHttp.string("https://player.ddzyku.com:3653/get_url_v2?data=" + encodeURI);
         // 解密
-        String decrypted = AESEncryption.decrypt(data);
+        String decrypted = AESEncryption.decrypt(data, keyString, ivString,CBC_PKCS_7_PADDING);
         Gson gson = new Gson();
         JsonObject jsonObject = gson.fromJson(decrypted, JsonObject.class);
         JsonObject dataObject = jsonObject.getAsJsonObject("data");

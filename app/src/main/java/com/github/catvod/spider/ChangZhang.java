@@ -243,7 +243,7 @@ public class ChangZhang extends Spider {
         String kc8a64 = "336460fdcb76a597";
         String iv = "1234567890983456";
 
-        return AESEncryption.decrypt(data, kc8a64, iv);
+        return AESEncryption.decrypt(data, kc8a64, iv,AESEncryption.CBC_PKCS_7_PADDING);
     }
 
     ;

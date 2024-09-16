@@ -1,32 +1,19 @@
 package com.github.catvod.spider;
 
-import cn.hutool.core.codec.Base64;
-import cn.hutool.crypto.Mode;
-import cn.hutool.crypto.Padding;
-import cn.hutool.crypto.symmetric.AES;
-
 import com.github.catvod.bean.Class;
 import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.net.OkHttp;
+import com.github.catvod.utils.AESEncryption;
 import com.github.catvod.utils.Util;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.net.URLEncoder;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -191,12 +178,7 @@ public class NCat extends Spider {
         try {
             String encryptedKey = "VNF9aVQF!G*0ux@2hAigUeH3";
 
-            byte[] keyBytes = encryptedKey.getBytes(Charset.defaultCharset());
-            byte[] encryptedBytes = Base64.decode(encryptedData);
-            AES aes = StringUtils.isAllBlank(iv) ? new AES(Mode.ECB, Padding.PKCS5Padding, keyBytes) : new AES(Mode.ECB, Padding.PKCS5Padding, keyBytes, iv.getBytes(Charset.defaultCharset()));
-            byte[] decryptedBytes = aes.decrypt(encryptedBytes);
-
-            return new String(decryptedBytes, Charset.defaultCharset());
+            return AESEncryption.decrypt(encryptedData, encryptedKey, iv,AESEncryption.ECB_PKCS_7_PADDING);
         } catch (Exception e) {
             e.printStackTrace();
             return "123456";

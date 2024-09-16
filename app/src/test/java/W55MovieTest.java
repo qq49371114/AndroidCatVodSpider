@@ -28,7 +28,7 @@ public class W55MovieTest {
         mockContext = RuntimeEnvironment.application;
         Init.init(mockContext);
         spider = new W55Movie();
-        spider.init(mockContext, "");
+        spider.init(mockContext, "https://jlghjy.com/");
     }
 
     @org.junit.Test
@@ -65,7 +65,7 @@ public class W55MovieTest {
     @org.junit.Test
     public void detailContent() throws Exception {
 
-        String content = spider.detailContent(Arrays.asList("472585.html"));
+        String content = spider.detailContent(Arrays.asList("489833.html"));
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println("detailContent--" + gson.toJson(map));
