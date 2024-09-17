@@ -1,5 +1,6 @@
 package com.github.catvod.spider;
 
+import android.content.Context;
 import android.os.Build;
 import android.util.Base64;
 
@@ -8,8 +9,10 @@ import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.net.OkHttp;
+import com.github.catvod.utils.Json;
 import com.github.catvod.utils.Util;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -21,21 +24,38 @@ import java.util.ArrayList;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class HkTv extends Spider {
 
-    private static final String siteUrl = "http://www.tvyb03.com";
-    private static final String cateUrl = siteUrl + "/vod/type/id/";
-    private static final String detailUrl = siteUrl + "/vod/detail/id/";
-    private static final String playUrl = siteUrl + "/vod/play/id/";
-    private static final String searchUrl = siteUrl + "/vod/search.html?wd=";
+    private static String siteUrl = "http://www.tvyb03.com";
+    private static String cateUrl = siteUrl + "/vod/type/id/";
+    private static String detailUrl = siteUrl + "/vod/detail/id/";
+    private static String playUrl = siteUrl + "/vod/play/id/";
+    private static String searchUrl = siteUrl + "/vod/search.html?wd=";
 
     private HashMap<String, String> getHeaders() {
         HashMap<String, String> headers = new HashMap<>();
         headers.put("User-Agent", Util.CHROME);
         return headers;
+    }
+
+    @Override
+    public void init(Context context, String extend) throws Exception {
+        super.init(context, extend);
+        Document doc = Jsoup.parse(OkHttp.string(extend));
+
+
+        if (StringUtils.isNoneBlank(doc.html())) {
+            String data = doc.select("ul > li > a").first().attr("href");
+            siteUrl = data;
+        }
+        cateUrl = siteUrl + "/vod/type/id/";
+        detailUrl = siteUrl + "/vod/detail/id/";
+        playUrl = siteUrl + "/vod/play/id/";
+        searchUrl = siteUrl + "/vod/search.html?wd=";
     }
 
     @Override
@@ -69,7 +89,7 @@ public class HkTv extends Spider {
         List<Vod> list = new ArrayList<>();
         String target = cateUrl + tid + ".html";
         if (!"1".equals(pg)) {
-            target =cateUrl + pg + "/page/" + tid + ".html";
+            target = cateUrl + pg + "/page/" + tid + ".html";
         }
         Document doc = Jsoup.parse(OkHttp.string(target, getHeaders()));
         for (Element element : doc.select("ul.myui-vodlist li a.myui-vodlist__thumb")) {

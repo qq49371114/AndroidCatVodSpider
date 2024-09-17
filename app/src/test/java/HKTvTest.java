@@ -28,7 +28,7 @@ public class HKTvTest {
         mockContext = RuntimeEnvironment.application;
         Init.init(mockContext);
         spider = new HkTv();
-        spider.init(mockContext, "");
+        spider.init(mockContext, "http://www.hktvyb.vip/");
     }
 
     @org.junit.Test

@@ -1,5 +1,6 @@
 package com.github.catvod.spider;
 
+import android.content.Context;
 import android.text.TextUtils;
 
 import com.github.catvod.bean.Class;
@@ -16,6 +17,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,7 +34,7 @@ import okhttp3.Response;
  * @author zhixc
  * 新版6V电影网
  */
-public class Xb6v extends Spider {
+public class Xb6v extends Cloud {
 
     private final String siteUrl = "https://www.xb6v.com";
     private String nextSearchUrlPrefix;
@@ -49,6 +51,13 @@ public class Xb6v extends Spider {
         Map<String, String> header = new HashMap<>();
         header.put("User-Agent", Util.CHROME);
         return header;
+    }
+
+    @Override
+    public void init(Context context, String extend) throws Exception {
+        //  JsonObject ext = Json.safeObject(extend);
+        super.init(context, extend);
+
     }
 
     @Override
@@ -120,23 +129,57 @@ public class Xb6v extends Spider {
         Document doc = Jsoup.parse(html);
         Elements sourceList = doc.select("#post_content");
 
-        String circuitName = "磁力线路";
-        Map<String, String> playMap = new LinkedHashMap<>();
-        int i = 0;
+        Vod.VodPlayBuilder builder = new Vod.VodPlayBuilder();
+
+
         for (Element source : sourceList) {
+            //磁力
             Elements aList = source.select("table a");
-            List<String> vodItems = new ArrayList<>();
+            String circuitName = "磁力线路";
+            List<Vod.VodPlayBuilder.PlayUrl> list = new ArrayList<>();
             for (Element a : aList) {
                 String episodeUrl = a.attr("href");
                 String episodeName = a.text();
+                Vod.VodPlayBuilder.PlayUrl playUrl = new Vod.VodPlayBuilder.PlayUrl();
+                playUrl.name = episodeName;
+                playUrl.url = episodeUrl;
+                list.add(playUrl);
                 if (!episodeUrl.toLowerCase().startsWith("magnet")) continue;
-                vodItems.add(episodeName + "$" + episodeUrl);
+
             }
-            if (vodItems.size() > 0) {
-                i++;
-                playMap.put(circuitName + i, TextUtils.join("#", vodItems));
-            }
+            builder.append(circuitName, list);
+
         }
+
+        List<String> shareLinks = new ArrayList<>();
+        Elements sourceList2 = doc.select("div.context > div.box");
+        for (Element element : sourceList2) {
+            String catName = element.select("h3").text();
+            List<Vod.VodPlayBuilder.PlayUrl> playUrls = new ArrayList<>();
+
+            for (Element a : element.select("a")) {
+                String url = a.attr("href");
+                String name = a.text();
+                if (url.matches(Util.patternQuark)) {
+                    shareLinks.add(url);
+                } else {
+                    Vod.VodPlayBuilder.PlayUrl playUrl = new Vod.VodPlayBuilder.PlayUrl();
+                    playUrl.name = name;
+                    playUrl.url = url;
+                    playUrls.add(playUrl);
+                }
+            }
+            builder.append(catName, playUrls);
+
+        }
+        String quarkNames="";
+        String quarkUrls="";
+        if(shareLinks.size()>0){
+            quarkNames=  super.detailContentVodPlayFrom(shareLinks);
+            quarkUrls= super.detailContentVodPlayUrl(shareLinks);
+        }
+
+        Vod.VodPlayBuilder.BuildResult result = builder.build();
 
         String partHTML = doc.select(".context").html();
         String name = doc.select(".article_container > h1").text();
@@ -149,12 +192,16 @@ public class Xb6v extends Spider {
         if (area.equals("")) area = getStrByRegex(Pattern.compile("地区:(.*?)<br>"), partHTML);
         String remark = getStrByRegex(Pattern.compile("◎上映日期　(.*?)<br>"), partHTML);
         String actor = getActorOrDirector(Pattern.compile("◎演　　员　(.*?)</p>"), partHTML);
-        if (actor.equals("")) actor = getActorOrDirector(Pattern.compile("◎主　　演　(.*?)</p>"), partHTML);
-        if (actor.equals("")) actor = getActorOrDirector(Pattern.compile("主演:(.*?)<br>"), partHTML);
+        if (actor.equals(""))
+            actor = getActorOrDirector(Pattern.compile("◎主　　演　(.*?)</p>"), partHTML);
+        if (actor.equals(""))
+            actor = getActorOrDirector(Pattern.compile("主演:(.*?)<br>"), partHTML);
         String director = getActorOrDirector(Pattern.compile("◎导　　演　(.*?)<br>"), partHTML);
-        if (director.equals("")) director = getActorOrDirector(Pattern.compile("导演:(.*?)<br>"), partHTML);
+        if (director.equals(""))
+            director = getActorOrDirector(Pattern.compile("导演:(.*?)<br>"), partHTML);
         String description = getDescription(Pattern.compile("◎简　　介(.*?)<hr>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), partHTML);
-        if (description.equals("")) description = getDescription(Pattern.compile("简介(.*?)</p>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), partHTML);
+        if (description.equals(""))
+            description = getDescription(Pattern.compile("简介(.*?)</p>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), partHTML);
 
         Vod vod = new Vod();
         vod.setVodId(ids.get(0));
@@ -167,8 +214,8 @@ public class Xb6v extends Spider {
         vod.setVodActor(actor);
         vod.setVodDirector(director);
         vod.setVodContent(description);
-        vod.setVodPlayFrom(TextUtils.join("$$$", playMap.keySet()));
-        vod.setVodPlayUrl(TextUtils.join("$$$", playMap.values()));
+        vod.setVodPlayFrom(result.vodPlayFrom+"$$$"+quarkNames);
+        vod.setVodPlayUrl(result.vodPlayUrl+"$$$"+quarkUrls);
 
         return Result.string(vod);
     }
@@ -180,25 +227,11 @@ public class Xb6v extends Spider {
     }
 
     private String getActorOrDirector(Pattern pattern, String str) {
-        return getStrByRegex(pattern, str)
-                .replaceAll("<br>", "")
-                .replaceAll("&nbsp;", "")
-                .replaceAll("&amp;", "")
-                .replaceAll("middot;", "・")
-                .replaceAll("　　　　　", ",")
-                .replaceAll("　　　　 　", ",")
-                .replaceAll("　", "");
+        return getStrByRegex(pattern, str).replaceAll("<br>", "").replaceAll("&nbsp;", "").replaceAll("&amp;", "").replaceAll("middot;", "・").replaceAll("　　　　　", ",").replaceAll("　　　　 　", ",").replaceAll("　", "");
     }
 
     private String getDescription(Pattern pattern, String str) {
-        return getStrByRegex(pattern, str)
-                .replaceAll("</?[^>]+>", "")
-                .replaceAll("\n", "")
-                .replaceAll("&amp;", "")
-                .replaceAll("middot;", "・")
-                .replaceAll("ldquo;", "【")
-                .replaceAll("rdquo;", "】")
-                .replaceAll("　", "");
+        return getStrByRegex(pattern, str).replaceAll("</?[^>]+>", "").replaceAll("\n", "").replaceAll("&amp;", "").replaceAll("middot;", "・").replaceAll("ldquo;", "【").replaceAll("rdquo;", "】").replaceAll("　", "");
     }
 
     @Override
@@ -210,21 +243,8 @@ public class Xb6v extends Spider {
     public String searchContent(String key, boolean quick, String pg) throws Exception {
         String searchUrl = siteUrl + "/e/search/index.php";
         if (pg.equals("1")) {
-            RequestBody formBody = new FormBody.Builder()
-                    .add("show", "title")
-                    .add("tempid", "1")
-                    .add("tbname", "article")
-                    .add("mid", "1")
-                    .add("dopost", "search")
-                    .add("submit", "")
-                    .addEncoded("keyboard", key)
-                    .build();
-            Request request = new Request.Builder().url(searchUrl)
-                    .addHeader("User-Agent", Util.CHROME)
-                    .addHeader("Origin", siteUrl)
-                    .addHeader("Referer", siteUrl + "/")
-                    .post(formBody)
-                    .build();
+            RequestBody formBody = new FormBody.Builder().add("show", "title").add("tempid", "1").add("tbname", "article").add("mid", "1").add("dopost", "search").add("submit", "").addEncoded("keyboard", key).build();
+            Request request = new Request.Builder().url(searchUrl).addHeader("User-Agent", Util.CHROME).addHeader("Origin", siteUrl).addHeader("Referer", siteUrl + "/").post(formBody).build();
             Response response = OkHttp.newCall(request);
             String[] split = String.valueOf(response.request().url()).split("\\?searchid=");
             nextSearchUrlPrefix = split[0] + "index.php?page=";
