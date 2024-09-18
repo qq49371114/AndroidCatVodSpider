@@ -262,14 +262,16 @@ public class QuarkApi {
             if (StringUtils.isAllBlank(cookie)) {
                 cookie = cache.getUser().getCookie();
             }
+            if (StringUtils.isNoneBlank(cookie)) {
+                initQuark(this.cookie);
+                cache.setUser(User.objectFrom(this.cookie));
+                return;
+            }
             if (StringUtils.isAllBlank(cookie) && StringUtils.isAllBlank(serviceTicket)) {
                 SpiderDebug.log("cookie为空");
                 throw new RuntimeException("cookie为空");
             }
-            if (StringUtils.isNoneBlank(cookie)) {
-                initQuark(this.cookie);
-                return;
-            }
+
             String token = serviceTicket;
             OkResult result = OkHttp.get("https://pan.quark.cn/account/info?st=" + token + "&lw=scan", new HashMap<>(), getWebHeaders());
             Map json = Json.parseSafe(result.getBody(), Map.class);
@@ -292,7 +294,7 @@ public class QuarkApi {
             stopService();
             startFlow();
         } finally {
-           // while (cache.getUser().getCookie().isEmpty()) SystemClock.sleep(250);
+            while (cache.getUser().getCookie().isEmpty()) SystemClock.sleep(250);
         }
     }
 
