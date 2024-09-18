@@ -66,7 +66,7 @@ public class WoggTest {
     @org.junit.Test
     public void detailContent() throws Exception {
 
-        String content = spider.detailContent(Arrays.asList("/voddetail/86527.html"));
+        String content = spider.detailContent(Arrays.asList("/voddetail/86829.html"));
         System.out.println("detailContent--" + content);
 
         JsonObject map = Json.safeObject(content);
@@ -77,7 +77,7 @@ public class WoggTest {
 
     @org.junit.Test
     public void playerContent() throws Exception {
-        String content = spider.playerContent("quark4K", "c3f6b5fa48234c53909c65a4ff0f1888++f5fdf4f5e43aaef4db028cac23f20739++38c5e16d71f7++Yh7f4+dwB7CRa/HMcWOy0crfVjI6Yo8wtfuUwcnop3A=", new ArrayList<>());
+        String content = spider.playerContent("quark4K", "81c9aa49887d4b07aba861d7dd76d0ac++0ec2d75805f83bd045434f0d22f71489++4be1d75e17aa++wGlrbmw95nBbzO2rbCcEicZ8f4a+z5aKiuyoLQLA5SQ=", new ArrayList<>());
         System.out.println("playerContent--" + content);
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();

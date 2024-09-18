@@ -71,7 +71,7 @@ public class ProxyVideo {
         SpiderDebug.log("++proxy res contentType:" + contentType);
         //   SpiderDebug.log("++proxy res body:" + response.body());
         SpiderDebug.log("++proxy res respHeaders:" + Json.toJson(respHeaders));
-        return new Object[]{response.code(), contentType, response.body().byteStream(), respHeaders};
+        return new Object[]{206, contentType, response.body().byteStream(), respHeaders};
     }
 
     private static String getMimeType(String contentDisposition) {
