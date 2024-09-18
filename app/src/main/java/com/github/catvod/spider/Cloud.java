@@ -52,8 +52,13 @@ public class Cloud extends Spider {
                 quarkShare.add(shareLink);
             }
         }
-        from.add(quark.detailContentVodPlayFrom(quarkShare));
-        from.add(ali.detailContentVodPlayFrom(aliShare));
+        if (!quarkShare.isEmpty()) {
+            from.add(quark.detailContentVodPlayFrom(quarkShare));
+        }
+        if (!aliShare.isEmpty()) {
+            from.add(ali.detailContentVodPlayFrom(aliShare));
+        }
+
         return TextUtils.join("$$$", from);
     }
 

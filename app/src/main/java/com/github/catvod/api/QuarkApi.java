@@ -5,7 +5,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.os.Handler;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.view.Gravity;
@@ -37,7 +36,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class QuarkApi {
     private String apiUrl = "https://drive-pc.quark.cn/1/clouddrive/";
@@ -117,8 +115,11 @@ public class QuarkApi {
         return QuarkApi.Loader.INSTANCE;
     }
 
-    public void setRefreshToken(String token) {
-        this.cookie = token;
+    public void setRefreshToken(String token) throws Exception {
+        if (StringUtils.isNoneBlank(token)) {
+            this.cookie = token;
+            refreshAccessToken();
+        }
     }
 
     private Map<String, String> getHeaders() {
@@ -240,7 +241,7 @@ public class QuarkApi {
                 Matcher cookieMatcher = Pattern.compile("__puus=([^;]+)").matcher(this.cookie);
                 if (cookieMatcher.find() && !cookieMatcher.group(1).equals(matcher.group(1))) {
                     this.cookie = this.cookie.replaceAll("__puus=[^;]+", "__puus=" + matcher.group(1));
-                }else{
+                } else {
                     this.cookie = this.cookie + ";__puus=" + matcher.group(1);
                 }
             }
@@ -254,13 +255,20 @@ public class QuarkApi {
         return okResult.getBody();
     }
 
-    private boolean refreshAccessToken() {
+    private void refreshAccessToken() {
         try {
             SpiderDebug.log("refreshCookie...");
-            cookie = cache.getUser().getCookie();
-            if (cookie.isEmpty() && serviceTicket.isBlank()) {
+
+            if (StringUtils.isAllBlank(cookie)) {
+                cookie = cache.getUser().getCookie();
+            }
+            if (StringUtils.isAllBlank(cookie) && StringUtils.isAllBlank(serviceTicket)) {
                 SpiderDebug.log("cookie为空");
                 throw new RuntimeException("cookie为空");
+            }
+            if (StringUtils.isNoneBlank(cookie)) {
+                initQuark(this.cookie);
+                return;
             }
             String token = serviceTicket;
             OkResult result = OkHttp.get("https://pan.quark.cn/account/info?st=" + token + "&lw=scan", new HashMap<>(), getWebHeaders());
@@ -276,18 +284,15 @@ public class QuarkApi {
                 cache.setUser(User.objectFrom(this.cookie));
                 if (cache.getUser().getCookie().isEmpty()) throw new Exception(this.cookie);
                 initQuark(this.cookie);
-                return true;
             }
-            return false;
 
         } catch (Exception e) {
             cache.getUser().clean();
             e.printStackTrace();
             stopService();
             startFlow();
-            return true;
         } finally {
-            while (cache.getUser().getCookie().isEmpty()) SystemClock.sleep(250);
+           // while (cache.getUser().getCookie().isEmpty()) SystemClock.sleep(250);
         }
     }
 

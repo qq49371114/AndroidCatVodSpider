@@ -9,8 +9,10 @@ import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.net.OkHttp;
+import com.github.catvod.net.OkResult;
 import com.github.catvod.utils.Util;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -156,7 +158,7 @@ public class Xb6v extends Cloud {
         for (Element element : sourceList2) {
             String catName = element.select("h3").text();
             List<Vod.VodPlayBuilder.PlayUrl> playUrls = new ArrayList<>();
-
+            int count = 0;
             for (Element a : element.select("a")) {
                 String url = a.attr("href");
                 String name = a.text();
@@ -167,16 +169,19 @@ public class Xb6v extends Cloud {
                     playUrl.name = name;
                     playUrl.url = url;
                     playUrls.add(playUrl);
+                    count++;
                 }
             }
-            builder.append(catName, playUrls);
+            if (count > 0) {
+                builder.append(catName, playUrls);
+            }
 
         }
-        String quarkNames="";
-        String quarkUrls="";
-        if(shareLinks.size()>0){
-            quarkNames=  super.detailContentVodPlayFrom(shareLinks);
-            quarkUrls= super.detailContentVodPlayUrl(shareLinks);
+        String quarkNames = "";
+        String quarkUrls = "";
+        if (shareLinks.size() > 0) {
+            quarkNames = super.detailContentVodPlayFrom(shareLinks);
+            quarkUrls = super.detailContentVodPlayUrl(shareLinks);
         }
 
         Vod.VodPlayBuilder.BuildResult result = builder.build();
@@ -192,13 +197,10 @@ public class Xb6v extends Cloud {
         if (area.equals("")) area = getStrByRegex(Pattern.compile("地区:(.*?)<br>"), partHTML);
         String remark = getStrByRegex(Pattern.compile("◎上映日期　(.*?)<br>"), partHTML);
         String actor = getActorOrDirector(Pattern.compile("◎演　　员　(.*?)</p>"), partHTML);
-        if (actor.equals(""))
-            actor = getActorOrDirector(Pattern.compile("◎主　　演　(.*?)</p>"), partHTML);
-        if (actor.equals(""))
-            actor = getActorOrDirector(Pattern.compile("主演:(.*?)<br>"), partHTML);
+        if (actor.equals("")) actor = getActorOrDirector(Pattern.compile("◎主　　演　(.*?)</p>"), partHTML);
+        if (actor.equals("")) actor = getActorOrDirector(Pattern.compile("主演:(.*?)<br>"), partHTML);
         String director = getActorOrDirector(Pattern.compile("◎导　　演　(.*?)<br>"), partHTML);
-        if (director.equals(""))
-            director = getActorOrDirector(Pattern.compile("导演:(.*?)<br>"), partHTML);
+        if (director.equals("")) director = getActorOrDirector(Pattern.compile("导演:(.*?)<br>"), partHTML);
         String description = getDescription(Pattern.compile("◎简　　介(.*?)<hr>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), partHTML);
         if (description.equals(""))
             description = getDescription(Pattern.compile("简介(.*?)</p>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), partHTML);
@@ -214,8 +216,8 @@ public class Xb6v extends Cloud {
         vod.setVodActor(actor);
         vod.setVodDirector(director);
         vod.setVodContent(description);
-        vod.setVodPlayFrom(result.vodPlayFrom+"$$$"+quarkNames);
-        vod.setVodPlayUrl(result.vodPlayUrl+"$$$"+quarkUrls);
+        vod.setVodPlayFrom(result.vodPlayFrom + "$$$" + quarkNames);
+        vod.setVodPlayUrl(result.vodPlayUrl + "$$$" + quarkUrls);
 
         return Result.string(vod);
     }
@@ -259,6 +261,24 @@ public class Xb6v extends Cloud {
 
     @Override
     public String playerContent(String flag, String id, List<String> vipFlags) throws Exception {
-        return Result.get().url(id).string();
+        if (id.startsWith("magnet")) {
+            return Result.get().url(id).string();
+        }
+        if (flag.contains("quark")) {
+            return super.playerContent(flag, id, vipFlags);
+        }
+
+
+        Document doc = Jsoup.parse(OkHttp.string(siteUrl + id));
+        String url = Util.findByRegex(Util.RULE.pattern(), doc.html(), 0);
+
+        if (StringUtils.isAllBlank(url)) {
+            String iframeSrc = doc.select("iframe").attr("src");
+            Document iframeDoc = Jsoup.parse(OkHttp.string(iframeSrc));
+            url = Util.findByRegex(Util.RULE.pattern(), iframeDoc.html(), 0);
+
+        }
+        return Result.get().url(url).string();
+
     }
 }
