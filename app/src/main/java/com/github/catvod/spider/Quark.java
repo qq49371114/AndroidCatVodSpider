@@ -2,7 +2,6 @@ package com.github.catvod.spider;
 
 import android.content.Context;
 import android.text.TextUtils;
-import com.github.catvod.api.AliYun;
 import com.github.catvod.api.QuarkApi;
 import com.github.catvod.bean.Result;
 import com.github.catvod.bean.quark.ShareData;
@@ -22,7 +21,7 @@ public class Quark extends Spider {
     @Override
     public void init(Context context, String extend) throws Exception {
 
-        QuarkApi.get().setRefreshToken(extend);
+        QuarkApi.get().setCookie(extend);
     }
 
     @Override

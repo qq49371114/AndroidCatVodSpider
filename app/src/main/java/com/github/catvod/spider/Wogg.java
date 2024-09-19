@@ -104,8 +104,8 @@ public class Wogg extends Cloud {
             shareLinks.set(i, shareLinks.get(i).trim());
             //String detailContent = super.detailContent(List.of(shareLinks.get(i)));
         }
+        item.setVodPlayUrl(super.detailContentVodPlayUrl(shareLinks));
         item.setVodPlayFrom(super.detailContentVodPlayFrom(shareLinks));
-         item.setVodPlayUrl(super.detailContentVodPlayUrl(shareLinks));
 
         Elements elements = doc.select(".video-info-item");
         for (Element e : elements) {
@@ -135,7 +135,6 @@ public class Wogg extends Cloud {
     public String searchContent(String key, boolean quick, String pg) throws Exception {
         return searchContent(key, pg);
     }
-
 
 
     private String searchContent(String key, String pg) {

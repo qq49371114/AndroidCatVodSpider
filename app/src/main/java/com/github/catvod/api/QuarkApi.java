@@ -50,7 +50,7 @@ public class QuarkApi {
     private boolean isVip = false;
     private final Cache cache;
     private ScheduledExecutorService service;
-    private Timer timer;
+
 
     private AlertDialog dialog;
     private String serviceTicket;
@@ -59,7 +59,7 @@ public class QuarkApi {
         String url = Util.base64Decode(params.get("url"));
         Map header = new Gson().fromJson(Util.base64Decode(params.get("header")), Map.class);
         if (header == null) header = new HashMap<>();
-        List<String> arr = List.of("Range","Accept", "Accept-Encoding", "Accept-Language", "Cookie", "Origin", "Referer", "Sec-Ch-Ua", "Sec-Ch-Ua-Mobile", "Sec-Ch-Ua-Platform", "Sec-Fetch-Dest", "Sec-Fetch-Mode", "Sec-Fetch-Site", "User-Agent");
+        List<String> arr = List.of("Range", "Accept", "Accept-Encoding", "Accept-Language", "Cookie", "Origin", "Referer", "Sec-Ch-Ua", "Sec-Ch-Ua-Mobile", "Sec-Ch-Ua-Platform", "Sec-Fetch-Dest", "Sec-Fetch-Mode", "Sec-Fetch-Site", "User-Agent");
         for (String key : params.keySet()) {
             for (String s : arr) {
                 if (s.toLowerCase().equals(key)) {
@@ -115,10 +115,10 @@ public class QuarkApi {
         return QuarkApi.Loader.INSTANCE;
     }
 
-    public void setRefreshToken(String token) throws Exception {
+    public void setCookie(String token) throws Exception {
         if (StringUtils.isNoneBlank(token)) {
             this.cookie = token;
-            refreshAccessToken();
+            initUserInfo();
         }
     }
 
@@ -226,7 +226,7 @@ public class QuarkApi {
 
         int leftRetry = retry != null ? retry : 3;
         if (StringUtils.isAllBlank(cookie)) {
-            this.refreshAccessToken();
+            this.initUserInfo();
             return api(url, params, data, leftRetry - 1, method);
         }
         OkResult okResult;
@@ -255,18 +255,24 @@ public class QuarkApi {
         return okResult.getBody();
     }
 
-    private void refreshAccessToken() {
+    private void initUserInfo() {
         try {
-            SpiderDebug.log("refreshCookie...");
+            SpiderDebug.log("initUserInfo...");
 
+            //extend没有cookie，从缓存中获取
             if (StringUtils.isAllBlank(cookie)) {
+                SpiderDebug.log(" cookie from ext is empty...");
                 cookie = cache.getUser().getCookie();
             }
+            //获取到cookie，初始化quark，并且把cookie缓存一次
             if (StringUtils.isNoneBlank(cookie)) {
+                SpiderDebug.log(" initQuark ...");
                 initQuark(this.cookie);
                 cache.setUser(User.objectFrom(this.cookie));
                 return;
             }
+
+            //没有cookie，也没有serviceTicket，抛出异常，提示用户重新登录
             if (StringUtils.isAllBlank(cookie) && StringUtils.isAllBlank(serviceTicket)) {
                 SpiderDebug.log("cookie为空");
                 throw new RuntimeException("cookie为空");
@@ -675,13 +681,13 @@ public class QuarkApi {
         this.serviceTicket = value;
         SpiderDebug.log("ServiceTicket:" + value);
         Notify.show("ServiceTicket:" + value);
-        refreshAccessToken();
+        initUserInfo();
         stopService();
     }
 
     private void stopService() {
         if (service != null) service.shutdownNow();
-        if (timer != null) timer.cancel();
+
 
         Init.run(this::dismiss);
     }
