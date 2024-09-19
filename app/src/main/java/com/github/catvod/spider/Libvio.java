@@ -8,8 +8,10 @@ import com.github.catvod.bean.Vod;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
+import com.github.catvod.utils.Json;
 import com.github.catvod.utils.Util;
 
+import com.google.gson.JsonElement;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -25,9 +27,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Libvio extends Spider {
+public class Libvio extends Cloud {
 
-    private static String siteUrl = "";
+    private static String siteUrl = "https://www.libvio.link/";
 
 
     private static final String MOBILE_UA = "Mozilla/5.0 (Linux; Android 11; M2007J3SC Build/RKQ1.200826.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/77.0.3865.120 MQQBrowser/6.2 TBS/045714 Mobile Safari/537.36";
@@ -49,10 +51,16 @@ public class Libvio extends Spider {
 
     @Override
     public void init(Context context, String extend) throws Exception {
+        JsonElement json = Json.parse(extend);
         super.init(context, extend);
-        String html = OkHttp.string(extend);
+        String html = OkHttp.string(json.getAsJsonObject().get("site").getAsString());
         Document doc = Jsoup.parse(html);
-        siteUrl = doc.select("#all > div > div > div > div > ul > li > a:nth-child(2)").attr("href");
+        for (Element element : doc.select(" a")) {
+            if (element.text().contains("可用")) {
+                siteUrl = element.attr("href");
+                break;
+            }
+        }
         SpiderDebug.log("libvio跳转地址 =====>" + siteUrl); // js_debug.log
     }
 
@@ -140,40 +148,55 @@ public class Libvio extends Spider {
         // 播放源
         Elements tabs = doc.select("div.stui-vodlist__head > div > h3");
         Elements list = doc.select("div.stui-vodlist__head > ul.stui-content__playlist  ");
-        String PlayFrom = "";
-        String PlayUrl = "";
+
+        Vod.VodPlayBuilder builder = new Vod.VodPlayBuilder();
+        List<String> quarkList = new ArrayList<>();
         for (int i = 0; i < tabs.size(); i++) {
+            List<Vod.VodPlayBuilder.PlayUrl> playUrls = new ArrayList<>();
+
             String tabName = tabs.get(i).text();
-            if (tabName.contains("夸克")) {
-                continue;
-            }
-            if (!"".equals(PlayFrom)) {
-                PlayFrom = PlayFrom + "$$$" + tabName;
-            } else {
-                PlayFrom = PlayFrom + tabName;
-            }
+
             Elements li = list.get(i).select("a");
-            String liUrl = "";
-            for (int i1 = 0; i1 < li.size(); i1++) {
-                if (!"".equals(liUrl)) {
-                    liUrl = liUrl + "#" + li.get(i1).text() + "$" + li.get(i1).attr("href").replace("/play/", "");
+            for (Element element : li) {
+                if (tabName.contains("夸克")) {
+                    quarkList.add(element.attr("href"));
                 } else {
-                    liUrl = liUrl + li.get(i1).text() + "$" + li.get(i1).attr("href").replace("/play/", "");
+                    Vod.VodPlayBuilder.PlayUrl playUrl = new Vod.VodPlayBuilder.PlayUrl();
+                    playUrl.name = element.text();
+                    playUrl.url = element.attr("href").replace("/play/", "");
+                    playUrls.add(playUrl);
                 }
+
             }
-            if (!"".equals(PlayUrl)) {
-                PlayUrl = PlayUrl + "$$$" + liUrl;
-            } else {
-                PlayUrl = PlayUrl + liUrl;
+            if (!tabName.contains("夸克")) {
+                builder.append(tabName, playUrls);
             }
         }
+        List<String> shareLinks = new ArrayList<>();
+        String quarkNames = "";
+        String quarkUrls = "";
+
+        if (!quarkList.isEmpty()) {
+            for (String s : quarkList) {
+                Document detailPageDoc = Jsoup.parse(OkHttp.string(siteUrl.concat(s), getHeaders()));
+                Matcher matcher = Pattern.compile("player_aaaa=(.*?)</script>").matcher(detailPageDoc.html());
+                String json = matcher.find() ? matcher.group(1) : "";
+                org.json.JSONObject player = new JSONObject(json);
+                String url = player.getString("url");
+                shareLinks.add(url);
+            }
+            quarkUrls = super.detailContentVodPlayUrl(shareLinks);
+            quarkNames = super.detailContentVodPlayFrom(shareLinks);
+        }
+
+        Vod.VodPlayBuilder.BuildResult result = builder.build();
 
         Vod vod = new Vod();
         vod.setVodId(ids.get(0));
         vod.setVodPic(siteUrl + pic);
         vod.setVodName(name);
-        vod.setVodPlayFrom(PlayFrom);
-        vod.setVodPlayUrl(PlayUrl);
+        vod.setVodPlayFrom(result.vodPlayFrom + "$$$" + quarkNames);
+        vod.setVodPlayUrl(result.vodPlayUrl + "$$$" + quarkUrls);
         return Result.string(vod);
     }
 
@@ -198,6 +221,9 @@ public class Libvio extends Spider {
 
     @Override
     public String playerContent(String flag, String id, List<String> vipFlags) throws Exception {
+        if (flag.contains("quark")) {
+            return super.playerContent(flag, id, vipFlags);
+        }
         String target = siteUrl.concat("/play/").concat(id);
         Document doc = Jsoup.parse(OkHttp.string(target));
         Matcher matcher = Pattern.compile("player_aaaa=(.*?)</script>").matcher(doc.html());
@@ -217,7 +243,7 @@ public class Libvio extends Spider {
         }
         String playUrl = OkHttp.string(purl, getHeaders(target.replace("www.", "")));
 
-        String realUrl = Util.getVar(playUrl, "urls");
+        String realUrl = Util.getVar(playUrl, "vid");
 
         return Result.get().url(realUrl).header(getHeaders()).string();
     }
