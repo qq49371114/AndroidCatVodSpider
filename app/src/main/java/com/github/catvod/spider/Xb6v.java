@@ -179,9 +179,10 @@ public class Xb6v extends Cloud {
         }
         String quarkNames = "";
         String quarkUrls = "";
-        if (shareLinks.size() > 0) {
-            quarkNames = super.detailContentVodPlayFrom(shareLinks);
+        if (!shareLinks.isEmpty()) {
             quarkUrls = super.detailContentVodPlayUrl(shareLinks);
+            quarkNames = super.detailContentVodPlayFrom(shareLinks);
+
         }
 
         Vod.VodPlayBuilder.BuildResult result = builder.build();
