@@ -62,7 +62,7 @@ public class QuarkApi {
         List<String> arr = List.of("Range", "Accept", "Accept-Encoding", "Accept-Language", "Cookie", "Origin", "Referer", "Sec-Ch-Ua", "Sec-Ch-Ua-Mobile", "Sec-Ch-Ua-Platform", "Sec-Fetch-Dest", "Sec-Fetch-Mode", "Sec-Fetch-Site", "User-Agent");
         for (String key : params.keySet()) {
             for (String s : arr) {
-                if (s.toLowerCase().equals(key)) {
+                if (s.toLowerCase().equals(key.toLowerCase())) {
                     header.put(key, params.get(key));
                 }
             }
@@ -265,7 +265,7 @@ public class QuarkApi {
                 cookie = cache.getUser().getCookie();
             }
             //获取到cookie，初始化quark，并且把cookie缓存一次
-            if (StringUtils.isNoneBlank(cookie)) {
+            if (StringUtils.isNoneBlank(cookie) && cookie.contains("__pus")) {
                 SpiderDebug.log(" initQuark ...");
                 initQuark(this.cookie);
                 cache.setUser(User.objectFrom(this.cookie));

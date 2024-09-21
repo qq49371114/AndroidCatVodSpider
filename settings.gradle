@@ -28,6 +28,6 @@ dependencyResolutionManagement {
         maven { url "https://www.jitpack.io" }
     }
 }
-rootProject.name = "CatVodSpider"
+rootProject.name = "AndroidCatVodSpider"
 include ':app'
 include ':tools'
