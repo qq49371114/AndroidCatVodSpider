@@ -28,8 +28,10 @@ public class DdrkTest {
         mockContext = RuntimeEnvironment.application;
         Init.init(mockContext);
         spider = new Ddrk();
-        spider.init(mockContext, "");
+        spider.init(mockContext, " {\"site\":\"https://ddys.info/\"}");
     }
+
+
 
     @org.junit.Test
     public void homeContent() throws Exception {

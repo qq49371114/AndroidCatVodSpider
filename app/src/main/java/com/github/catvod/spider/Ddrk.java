@@ -1,5 +1,6 @@
 package com.github.catvod.spider;
 
+import android.content.Context;
 import android.text.TextUtils;
 
 import com.github.catvod.bean.Class;
@@ -8,8 +9,11 @@ import com.github.catvod.bean.Vod;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
+import com.github.catvod.utils.Json;
+import com.github.catvod.utils.ProxyVideo;
 import com.github.catvod.utils.Util;
 
+import com.google.gson.JsonElement;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
@@ -35,8 +39,8 @@ import java.util.regex.Pattern;
 
 public class Ddrk extends Spider {
 
-    private static final String siteUrl = "https://ddys.pro";
-    private static final String siteHost = "ddys.pro";
+    private static String siteUrl = "https://ddys.mov";
+
 
     protected JSONObject filterConfig;
 
@@ -49,6 +53,22 @@ public class Ddrk extends Spider {
 
     //   protected Pattern t = Pattern.compile("(\\S+)");
 
+
+    @Override
+    public void init(Context context, String extend) throws Exception {
+        super.init(context, extend);
+        JsonElement json = Json.parse(extend);
+        String html = OkHttp.string(json.getAsJsonObject().get("site").getAsString());
+        Document doc = Jsoup.parse(html);
+        for (Element element : doc.select("a")) {
+            if (element.text().contains("https")) {
+                siteUrl = element.attr("href");
+                break;
+            }
+        }
+        SpiderDebug.log("ddys =====>" + siteUrl); // js_debug.log
+
+    }
 
     /**
      * 爬虫headers
@@ -313,41 +333,38 @@ public class Ddrk extends Spider {
                 JSONArray Track = UJson.getJSONArray("tracks");
                 for (int k = 0; k < Track.length(); k++) {
                     JSONObject src = Track.getJSONObject(k);
-                    String adk = src.getString("src1");
+                    String adk = src.getString("src0");
                     String vodName = src.getString("caption");
-                    String playURL = siteUrl + "/getvddr/video?id=" + adk + "&type=mix";
-                    String zm = siteUrl + "/subddr/" + src.getString("subsrc");
-                    String pzm = playURL + "|" + zm;
+                    String pzm = getPlayUrl(adk);
                     vodItems.add(vodName + "$" + pzm);
                 }
                 vod_play.put(sourceName, TextUtils.join("#", vodItems));
             }
             Elements sources = doc.select(".post-page-numbers");
-            if (!sources.isEmpty()) for (int i = 0; i < sources.size(); i++) {
-                Element source = sources.get(i);
-                sourceName = "第" + source.text() + "季";
-                String Purl = siteUrl + "/" + ids.get(0) + "/" + source.text() + "/";
-                Document docs = Jsoup.parse(OkHttp.string(Purl, getHeaders(Purl)));
-                Elements allScripts = docs.select(".wp-playlist-script");
-                for (int j = 0; j < allScripts.size(); j++) {
-                    String scContent = allScripts.get(j).html().trim();
-                    int start = scContent.indexOf('{');
-                    int end = scContent.lastIndexOf('}') + 1;
-                    String json = scContent.substring(start, end);
-                    JSONObject UJson = new JSONObject(json);
-                    JSONArray Track = UJson.getJSONArray("tracks");
-                    for (int k = 0; k < Track.length(); k++) {
-                        JSONObject src = Track.getJSONObject(k);
-                        String adk = src.getString("src1");
-                        String vodName = src.getString("caption");
-                        String playURL = siteUrl + "/getvddr/video?id=" + adk + "&type=mix";
-                        String zm = siteUrl + "/subddr/" + src.getString("subsrc");
-                        String pzm = playURL + "|" + zm;
-                        vodItems2.add(vodName + "$" + pzm);
+            if (!sources.isEmpty()) {
+                for (Element source : sources) {
+                    sourceName = "第" + source.text() + "季";
+                    String Purl = siteUrl + "/" + ids.get(0) + "/" + source.text() + "/";
+                    Document docs = Jsoup.parse(OkHttp.string(Purl, getHeaders(Purl)));
+                    Elements allScripts = docs.select(".wp-playlist-script");
+                    for (Element script : allScripts) {
+                        String scContent = script.html().trim();
+                        int start = scContent.indexOf('{');
+                        int end = scContent.lastIndexOf('}') + 1;
+                        String json = scContent.substring(start, end);
+                        JSONObject UJson = new JSONObject(json);
+                        JSONArray Track = UJson.getJSONArray("tracks");
+                        for (int k = 0; k < Track.length(); k++) {
+                            JSONObject src = Track.getJSONObject(k);
+                            String adk = src.getString("src0");
+                            String vodName = src.getString("caption");
+                            String pzm = getPlayUrl(adk);
+                            vodItems2.add(vodName + "$" + pzm);
+                        }
+                        vod_play.put(sourceName, TextUtils.join("#", vodItems2));
                     }
-                    vod_play.put(sourceName, TextUtils.join("#", vodItems2));
+                    vodItems2.removeAll(vodItems2);
                 }
-                vodItems2.removeAll(vodItems2);
             }
 
             String vod_play_from = TextUtils.join("$$$", vod_play.keySet());
@@ -367,6 +384,16 @@ public class Ddrk extends Spider {
     }
 
 
+    public String getPlayUrl(String source) {
+        if (source.endsWith("m3u8")) {
+            return source;
+        } else if (source.startsWith("https")) {
+            return source;
+        } else {
+            return "https://v.ddys.pro" + source;
+        }
+    }
+
     /**
      * 获取视频播放信息
      *
@@ -377,30 +404,14 @@ public class Ddrk extends Spider {
      */
     @Override
     public String playerContent(String flag, String id, List<String> vipFlags) {
-
-        String[] item = id.split("\\|");
-        String playUrl = item[0];
-        String ZiMu = item[1];
-
-        String content = OkHttp.string(playUrl, getHeaders(playUrl));
-
-        String RealUrl = "";
-        String regex = "\"src0\":\"(.*?)\",";
-
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(content);
-        if (matcher.find()) {
-            RealUrl = matcher.group(1);
-        }
-
-        return Result.get().url(siteUrl + RealUrl.replace("\\/", "/")).header(Headers()).string();
+        return Result.get().url(ProxyVideo.buildCommonProxyUrl(id, Util.webHeaders(siteUrl))).string();
     }
 
 
     @Override
     public String searchContent(String key, boolean quick) {
 
-        String url = "https://ddys.pro/?s=" + URLEncoder.encode(key) + "&post_type=post";
+        String url = siteUrl + "?s=" + URLEncoder.encode(key) + "&post_type=post";
         Document doc = Jsoup.parse(OkHttp.string(url, getHeaders(url)));
         List<Vod> vods = new ArrayList<>();
         Elements elements = doc.select("h2.post-title > a");
