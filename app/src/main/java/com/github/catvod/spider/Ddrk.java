@@ -111,18 +111,11 @@ public class Ddrk extends Cloud {
         Document doc = Jsoup.parse(OkHttp.string(url, getHeaders(url)));
         Elements elements = doc.select("li.menu-item a");
         List<Class> classes = new ArrayList<>();
-        ArrayList<String> allClass = new ArrayList<>();
+
         for (Element ele : elements) {
             String name = ele.attr("title");
-            boolean show = !filter || (name.equals("热映中") || name.equals("欧美剧") || name.equals("日剧") || name.equals("韩剧") || name.equals("华语剧") || name.equals("其他地区") || name.equals("全部") || name.equals("欧美电影") || name.equals("日韩电影") || name.equals("华语电影") || name.equals("新番") || name.equals("动画") || name.equals("纪录片") || name.equals("综艺"));
-            if (allClass.contains(name)) show = false;
-            if (show) {
-                allClass.add(name);
-                Matcher mather = regexCategory.matcher(ele.attr("href"));
-                if (!mather.find()) continue;
-                // 把分类的id和名称取出来加到列表里
-                String id = mather.group(1).trim();
-
+            String id = ele.attr("href");
+            if (ele.attr("href").contains("category") || ele.attr("href").contains("tag")) {
                 classes.add(new Class(id, name));
             }
         }
@@ -175,7 +168,7 @@ public class Ddrk extends Cloud {
                     }
                 }
             } else {
-                url = siteUrl + "/category/" + tid;
+                url =  tid;
             }
             if (pg.equals("1")) {
                 url = url + "/";
@@ -416,9 +409,9 @@ public class Ddrk extends Cloud {
      */
     @Override
     public String playerContent(String flag, String id, List<String> vipFlags) throws Exception {
-        if(flag.contains("quark")){
+        if (flag.contains("quark")) {
             return super.playerContent(flag, id, vipFlags);
-        }else{
+        } else {
             return Result.get().url(ProxyVideo.buildCommonProxyUrl(id, Util.webHeaders(siteUrl))).string();
         }
     }
