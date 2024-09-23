@@ -1,20 +1,17 @@
 package com.github.catvod.spider;
 
 import android.content.Context;
-import android.text.TextUtils;
-
 import com.github.catvod.bean.Class;
 import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
-import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
 import com.github.catvod.utils.ProxyVideo;
 import com.github.catvod.utils.Util;
-
 import com.google.gson.JsonElement;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -25,9 +22,7 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,7 +32,7 @@ import java.util.regex.Pattern;
  * Source from Author: CatVod
  */
 
-public class Ddrk extends Spider {
+public class Ddrk extends Cloud {
 
     private static String siteUrl = "https://ddys.mov";
 
@@ -53,6 +48,25 @@ public class Ddrk extends Spider {
 
     //   protected Pattern t = Pattern.compile("(\\S+)");
 
+    protected static HashMap<String, String> Headers() {
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36");
+        headers.put("Referer", siteUrl);
+        return headers;
+    }
+
+    private static String doReplaceRegex(Pattern pattern, String src) {
+        if (pattern == null) return src;
+        try {
+            Matcher matcher = pattern.matcher(src);
+            if (matcher.find()) {
+                return matcher.group(1).trim();
+            }
+        } catch (Exception e) {
+            SpiderDebug.log(e);
+        }
+        return src;
+    }
 
     @Override
     public void init(Context context, String extend) throws Exception {
@@ -79,13 +93,6 @@ public class Ddrk extends Spider {
     protected HashMap<String, String> getHeaders(String url) {
         HashMap<String, String> headers = new HashMap<>();
         headers.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.62 Safari/537.36");
-        headers.put("Referer", siteUrl);
-        return headers;
-    }
-
-    protected static HashMap<String, String> Headers() {
-        HashMap<String, String> headers = new HashMap<>();
-        headers.put("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36");
         headers.put("Referer", siteUrl);
         return headers;
     }
@@ -144,7 +151,6 @@ public class Ddrk extends Spider {
         return Result.string(classes, vods, filterConfig);
     }
 
-
     /**
      * 获取分类信息数据
      *
@@ -167,12 +173,10 @@ public class Ddrk extends Spider {
                     } else {
                         url = siteUrl + "/category/" + tid;
                     }
-                    ;
                 }
             } else {
                 url = siteUrl + "/category/" + tid;
             }
-            ;
             if (pg.equals("1")) {
                 url = url + "/";
             } else {
@@ -317,60 +321,44 @@ public class Ddrk extends Spider {
             vodList.put("vod_actor", actor);
             vodList.put("vod_director", director);
             vodList.put("vod_content", desc);
+            Vod.VodPlayBuilder builder = new Vod.VodPlayBuilder();
+            List<String> shareLinks = new ArrayList<>();
+            getVodDetail(doc, builder, "1");
 
-            List<String> vodItems = new ArrayList<>();
-            List<String> vodItems2 = new ArrayList<>();
-            Map<String, String> vod_play = new LinkedHashMap<>();
-
-            Elements allScript = doc.select(".wp-playlist-script");
-            String sourceName = "第1季";
-            for (int j = 0; j < allScript.size(); j++) {
-                String scContent = allScript.get(j).html().trim();
-                int start = scContent.indexOf('{');
-                int end = scContent.lastIndexOf('}') + 1;
-                String json = scContent.substring(start, end);
-                JSONObject UJson = new JSONObject(json);
-                JSONArray Track = UJson.getJSONArray("tracks");
-                for (int k = 0; k < Track.length(); k++) {
-                    JSONObject src = Track.getJSONObject(k);
-                    String adk = src.getString("src0");
-                    String vodName = src.getString("caption");
-                    String pzm = getPlayUrl(adk);
-                    vodItems.add(vodName + "$" + pzm);
-                }
-                vod_play.put(sourceName, TextUtils.join("#", vodItems));
-            }
+            //多季剧集处理
             Elements sources = doc.select(".post-page-numbers");
             if (!sources.isEmpty()) {
                 for (Element source : sources) {
-                    sourceName = "第" + source.text() + "季";
-                    String Purl = siteUrl + "/" + ids.get(0) + "/" + source.text() + "/";
-                    Document docs = Jsoup.parse(OkHttp.string(Purl, getHeaders(Purl)));
-                    Elements allScripts = docs.select(".wp-playlist-script");
-                    for (Element script : allScripts) {
-                        String scContent = script.html().trim();
-                        int start = scContent.indexOf('{');
-                        int end = scContent.lastIndexOf('}') + 1;
-                        String json = scContent.substring(start, end);
-                        JSONObject UJson = new JSONObject(json);
-                        JSONArray Track = UJson.getJSONArray("tracks");
-                        for (int k = 0; k < Track.length(); k++) {
-                            JSONObject src = Track.getJSONObject(k);
-                            String adk = src.getString("src0");
-                            String vodName = src.getString("caption");
-                            String pzm = getPlayUrl(adk);
-                            vodItems2.add(vodName + "$" + pzm);
-                        }
-                        vod_play.put(sourceName, TextUtils.join("#", vodItems2));
+                    if (!source.select("a").isEmpty()) {
+
+                        String Purl = source.select("a").attr("href");
+                        Document docs = Jsoup.parse(OkHttp.string(Purl, getHeaders(Purl)));
+                        getVodDetail(docs, builder, source.text());
                     }
-                    vodItems2.removeAll(vodItems2);
                 }
             }
 
-            String vod_play_from = TextUtils.join("$$$", vod_play.keySet());
-            String vod_play_url = TextUtils.join("$$$", vod_play.values());
-            vodList.put("vod_play_from", vod_play_from);
-            vodList.put("vod_play_url", vod_play_url);
+            Elements clouds = doc.select("p > a");
+            if (!clouds.isEmpty()) {
+                for (Element cloud : clouds) {
+                    String cloudUrl = cloud.attr("href");
+                    if (!Util.findByRegex(Util.patternQuark, cloudUrl, 0).isBlank()) {
+                        shareLinks.add(cloudUrl);
+                    }
+                }
+            }
+
+            String quarkNames = "";
+            String quarkUrls = "";
+            if (!shareLinks.isEmpty()) {
+                quarkUrls = super.detailContentVodPlayUrl(shareLinks);
+                quarkNames = super.detailContentVodPlayFrom(shareLinks);
+
+            }
+
+            Vod.VodPlayBuilder.BuildResult buildResult = builder.build();
+            vodList.put("vod_play_from", buildResult.vodPlayFrom + "$$$" + quarkNames);
+            vodList.put("vod_play_url", buildResult.vodPlayUrl + "$$$" + quarkUrls);
 
             JSONArray list = new JSONArray();
             list.put(vodList);
@@ -383,6 +371,30 @@ public class Ddrk extends Spider {
         return "";
     }
 
+    private void getVodDetail(Document doc, Vod.VodPlayBuilder builder, String index) throws JSONException {
+        Elements allScript = doc.select(".wp-playlist-script");
+        String sourceName = "第" + index + "季";
+        for (Element element : allScript) {
+            String scContent = element.html().trim();
+            int start = scContent.indexOf('{');
+            int end = scContent.lastIndexOf('}') + 1;
+            String json = scContent.substring(start, end);
+            JSONObject UJson = new JSONObject(json);
+            JSONArray Track = UJson.getJSONArray("tracks");
+            List<Vod.VodPlayBuilder.PlayUrl> list = new ArrayList<>();
+            for (int k = 0; k < Track.length(); k++) {
+                JSONObject src = Track.getJSONObject(k);
+                String adk = src.getString("src0");
+                String vodName = src.getString("caption");
+                String pzm = getPlayUrl(adk);
+                Vod.VodPlayBuilder.PlayUrl playUrl = new Vod.VodPlayBuilder.PlayUrl();
+                playUrl.name = vodName;
+                playUrl.url = ProxyVideo.buildCommonProxyUrl(pzm, Util.webHeaders(siteUrl));
+                list.add(playUrl);
+            }
+            builder.append(sourceName, list);
+        }
+    }
 
     public String getPlayUrl(String source) {
         if (source.endsWith("m3u8")) {
@@ -407,7 +419,6 @@ public class Ddrk extends Spider {
         return Result.get().url(ProxyVideo.buildCommonProxyUrl(id, Util.webHeaders(siteUrl))).string();
     }
 
-
     @Override
     public String searchContent(String key, boolean quick) {
 
@@ -421,19 +432,6 @@ public class Ddrk extends Spider {
             vods.add(new Vod(id, name, ""));
         }
         return Result.string(vods);
-    }
-
-    private static String doReplaceRegex(Pattern pattern, String src) {
-        if (pattern == null) return src;
-        try {
-            Matcher matcher = pattern.matcher(src);
-            if (matcher.find()) {
-                return matcher.group(1).trim();
-            }
-        } catch (Exception e) {
-            SpiderDebug.log(e);
-        }
-        return src;
     }
 
 
