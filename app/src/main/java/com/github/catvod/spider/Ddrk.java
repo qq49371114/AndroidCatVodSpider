@@ -415,8 +415,12 @@ public class Ddrk extends Cloud {
      * @return
      */
     @Override
-    public String playerContent(String flag, String id, List<String> vipFlags) {
-        return Result.get().url(ProxyVideo.buildCommonProxyUrl(id, Util.webHeaders(siteUrl))).string();
+    public String playerContent(String flag, String id, List<String> vipFlags) throws Exception {
+        if(flag.contains("quark")){
+            return super.playerContent(flag, id, vipFlags);
+        }else{
+            return Result.get().url(ProxyVideo.buildCommonProxyUrl(id, Util.webHeaders(siteUrl))).string();
+        }
     }
 
     @Override

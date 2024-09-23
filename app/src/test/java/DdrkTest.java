@@ -72,6 +72,7 @@ public class DdrkTest {
         String content = spider.detailContent(Arrays.asList("https://ddys.pro/dahmer-monster/"));
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        System.out.println("detailContent--" + content);
         System.out.println("detailContent--" + gson.toJson(map));
         Assert.assertFalse(map.getAsJsonArray("list").isEmpty());
     }
