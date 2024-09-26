@@ -1,5 +1,5 @@
 {
-  "spider": "https://androidcatvodspider.pages.dev/jar/custom_spider.jar;md5;8c701767a5109d01ea59c6b4619c334c",
+  "spider": "https://androidcatvodspider.pages.dev/jar/custom_spider.jar;md5;1eb56031ca34a7f44b85e65c86dcc5a8",
   "lives": [
     {
       "name": "直播ipv6",
@@ -48,6 +48,15 @@
       "name": "玩偶哥哥",
       "type": 3,
       "api": "csp_Wogg",
+      "searchable": 1,
+      "changeable": 1,
+      "ext": {}
+    },
+    {
+      "key": "KuaKeBa",
+      "name": "夸克吧",
+      "type": 3,
+      "api": "csp_KuaKeBa",
       "searchable": 1,
       "changeable": 1,
       "ext": {}
