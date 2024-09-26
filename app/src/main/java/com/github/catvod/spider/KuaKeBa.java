@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 public class KuaKeBa extends Cloud {
 
     private final String siteUrl = "https://www.kuakeba.top/yunpan";
+    private final String hostUrl = "https://www.kuakeba.top";
 
 
     private Map<String, String> getHeader() {
@@ -72,7 +73,7 @@ public class KuaKeBa extends Cloud {
             String vodId = e.selectFirst(" a").attr("href");
             String vodPic = e.selectFirst(" img").attr("data-src");
             if (!vodPic.startsWith("http")) {
-                vodPic = siteUrl + vodPic;
+                vodPic = hostUrl + vodPic;
             }
             String vodName = e.selectFirst(" header > h2 > a").text();
             String vodRemarks = "";
