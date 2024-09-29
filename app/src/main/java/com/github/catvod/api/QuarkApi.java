@@ -163,6 +163,8 @@ public class QuarkApi {
         List<Map<String, Object>> listData = listFile(1, shareData, files, subs, shareData.getShareId(), shareData.getFolderId(), 1);
 
         List<String> playFrom = QuarkApi.get().getPlayFormatList();
+        playFrom = new ArrayList<>(playFrom);
+        playFrom.add("原画");
 
         List<String> playUrl = new ArrayList<>();
 
@@ -197,7 +199,7 @@ public class QuarkApi {
 
         String fileId = split[0], fileToken = split[1], shareId = split[2], stoken = split[3];
         String playUrl = "";
-        if (flag.contains("原画")) {
+        if (flag.contains("quark原画")) {
             playUrl = this.getDownload(shareId, stoken, fileId, fileToken, true);
         } else {
             playUrl = this.getLiveTranscoding(shareId, stoken, fileId, fileToken, flag);
@@ -550,9 +552,9 @@ public class QuarkApi {
             if (saveFileId == null) return null;
             this.saveFileIdCaches.put(fileId, saveFileId);
         }
-        Map<String, Object> down = Json.parseSafe(api("file/download?" + this.pr + "&uc_param_str=", Collections.emptyMap(), Map.of("fids", this.saveFileIdCaches.get(fileId)), 0, "POST"), Map.class);
+        Map<String, Object> down = Json.parseSafe(api("file/download?" + this.pr + "&uc_param_str=", Collections.emptyMap(), Map.of("fids", List.of(this.saveFileIdCaches.get(fileId))), 0, "POST"), Map.class);
         if (down.get("data") != null) {
-            return ((List<String>) down.get("data")).get(0);
+            return ((List<Map<String, Object>>) down.get("data")).get(0).get("download_url").toString();
         }
         return null;
     }
