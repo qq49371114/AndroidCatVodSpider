@@ -24,6 +24,13 @@
       "url": "http://home.jundie.top:81/Cat/tv/live.txt",
       "epg": "https://epg.112114.xyz/?ch={name}&date={date}",
       "logo": "https://epg.112114.xyz/logo/{name}.png"
+    } ,{
+      "name": "live",
+      "type": "0",
+      "pass": true,
+      "url": "https://ghp.ci/https://raw.githubusercontent.com/xiongjian83/TvBox/main/18/18live.txt",
+      "epg": "https://epg.112114.xyz/?ch={name}&date={date}",
+      "logo": "https://epg.112114.xyz/logo/{name}.png"
     }
   ],
   "sites": [
