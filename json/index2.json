@@ -31,6 +31,44 @@
       "url": "https://ghp.ci/https://raw.githubusercontent.com/xiongjian83/TvBox/main/18/18live.txt",
       "epg": "https://epg.112114.xyz/?ch={name}&date={date}",
       "logo": "https://epg.112114.xyz/logo/{name}.png"
+    },
+    ,{
+      "name": "live1",
+      "type": "0",
+      "pass": true,
+      "url": "https://ghp.ci/https://raw.githubusercontent.com/xiongjian83/TvBox/main/18/18live1.txt",
+      "epg": "https://epg.112114.xyz/?ch={name}&date={date}",
+      "logo": "https://epg.112114.xyz/logo/{name}.png"
+    }
+  ,{
+      "name": "live2",
+      "type": "0",
+      "pass": true,
+      "url": "https://ghp.ci/https://raw.githubusercontent.com/xiongjian83/TvBox/main/18/18live2.txt",
+      "epg": "https://epg.112114.xyz/?ch={name}&date={date}",
+      "logo": "https://epg.112114.xyz/logo/{name}.png"
+    }
+  ,{
+      "name": "live3",
+      "type": "0",
+      "pass": true,
+      "url": "https://ghp.ci/https://raw.githubusercontent.com/xiongjian83/TvBox/main/18/18live3.txt",
+      "epg": "https://epg.112114.xyz/?ch={name}&date={date}",
+      "logo": "https://epg.112114.xyz/logo/{name}.png"
+    } ,{
+      "name": "18",
+      "type": "0",
+      "pass": true,
+      "url": "https://ghp.ci/https://raw.githubusercontent.com/xiongjian83/TvBox/main/18.txt",
+      "epg": "https://epg.112114.xyz/?ch={name}&date={date}",
+      "logo": "https://epg.112114.xyz/logo/{name}.png"
+    } ,{
+      "name": "19",
+      "type": "0",
+      "pass": true,
+      "url": "https://ghp.ci/https://raw.githubusercontent.com/xiongjian83/TvBox/main/19.txt",
+      "epg": "https://epg.112114.xyz/?ch={name}&date={date}",
+      "logo": "https://epg.112114.xyz/logo/{name}.png"
     }
   ],
   "sites": [
