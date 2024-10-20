@@ -28,7 +28,7 @@ public class W55MovieTest {
         mockContext = RuntimeEnvironment.application;
         Init.init(mockContext);
         spider = new W55Movie();
-        spider.init(mockContext, "https://jlghjy.com/");
+        spider.init(mockContext, "https://w55xy.com/");
     }
 
     @org.junit.Test
