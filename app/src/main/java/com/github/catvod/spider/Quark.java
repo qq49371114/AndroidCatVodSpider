@@ -56,7 +56,7 @@ public class Quark extends Spider {
                 playFrom.add(String.format(Locale.getDefault(), "quark" + s + "#%02d", i));
 
             }
-            playFrom.add("quark原画");
+            playFrom.add("quark原画" + i);
         }
         return TextUtils.join("$$$", playFrom);
     }

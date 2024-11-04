@@ -58,7 +58,7 @@ public class UC extends Spider {
                 playFrom.add(String.format(Locale.getDefault(), "uc" + s + "#%02d", i));
 
             }
-            playFrom.add("uc原画");
+            playFrom.add("uc原画"+i);
         }
         return TextUtils.join("$$$", playFrom);
     }
