@@ -1,7 +1,5 @@
 package com.github.catvod.spider;
 
-import android.util.Base64;
-
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
@@ -10,7 +8,6 @@ import com.github.catvod.utils.Util;
 import com.google.gson.Gson;
 
 import java.io.ByteArrayInputStream;
-import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +25,8 @@ public class Proxy extends Spider {
                 return Ali.proxy(params);
             case "quark":
                 return Quark.proxy(params);
+            case "uc":
+                return UC.proxy(params);
             case "bili":
                 return Bili.proxy(params);
             case "webdav":
@@ -47,7 +46,7 @@ public class Proxy extends Spider {
         String url = Util.base64Decode(params.get("url"));
         Map<String, String> header = new Gson().fromJson(Util.base64Decode(params.get("header")), Map.class);
         if (header == null) header = new HashMap<>();
-        List<String> keys = Arrays.asList( "range", "connection", "accept-encoding");
+        List<String> keys = Arrays.asList("range", "connection", "accept-encoding");
         for (String key : params.keySet()) {
             if (keys.contains(key.toLowerCase())) {
                 header.put(key, params.get(key));

@@ -2,11 +2,11 @@ package com.github.catvod.spider;
 
 import android.content.Context;
 import android.text.TextUtils;
-
 import com.github.catvod.api.UCApi;
 import com.github.catvod.bean.Result;
 import com.github.catvod.bean.uc.ShareData;
 import com.github.catvod.crawler.Spider;
+import com.github.catvod.crawler.SpiderDebug;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,8 +35,9 @@ public class UC extends Spider {
 
     @Override
     public String playerContent(String flag, String id, List<String> vipFlags) throws Exception {
-        return UCApi.get().playerContent(id.split("\\+\\+"), flag);
-
+        String playContent = UCApi.get().playerContent(id.split("\\+\\+"), flag);
+        SpiderDebug.log("playContent:" + playContent);
+        return playContent;
     }
 
     /**

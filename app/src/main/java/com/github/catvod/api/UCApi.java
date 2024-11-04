@@ -58,6 +58,8 @@ public class UCApi {
 
     public Object[] proxyVideo(Map<String, String> params) throws Exception {
         String url = Util.base64Decode(params.get("url"));
+        SpiderDebug.log("proxy url :" + url);
+        SpiderDebug.log("proxy header :" + Util.base64Decode(params.get("header")));
         Map header = new Gson().fromJson(Util.base64Decode(params.get("header")), Map.class);
         if (header == null) header = new HashMap<>();
         List<String> arr = List.of("Range", "Accept", "Accept-Encoding", "Accept-Language", "Cookie", "Origin", "Referer", "Sec-Ch-Ua", "Sec-Ch-Ua-Mobile", "Sec-Ch-Ua-Platform", "Sec-Fetch-Dest", "Sec-Fetch-Mode", "Sec-Fetch-Site", "User-Agent");
@@ -83,7 +85,7 @@ public class UCApi {
      * @return
      */
     private Object[] getM3u8(String url, Map header) {
-
+        SpiderDebug.log("m3u8 url  :" + url);
         OkResult result = OkHttp.get(url, new HashMap<>(), header);
         String[] m3u8Arr = result.getBody().split("\n");
         List<String> listM3u8 = new ArrayList<>();
@@ -92,9 +94,13 @@ public class UCApi {
         int mediaId = 0;
         for (String oneLine : m3u8Arr) {
             String thisOne = oneLine;
+
             if (oneLine.contains(".ts")) {
-                thisOne = proxyVideoUrl(site + thisOne, header);
                 mediaId++;
+                thisOne = proxyVideoUrl(site + thisOne, header);
+                SpiderDebug.log("m3u8 line " + mediaId + ":" + oneLine);
+                SpiderDebug.log("m3u8 proxyed line " + mediaId + " :" + thisOne);
+
             }
             listM3u8.add(thisOne);
         }
@@ -141,7 +147,7 @@ public class UCApi {
         return headers;
     }
 
-    public void initQuark(String cookie) throws Exception {
+    public void initUc(String cookie) throws Exception {
         this.ckey = Util.MD5(cookie);
         this.cookie = cookie;
         this.isVip = getVip();
@@ -192,12 +198,12 @@ public class UCApi {
         vod.setVodName("");
         vod.setVodPlayUrl(TextUtils.join("$$$", playUrl));
         vod.setVodPlayFrom(TextUtils.join("$$$", playFrom));
-        vod.setTypeName("夸克云盘");
+        vod.setTypeName("uc云盘");
         return vod;
     }
 
     public String playerContent(String[] split, String flag) throws Exception {
-
+        SpiderDebug.log("flag:" + flag);
         String fileId = split[0], fileToken = split[1], shareId = split[2], stoken = split[3];
         String playUrl = "";
         if (flag.contains("uc原画")) {
@@ -205,6 +211,7 @@ public class UCApi {
         } else {
             playUrl = this.getLiveTranscoding(shareId, stoken, fileId, fileToken, flag);
         }
+        SpiderDebug.log("origin playUrl:" + playUrl);
         Map<String, String> header = getHeaders();
         header.remove("Host");
         header.remove("Content-Type");
@@ -269,8 +276,8 @@ public class UCApi {
             }
             //获取到cookie，初始化uc，并且把cookie缓存一次
             if (StringUtils.isNoneBlank(cookie) && cookie.contains("__pus")) {
-                SpiderDebug.log(" initQuark ...");
-                initQuark(this.cookie);
+                SpiderDebug.log(" initUc ...");
+                initUc(this.cookie);
                 cache.setUser(User.objectFrom(this.cookie));
                 return;
             }
@@ -294,7 +301,7 @@ public class UCApi {
 
                 cache.setUser(User.objectFrom(this.cookie));
                 if (cache.getUser().getCookie().isEmpty()) throw new Exception(this.cookie);
-                initQuark(this.cookie);
+                initUc(this.cookie);
             }
 
         } catch (Exception e) {
@@ -317,7 +324,7 @@ public class UCApi {
         params.put("client_id", "381");
         params.put("v", "1.2");
         params.put("request_id", UUID.randomUUID().toString());
-        OkResult res = OkHttp.post("https://api.open.uc.cn/cas/ajax/getTokenForQrcodeLogin?__dt="+ RandomUtils.nextInt(1000,100000) +"&__t="+new Date().getTime(), params, new HashMap<>());
+        OkResult res = OkHttp.post("https://api.open.uc.cn/cas/ajax/getTokenForQrcodeLogin?__dt=" + RandomUtils.nextInt(1000, 100000) + "&__t=" + new Date().getTime(), params, new HashMap<>());
         if (this.cookie.isEmpty()) {
             List<String> cookies = res.getResp().get("set-Cookie");
             List<String> cookieList = new ArrayList<>();
@@ -348,19 +355,122 @@ public class UCApi {
         return token;
     }
 
+    private void startFlow() {
+        Init.run(this::showInput);
+    }
 
-    public ShareData getShareData(String url) {
-        Pattern pattern = Pattern.compile("https://pan\\.quark\\.cn/s/([^\\\\|#/]+)");
-        Matcher matcher = pattern.matcher(url);
-        if (matcher.find()) {
-            return new ShareData(matcher.group(1), "0");
+    private void showInput() {
+        try {
+            int margin = ResUtil.dp2px(16);
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            FrameLayout frame = new FrameLayout(Init.context());
+            params.setMargins(margin, margin, margin, margin);
+            EditText input = new EditText(Init.context());
+            frame.addView(input, params);
+            dialog = new AlertDialog.Builder(Init.getActivity()).setTitle("请输入UC cookie").setView(frame).setNeutralButton("QRCode", (dialog, which) -> onNeutral()).setNegativeButton(android.R.string.cancel, null).setPositiveButton(android.R.string.ok, (dialog, which) -> onPositive(input.getText().toString())).show();
+        } catch (Exception ignored) {
         }
-        return null;
+    }
+
+    private void onNeutral() {
+        dismiss();
+        Init.execute(this::getQRCode);
+    }
+
+    private void onPositive(String text) {
+        dismiss();
+        Init.execute(() -> {
+            if (text.startsWith("http")) setToken(OkHttp.string(text));
+            else setToken(text);
+        });
+    }
+
+    private void getQRCode() {
+        String token = getQrCodeToken();
+
+        Init.run(() -> openApp(token));
+    }
+
+    private void openApp(String token) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setClassName("com.alicloud.databox", "com.taobao.login4android.scan.QrScanActivity");
+            intent.putExtra("key_scanParam", token);
+            Init.getActivity().startActivity(intent);
+        } catch (Exception e) {
+            showQRCode("https://su.uc.cn/1_n0ZCv?uc_param_str=dsdnfrpfbivesscpgimibtbmnijblauputogpintnwktprchmt&token=" + token + "&client_id=381&uc_biz_str=S%3Acustom%7CC%3Atitlebar_fix");
+        } finally {
+            Map<String, String> map = new HashMap<>();
+            map.put("token", token);
+            Init.execute(() -> startService(map));
+        }
+    }
+
+    private void showQRCode(String content) {
+        try {
+            int size = ResUtil.dp2px(240);
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(size, size);
+            ImageView image = new ImageView(Init.context());
+            image.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            image.setImageBitmap(QRCode.getBitmap(content, size, 2));
+            FrameLayout frame = new FrameLayout(Init.context());
+            params.gravity = Gravity.CENTER;
+            frame.addView(image, params);
+            dialog = new AlertDialog.Builder(Init.getActivity()).setView(frame).setOnCancelListener(this::dismiss).setOnDismissListener(this::dismiss).show();
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            Notify.show("请使用uc网盘App扫描二维码");
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void startService(Map<String, String> params) {
+        SpiderDebug.log("----startservice");
+        params.put("client_id", "381");
+        params.put("v", "1.2");
+        params.put("request_id", UUID.randomUUID().toString());
+        service = Executors.newScheduledThreadPool(1);
+
+        service.scheduleWithFixedDelay(() -> {
+            SpiderDebug.log("----scheduleAtFixedRate" + new Date().toString());
+            String result = OkHttp.string("https://api.open.uc.cn/cas/ajax/getServiceTicketByQrcodeToken?__dt=" + RandomUtils.nextInt(1000, 100000) + "&__t=" + new Date().getTime(), params, getWebHeaders());
+            Map<String, Object> json = Json.parseSafe(result, Map.class);
+            if (json.get("status").equals(new Double(2000000))) {
+                setToken((String) ((Map<String, Object>) ((Map<String, Object>) json.get("data")).get("members")).get("service_ticket"));
+
+            }
+
+        }, 1, 3, TimeUnit.SECONDS);
+    }
+
+    private void setToken(String value) {
+        this.serviceTicket = value;
+        SpiderDebug.log("ServiceTicket:" + value);
+        Notify.show("ServiceTicket:" + value);
+        initUserInfo();
+        stopService();
+    }
+
+    private void stopService() {
+        if (service != null) service.shutdownNow();
+
+
+        Init.run(this::dismiss);
+    }
+
+    private void dismiss(DialogInterface dialog) {
+        stopService();
+    }
+
+    private void dismiss() {
+        try {
+            if (dialog != null) dialog.dismiss();
+        } catch (Exception ignored) {
+        }
     }
 
     private boolean getVip() throws Exception {
         Map<String, Object> listData = Json.parseSafe(api("member?pr=ucpro&fr=pc&uc_param_str=&fetch_subscribe=true&_ch=home&fetch_identity=true", null, null, 0, "GET"), Map.class);
-        return ((Map<String, String>) listData.get("data")).get("member_type").contains("VIP");
+        return false;//((Map<String, String>) listData.get("data")).get("member_type").contains("VIP");
     }
 
     public List<String> getPlayFormatList() {
@@ -371,13 +481,23 @@ public class UCApi {
         }
     }
 
-    private List<String> getPlayFormatQuarkList() {
+    private List<String> getPlayFormatUcList() {
         if (this.isVip) {
             return Arrays.asList("4k", "2k", "super", "high", "normal", "low");
         } else {
             return Collections.singletonList("low");
         }
     }
+
+    public ShareData getShareData(String url) {
+        Pattern pattern = Pattern.compile("https://drive\\.uc\\.cn/s/([^?]+)");
+        Matcher matcher = pattern.matcher(url);
+        if (matcher.find()) {
+            return new ShareData(matcher.group(1), "0");
+        }
+        return null;
+    }
+
 
     private void getShareToken(ShareData shareData) throws Exception {
         if (!this.shareTokenCache.containsKey(shareData.getShareId())) {
@@ -536,9 +656,9 @@ public class UCApi {
         if (transcoding.get("data") != null && ((Map<Object, Object>) transcoding.get("data")).get("video_list") != null) {
             String flagId = flag.split("-")[flag.split("-").length - 1];
             int index = Util.findAllIndexes(getPlayFormatList(), flagId);
-            String quarkFormat = getPlayFormatQuarkList().get(index);
+            String ucFormat = getPlayFormatUcList().get(index);
             for (Map<String, Object> video : (List<Map<String, Object>>) ((Map<Object, Object>) transcoding.get("data")).get("video_list")) {
-                if (video.get("resolution").equals(quarkFormat)) {
+                if (video.get("resolution").equals(ucFormat)) {
                     return (String) ((Map<String, Object>) video.get("video_info")).get("url");
                 }
             }
@@ -578,118 +698,6 @@ public class UCApi {
         }
     }
 
-    private void startFlow() {
-        Init.run(this::showInput);
-    }
-
-    private void showInput() {
-        try {
-            int margin = ResUtil.dp2px(16);
-            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            FrameLayout frame = new FrameLayout(Init.context());
-            params.setMargins(margin, margin, margin, margin);
-            EditText input = new EditText(Init.context());
-            frame.addView(input, params);
-            dialog = new AlertDialog.Builder(Init.getActivity()).setTitle("请输入cookie").setView(frame).setNeutralButton("QRCode", (dialog, which) -> onNeutral()).setNegativeButton(android.R.string.cancel, null).setPositiveButton(android.R.string.ok, (dialog, which) -> onPositive(input.getText().toString())).show();
-        } catch (Exception ignored) {
-        }
-    }
-
-    private void onNeutral() {
-        dismiss();
-        Init.execute(this::getQRCode);
-    }
-
-    private void onPositive(String text) {
-        dismiss();
-        Init.execute(() -> {
-            if (text.startsWith("http")) setToken(OkHttp.string(text));
-            else setToken(text);
-        });
-    }
-
-    private void getQRCode() {
-        String token = getQrCodeToken();
-
-        Init.run(() -> openApp(token));
-    }
-
-    private void openApp(String token) {
-        try {
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setClassName("com.alicloud.databox", "com.taobao.login4android.scan.QrScanActivity");
-            intent.putExtra("key_scanParam", token);
-            Init.getActivity().startActivity(intent);
-        } catch (Exception e) {
-            showQRCode("https://su.uc.cn/1_n0ZCv?uc_param_str=dsdnfrpfbivesscpgimibtbmnijblauputogpintnwktprchmt&token=" + token + "&client_id=381&uc_biz_str=S%3Acustom%7CC%3Atitlebar_fix");
-        } finally {
-            Map<String, String> map = new HashMap<>();
-            map.put("token", token);
-            Init.execute(() -> startService(map));
-        }
-    }
-
-    private void showQRCode(String content) {
-        try {
-            int size = ResUtil.dp2px(240);
-            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(size, size);
-            ImageView image = new ImageView(Init.context());
-            image.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            image.setImageBitmap(QRCode.getBitmap(content, size, 2));
-            FrameLayout frame = new FrameLayout(Init.context());
-            params.gravity = Gravity.CENTER;
-            frame.addView(image, params);
-            dialog = new AlertDialog.Builder(Init.getActivity()).setView(frame).setOnCancelListener(this::dismiss).setOnDismissListener(this::dismiss).show();
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            Notify.show("请使用夸克网盘App扫描二维码");
-        } catch (Exception ignored) {
-        }
-    }
-
-    private void startService(Map<String, String> params) {
-        SpiderDebug.log("----startservice");
-        params.put("client_id", "381");
-        params.put("v", "1.2");
-        params.put("request_id", UUID.randomUUID().toString());
-        service = Executors.newScheduledThreadPool(1);
-
-        service.scheduleWithFixedDelay(() -> {
-            SpiderDebug.log("----scheduleAtFixedRate" + new Date().toString());
-            String result = OkHttp.string("https://api.open.uc.cn/cas/ajax/getServiceTicketByQrcodeToken?__dt="+ RandomUtils.nextInt(1000,100000) +"&__t="+new Date().getTime(), params, getWebHeaders());
-            Map<String, Object> json = Json.parseSafe(result, Map.class);
-            if (json.get("status").equals(new Double(2000000))) {
-                setToken((String) ((Map<String, Object>) ((Map<String, Object>) json.get("data")).get("members")).get("service_ticket"));
-
-            }
-
-        }, 1, 3, TimeUnit.SECONDS);
-    }
-
-    private void setToken(String value) {
-        this.serviceTicket = value;
-        SpiderDebug.log("ServiceTicket:" + value);
-        Notify.show("ServiceTicket:" + value);
-        initUserInfo();
-        stopService();
-    }
-
-    private void stopService() {
-        if (service != null) service.shutdownNow();
-
-
-        Init.run(this::dismiss);
-    }
-
-    private void dismiss(DialogInterface dialog) {
-        stopService();
-    }
-
-    private void dismiss() {
-        try {
-            if (dialog != null) dialog.dismiss();
-        } catch (Exception ignored) {
-        }
-    }
 
 }
 

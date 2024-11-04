@@ -16,13 +16,16 @@ import java.util.List;
 public class Cloud extends Spider {
     private Quark quark = null;
     private Ali ali = null;
+    private UC uc = null;
 
     @Override
     public void init(Context context, String extend) throws Exception {
         JsonObject ext = Json.safeObject(extend);
         quark = new Quark();
+        uc = new UC();
         ali = new Ali();
         quark.init(context, ext.has("cookie") ? ext.get("cookie").getAsString() : "");
+        uc.init(context, ext.has("uccookie") ? ext.get("uccookie").getAsString() : "");
         ali.init(context, ext.has("token") ? ext.get("token").getAsString() : "");
     }
 
@@ -32,25 +35,40 @@ public class Cloud extends Spider {
             return ali.detailContent(shareUrl);
         } else if (shareUrl.get(0).matches(Util.patternQuark)) {
             return quark.detailContent(shareUrl);
+        } else if (shareUrl.get(0).matches(Util.patternUC)) {
+            return uc.detailContent(shareUrl);
         }
         return null;
     }
 
     @Override
     public String playerContent(String flag, String id, List<String> vipFlags) throws Exception {
-        return flag.contains("quark") ? quark.playerContent(flag, id, vipFlags) : ali.playerContent(flag, id, vipFlags);
+        if (flag.contains("quark")) {
+            return quark.playerContent(flag, id, vipFlags);
+        } else if (flag.contains("uc")) {
+            return uc.playerContent(flag, id, vipFlags);
+        } else {
+            return ali.playerContent(flag, id, vipFlags);
+        }
     }
 
     protected String detailContentVodPlayFrom(List<String> shareLinks) {
         List<String> from = new ArrayList<>();
         List<String> aliShare = new ArrayList<>();
         List<String> quarkShare = new ArrayList<>();
+        List<String> ucShare = new ArrayList<>();
         for (String shareLink : shareLinks) {
             if (shareLink.matches(Util.patternAli)) {
                 aliShare.add(shareLink);
             } else if (shareLink.matches(Util.patternQuark)) {
                 quarkShare.add(shareLink);
+            } else if (shareLink.matches(Util.patternUC)) {
+                ucShare.add(shareLink);
             }
+        }
+
+        if (!ucShare.isEmpty()) {
+            from.add(uc.detailContentVodPlayFrom(ucShare));
         }
         if (!quarkShare.isEmpty()) {
             from.add(quark.detailContentVodPlayFrom(quarkShare));
@@ -69,6 +87,8 @@ public class Cloud extends Spider {
                 urls.add(ali.detailContentVodPlayUrl(List.of(shareLink)));
             } else if (shareLink.matches(Util.patternQuark)) {
                 urls.add(quark.detailContentVodPlayUrl(List.of(shareLink)));
+            } else if (shareLink.matches(Util.patternUC)) {
+                urls.add(uc.detailContentVodPlayUrl(List.of(shareLink)));
             }
         }
         return TextUtils.join("$$$", urls);
