@@ -1,5 +1,5 @@
 {
-  "spider": "https://ghp.ci/https://raw.githubusercontent.com/lushunming/AndroidCatVodSpider/dev/jar/custom_spider.jar;md5;70aca0970313d18413e56ebc6d176878",
+  "spider": "https://androidcatvodspider.pages.dev/jar/custom_spider.jar;md5;03688ec7fdb6e9d3f6a49f7cf1473b83",
   "lives": [
     {
       "name": "直播ipv6",
