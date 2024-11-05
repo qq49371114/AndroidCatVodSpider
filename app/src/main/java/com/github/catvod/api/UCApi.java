@@ -47,7 +47,7 @@ public class UCApi {
     private List<String> subtitleExts = Arrays.asList(".srt", ".ass", ".scc", ".stl", ".ttml");
     private Map<String, String> saveFileIdCaches = new HashMap<>();
     private String saveDirId = null;
-    private String saveDirName = "TV";
+    private final String saveDirName = "TV";
     private boolean isVip = false;
     private final Cache cache;
     private ScheduledExecutorService service;
@@ -267,11 +267,11 @@ public class UCApi {
 
     private void initUserInfo() {
         try {
-            SpiderDebug.log("initUserInfo...");
+            SpiderDebug.log("uc initUserInfo...");
 
             //extend没有cookie，从缓存中获取
             if (StringUtils.isAllBlank(cookie)) {
-                SpiderDebug.log(" cookie from ext is empty...");
+                SpiderDebug.log("uc cookie from ext is empty...");
                 cookie = cache.getUser().getCookie();
             }
             //获取到cookie，初始化uc，并且把cookie缓存一次
@@ -284,8 +284,8 @@ public class UCApi {
 
             //没有cookie，也没有serviceTicket，抛出异常，提示用户重新登录
             if (StringUtils.isAllBlank(cookie) && StringUtils.isAllBlank(serviceTicket)) {
-                SpiderDebug.log("cookie为空");
-                throw new RuntimeException("cookie为空");
+                SpiderDebug.log("uccookie为空");
+                throw new RuntimeException("uccookie为空");
             }
 
             String token = serviceTicket;
