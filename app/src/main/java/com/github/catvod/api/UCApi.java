@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -105,13 +106,15 @@ public class UCApi {
             listM3u8.add(thisOne);
         }
         String m3u8Str = TextUtils.join("\n", listM3u8);
-        String contentType = result.getResp().get("Content-Type").get(0);
+       String contentType = result.getResp().get("Content-Type").get(0);
 
         Map<String, String> respHeaders = new HashMap<>();
+      //  respHeaders.put("Access-Control-Allow-Origin","*");
+    //    respHeaders.put("Access-Control-Allow-Credentials","true");
         for (String key : result.getResp().keySet()) {
             respHeaders.put(key, result.getResp().get(key).get(0));
         }
-        return new Object[]{result.getCode(), contentType, new ByteArrayInputStream(m3u8Str.getBytes(Charset.forName("UTF-8"))), respHeaders};
+        return new Object[]{result.getCode(), contentType, new ByteArrayInputStream(m3u8Str.getBytes(Charset.defaultCharset())), respHeaders};
     }
 
     private static class Loader {

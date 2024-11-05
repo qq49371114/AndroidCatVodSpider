@@ -2,13 +2,11 @@ package com.github.catvod.utils;
 
 import android.os.SystemClock;
 import android.text.TextUtils;
-import android.util.Base64;
-
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.spider.Proxy;
 import com.google.gson.Gson;
-
+import okhttp3.Response;
 import org.json.JSONObject;
 
 import java.net.URLEncoder;
@@ -16,8 +14,6 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-
-import okhttp3.Response;
 
 public class ProxyVideo {
 
@@ -71,7 +67,7 @@ public class ProxyVideo {
         SpiderDebug.log("++proxy res contentType:" + contentType);
         //   SpiderDebug.log("++proxy res body:" + response.body());
         SpiderDebug.log("++proxy res respHeaders:" + Json.toJson(respHeaders));
-        return new Object[]{206, contentType, response.body().byteStream(), respHeaders};
+        return new Object[]{response.code(), contentType, response.body().byteStream(), respHeaders};
     }
 
     private static String getMimeType(String contentDisposition) {
