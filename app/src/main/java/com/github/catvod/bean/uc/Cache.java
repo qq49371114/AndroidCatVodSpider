@@ -1,6 +1,6 @@
 package com.github.catvod.bean.uc;
 
-import com.github.catvod.api.QuarkApi;
+import com.github.catvod.api.UCApi;
 import com.github.catvod.spider.Init;
 import com.github.catvod.utils.Path;
 import com.google.gson.Gson;
@@ -28,7 +28,7 @@ public class Cache {
 
 
     public void save() {
-        Init.execute(() -> Path.write(QuarkApi.get().getCache(), toString()));
+        Init.execute(() -> Path.write(UCApi.get().getCache(), toString()));
     }
 
     @Override
