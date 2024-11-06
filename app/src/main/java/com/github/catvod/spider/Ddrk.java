@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
 
 public class Ddrk extends Cloud {
 
-    private static String siteUrl = "https://ddys.mov";
+    private static String siteUrl = "https://ddys.pro";
 
 
     protected JSONObject filterConfig;
@@ -168,7 +168,7 @@ public class Ddrk extends Cloud {
                     }
                 }
             } else {
-                url =  tid;
+                url = tid;
             }
             if (pg.equals("1")) {
                 url = url + "/";
@@ -335,9 +335,10 @@ public class Ddrk extends Cloud {
             if (!clouds.isEmpty()) {
                 for (Element cloud : clouds) {
                     String cloudUrl = cloud.attr("href");
-                    if (!Util.findByRegex(Util.patternQuark, cloudUrl, 0).isBlank()) {
+                    if (!Util.findByRegex(Util.patternQuark, cloudUrl, 0).isBlank() || !Util.findByRegex(Util.patternUC, cloudUrl, 0).isBlank()) {
                         shareLinks.add(cloudUrl);
                     }
+
                 }
             }
 
