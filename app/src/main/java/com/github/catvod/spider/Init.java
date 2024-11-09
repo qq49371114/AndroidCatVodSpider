@@ -10,7 +10,7 @@ import android.os.Handler;
 import android.os.Looper;
 
 import com.github.catvod.crawler.SpiderDebug;
-
+import com.github.catvod.utils.Notify;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -41,7 +41,8 @@ public class Init {
 
     public static void init(Context context) {
         get().app = ((Application) context);
-        SpiderDebug.log("自定義爬蟲代碼載入成功！");
+        SpiderDebug.log("自定義爬蟲代碼載入成功！"); 
+        Notify.show("🐯遥遥领先专用资源！资源来源于网络免费爬取。🐯");
     }
 
     public static void execute(Runnable runnable) {
