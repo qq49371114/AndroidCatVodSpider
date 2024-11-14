@@ -2,6 +2,14 @@
   "spider": "https://androidcatvodspider.pages.dev/jar/custom_spider.jar;md5;35df248493c0d078908026afe6258f9e",
   "lives": [
     {
+      "name": "直播",
+      "type": "0",
+      "pass": true,
+      "url": "https://ghp.ci/https://raw.githubusercontent.com/zwc456baby/iptv_alive/master/live.txt",
+      "epg": "https://epg.112114.xyz/?ch={name}&date={date}",
+      "logo": "https://epg.112114.xyz/logo/{name}.png"
+    },
+    {
       "name": "直播ipv6",
       "type": "0",
       "pass": true,
