@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+
 import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
 import com.github.catvod.bean.quark.Cache;
@@ -25,6 +26,7 @@ import com.github.catvod.spider.Init;
 import com.github.catvod.spider.Proxy;
 import com.github.catvod.utils.*;
 import com.google.gson.Gson;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.ByteArrayInputStream;
@@ -163,8 +165,12 @@ public class QuarkApi {
         List<Map<String, Object>> listData = listFile(1, shareData, files, subs, shareData.getShareId(), shareData.getFolderId(), 1);
 
         List<String> playFrom = QuarkApi.get().getPlayFormatList();
-        playFrom = new ArrayList<>(playFrom);
-        playFrom.add("原画");
+
+        List<String> playFromtmp = new ArrayList<>();
+        playFromtmp.add("quark原画");
+        for (String s : playFrom) {
+            playFromtmp.add("quark" + s);
+        }
 
         List<String> playUrl = new ArrayList<>();
 
@@ -190,7 +196,7 @@ public class QuarkApi {
         vod.setVodPic("");
         vod.setVodName("");
         vod.setVodPlayUrl(TextUtils.join("$$$", playUrl));
-        vod.setVodPlayFrom(TextUtils.join("$$$", playFrom));
+        vod.setVodPlayFrom(TextUtils.join("$$$", playFromtmp));
         vod.setTypeName("夸克云盘");
         return vod;
     }
