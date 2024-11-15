@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+
 import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
 import com.github.catvod.bean.uc.Cache;
@@ -25,6 +26,7 @@ import com.github.catvod.spider.Init;
 import com.github.catvod.spider.Proxy;
 import com.github.catvod.utils.*;
 import com.google.gson.Gson;
+
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -38,6 +40,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class UCApi {
     private String apiUrl = "https://pc-api.uc.cn/1/clouddrive/";
@@ -106,11 +109,11 @@ public class UCApi {
             listM3u8.add(thisOne);
         }
         String m3u8Str = TextUtils.join("\n", listM3u8);
-       String contentType = result.getResp().get("Content-Type").get(0);
+        String contentType = result.getResp().get("Content-Type").get(0);
 
         Map<String, String> respHeaders = new HashMap<>();
-      //  respHeaders.put("Access-Control-Allow-Origin","*");
-    //    respHeaders.put("Access-Control-Allow-Credentials","true");
+        //  respHeaders.put("Access-Control-Allow-Origin","*");
+        //    respHeaders.put("Access-Control-Allow-Credentials","true");
         for (String key : result.getResp().keySet()) {
             respHeaders.put(key, result.getResp().get(key).get(0));
         }
@@ -173,9 +176,11 @@ public class UCApi {
         List<Map<String, Object>> listData = listFile(1, shareData, files, subs, shareData.getShareId(), shareData.getFolderId(), 1);
 
         List<String> playFrom = UCApi.get().getPlayFormatList();
-        playFrom = new ArrayList<>(playFrom);
-        playFrom.add("原画");
-
+        List<String> playFromtmp = new ArrayList<>();
+        playFromtmp.add("uc原画");
+        for (String s : playFrom) {
+            playFromtmp.add("uc" + s);
+        }
         List<String> playUrl = new ArrayList<>();
 
         if (files.isEmpty()) {
@@ -200,7 +205,7 @@ public class UCApi {
         vod.setVodPic("");
         vod.setVodName("");
         vod.setVodPlayUrl(TextUtils.join("$$$", playUrl));
-        vod.setVodPlayFrom(TextUtils.join("$$$", playFrom));
+        vod.setVodPlayFrom(TextUtils.join("$$$", playFromtmp));
         vod.setTypeName("uc云盘");
         return vod;
     }

@@ -68,7 +68,7 @@ public class MoggTest {
     @org.junit.Test
     public void detailContent() throws Exception {
 
-        String content = spider.detailContent(Arrays.asList("/index.php/vod/detail/id/851.html"));
+        String content = spider.detailContent(Arrays.asList("/index.php/vod/detail/id/141.html"));
         System.out.println("detailContent--" + content);
 
         JsonObject map = Json.safeObject(content);
