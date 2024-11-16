@@ -3,8 +3,8 @@
     "name": "推薦",
     "list": [
       {
-        "url": "https://i.imgs.ovh/2023/10/19/2mfxN.jpeg",
-        "icon": "https://i.imgs.ovh/2023/10/19/2mfxN.jpeg"
+        "url": "http://47.109.61.116:86/yylx/ic_launcher.png",
+        "icon": "http://47.109.61.116:86/yylx/ic_launcher.png"
       }
     ]
   },
@@ -12,27 +12,27 @@
     "name": "正式版",
     "list": [
       {
-        "name": "電視-py",
-        "url": "https://github.com/FongMi/Release/raw/fongmi/apk/release/leanback-python-armeabi_v7a.apk",
-        "icon": "https://i.imgs.ovh/2023/10/17/r8nk2.png",
+        "name": "電視-v7a",
+        "url": "http://47.109.61.116:86/app0805/电视版7a.apk",
+        "icon": "http://47.109.61.116:86/yylx/ic_launcher.png",
         "version": "v7a"
       },
       {
-        "name": "電視-py",
-        "url": "https://github.com/FongMi/Release/raw/fongmi/apk/release/leanback-python-arm64_v8a.apk",
-        "icon": "https://i.imgs.ovh/2023/10/17/r8nk2.png",
+        "name": "電視-v8a",
+        "url": "http://47.109.61.116:86/app0805/电视版8a.apk",
+        "icon": "http://47.109.61.116:86/yylx/ic_launcher.png",
         "version": "v8a"
       },
       {
-        "name": "手機-py",
-        "url": "https://github.com/FongMi/Release/raw/fongmi/apk/release/mobile-python-armeabi_v7a.apk",
-        "icon": "https://i.imgs.ovh/2023/10/17/r8lVK.png",
+        "name": "手機-v7a",
+        "url": "http://47.109.61.116:86/app0805/手机版7a.apk",
+        "icon": "http://47.109.61.116:86/yylx/ic_launcher.png",
         "version": "v7a"
       },
       {
-        "name": "手機-py",
-        "url": "https://github.com/FongMi/Release/raw/fongmi/apk/release/mobile-python-arm64_v8a.apk",
-        "icon": "https://i.imgs.ovh/2023/10/17/r8lVK.png",
+        "name": "手機-v8a",
+        "url": "http://47.109.61.116:86/app0805/手机版8a.apk",
+        "icon": "http://47.109.61.116:86/yylx/ic_launcher.png",
         "version": "v8a"
       }
     ]
@@ -41,9 +41,9 @@
     "name": "本地包",
     "list": [
       {
-        "name": "手機-py",
-        "url": "https://fm.caioa.link/main/apk/dev/mobile-python-arm64_v8a.apk",
-        "icon": "https://i.imgs.ovh/2023/10/17/r8lVK.png",
+        "name": "本地包～绿茶",
+        "url": "http://47.109.61.116:86/app0805/",
+        "icon": "http://47.109.61.116:86/yylx/ic_launcher.png",
         "version": "v8a"
       }
     ]
@@ -53,8 +53,8 @@
     "list": [
       {
         "name": "電視",
-        "url": "https://fm.caioa.link/main/apk/kitkat/leanback.apk",
-        "icon": "https://i.imgs.ovh/2023/10/17/r8nk2.png",
+        "url": "http://47.109.61.116:86/app0805/4x.apk",
+        "icon": "http://47.109.61.116:86/yylx/ic_launcher.png",
         "version": "v7a"
       }
     ]
