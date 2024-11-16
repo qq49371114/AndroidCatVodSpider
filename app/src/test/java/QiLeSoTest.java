@@ -53,6 +53,14 @@ public class QiLeSoTest {
         Assert.assertFalse(map.getAsJsonArray("list").isEmpty());
     }
 
+   @org.junit.Test
+    public void playerContent() throws Exception {
+        String content = spider.playerContent("quark原画","a4ab51029918471ba2670860782578b7++c3bca901cf3b093ac715fc8a01443162++f4efe22f20d4++r24Qc/rJu8no6tzp0f1AewkGX6xrG/SbFFM2IKri0Mk=",null);
+        JsonObject map = Json.safeObject(content);
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        System.out.println("playerContent--" + gson.toJson(map));
+        Assert.assertFalse(map.getAsJsonArray("list").isEmpty());
+    }
 
 
 }
