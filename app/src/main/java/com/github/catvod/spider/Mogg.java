@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
  */
 public class Mogg extends Cloud {
 
-    private final String siteUrl = "http://mogg.xn--yetu07f.top/";
+    private final String siteUrl = "https://mogg.top";
     private final Pattern regexCategory = Pattern.compile("index.php/vod/type/id/(\\w+).html");
     private final Pattern regexPageTotal = Pattern.compile("\\$\\(\"\\.mac_total\"\\)\\.text\\('(\\d+)'\\);");
 

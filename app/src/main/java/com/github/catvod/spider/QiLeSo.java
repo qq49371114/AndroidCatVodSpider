@@ -2,7 +2,9 @@ package com.github.catvod.spider;
 
 import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
+import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
+import com.github.catvod.utils.Json;
 import com.github.catvod.utils.Util;
 
 import org.json.JSONArray;
@@ -34,10 +36,17 @@ public class QiLeSo extends Cloud {
 
     @Override
     public String detailContent(List<String> shareUrl) throws Exception {
+        SpiderDebug.log("qileso detail args:" + Json.toJson(shareUrl));
+
         String html = OkHttp.string(shareUrl.get(0), getHeader());
         Document doc = Jsoup.parse(html);
         Element elements = doc.selectFirst("#body > div > div.thread-body > div.thread-content.message.break-all > p > a");
-        return super.detailContent(List.of(elements.attr("href")));
+        SpiderDebug.log("qileso detail shareurl:" + elements.attr("href"));
+
+
+        String result = super.detailContent(List.of(elements.attr("href")));
+        SpiderDebug.log("qileso detail:" + result);
+        return result;
     }
 
     @Override
@@ -55,6 +64,7 @@ public class QiLeSo extends Cloud {
             list.add(new Vod(id, name, ""));
         }
 
+        SpiderDebug.log("qileso searchContent:" + Result.string(list));
 
         return Result.string(list);
     }
