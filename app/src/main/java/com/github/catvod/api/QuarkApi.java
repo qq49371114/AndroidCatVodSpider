@@ -178,7 +178,7 @@ public class QuarkApi {
             return null;
         }
         for (int i = 0; i < files.get(files.size() - 1).getShareIndex(); i++) {
-            for (int index = 0; index < playFrom.size(); index++) {
+            for (int index = 0; index < playFromtmp.size(); index++) {
                 List<String> vodItems = new ArrayList<>();
                 for (Item video_item : files) {
                     if (video_item.getShareIndex() == i + 1) {
