@@ -1,71 +1,68 @@
 [
-  {
-    "name": "推薦",
-    "list": [
-      {
-        "url": "http://47.109.61.116:86/yylx/ic_launcher.png",
-        "icon": "http://47.109.61.116:86/yylx/ic_launcher.png"
-      }
-    ]
-  },
-  {
-    "name": "正式版",
-    "list": [
-      {
-        "name": "電視-v7a",
-        "url": "http://47.109.61.116:86/app0805/电视版7a.apk",
-        "icon": "http://47.109.61.116:86/yylx/ic_launcher.png",
-        "version": "v7a"
-      },
-      {
-        "name": "電視-v8a",
-        "url": "http://47.109.61.116:86/app0805/电视版8a.apk",
-        "icon": "http://47.109.61.116:86/yylx/ic_launcher.png",
-        "version": "v8a"
-      },
-      {
-        "name": "手機-v7a",
-        "url": "http://47.109.61.116:86/app0805/手机版7a.apk",
-        "icon": "http://47.109.61.116:86/yylx/ic_launcher.png",
-        "version": "v7a"
-      },
-      {
-        "name": "手機-v8a",
-        "url": "http://47.109.61.116:86/app0805/手机版8a.apk",
-        "icon": "http://47.109.61.116:86/yylx/ic_launcher.png",
-        "version": "v8a"
-      }
-    ]
-  },
-  {
-    "name": "本地包",
-    "list": [
-      {
-        "name": "本地包～绿茶",
-        "url": "http://47.109.61.116:86/app0805/99.zip",
-        "icon": "http://47.109.61.116:86/yylx/ic_launcher.png",
-        "version": "本地包"
-      }
-    ]
-  },
-  {
-    "name": "4.x版",
-    "list": [
-      {
-        "name": "電視",
-        "url": "http://47.109.61.116:86/app0805/4xys.apk",
-        "icon": "http://47.109.61.116:86/yylx/ic_launcher.png",
-        "version": "4系统版本"
-      }
-    ]
-  },
-
-   {
-        "name": "電視-4x特殊版本",
-        "url": "http://47.109.61.116:86/app0805/4x.apk",
-        "icon": "http://47.109.61.116:86/yylx/ic_launcher.png",
-        "version": "特殊版本"
-      }
-    ]
-  }
+    {
+        "name": "推薦",
+        "list": [
+            {
+                "url": "http://47.109.61.116:86/yylx/ic_launcher.png",
+                "icon": "http://47.109.61.116:86/yylx/ic_launcher.png"
+            }
+        ]
+    },
+    {
+        "name": "正式版",
+        "list": [
+            {
+                "name": "電視-v7a",
+                "url": "http://47.109.61.116:86/app0805/电视版7a.apk",
+                "icon": "http://47.109.61.116:86/yylx/ic_launcher.png",
+                "version": "v7a"
+            },
+            {
+                "name": "電視-v8a",
+                "url": "http://47.109.61.116:86/app0805/电视版8a.apk",
+                "icon": "http://47.109.61.116:86/yylx/ic_launcher.png",
+                "version": "v8a"
+            },
+            {
+                "name": "手機-v7a",
+                "url": "http://47.109.61.116:86/app0805/手机版7a.apk",
+                "icon": "http://47.109.61.116:86/yylx/ic_launcher.png",
+                "version": "v7a"
+            },
+            {
+                "name": "手機-v8a",
+                "url": "http://47.109.61.116:86/app0805/手机版8a.apk",
+                "icon": "http://47.109.61.116:86/yylx/ic_launcher.png",
+                "version": "v8a"
+            }
+        ]
+    },
+    {
+        "name": "本地包",
+        "list": [
+            {
+                "name": "本地包～绿茶",
+                "url": "http://47.109.61.116:86/app0805/99.zip",
+                "icon": "http://47.109.61.116:86/yylx/ic_launcher.png",
+                "version": "本地包"
+            }
+        ]
+    },
+    {
+        "name": "4.x版",
+        "list": [
+            {
+                "name": "電視",
+                "url": "http://47.109.61.116:86/app0805/4xys.apk",
+                "icon": "http://47.109.61.116:86/yylx/ic_launcher.png",
+                "version": "4系统版本"
+            },
+            {
+                "name": "電視-4x特殊版本",
+                "url": "http://47.109.61.116:86/app0805/4x.apk",
+                "icon": "http://47.109.61.116:86/yylx/ic_launcher.png",
+                "version": "特殊版本"
+            }
+        ]
+    }
 ]
