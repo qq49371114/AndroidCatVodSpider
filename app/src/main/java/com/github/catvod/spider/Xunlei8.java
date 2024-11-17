@@ -1,7 +1,7 @@
 package com.github.catvod.spider;
 
 import com.github.catvod.crawler.Spider;
-//import com.github.catvod.net.OkHttp;
+import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.okhttp.OkHttpUtil;
 
 import okhttp3.OkHttpClient;
