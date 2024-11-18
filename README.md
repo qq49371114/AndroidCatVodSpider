@@ -18,3 +18,6 @@ jsSpider 参考 https://github.com/jadehh/TVSpider
 
 [![Star History Chart](https://api.star-history.com/svg?repos=lushunming/AndroidCatVodSpider&type=Date)](https://star-history.com/#lushunming/AndroidCatVodSpider&Date)
 ---
+
+## 备注
+该项目仅为自己自用开发，如果发现bug，可以提issues，但是基本不接受新需求（除非我感兴趣的新需求）。
