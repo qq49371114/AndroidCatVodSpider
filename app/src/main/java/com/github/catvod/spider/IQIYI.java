@@ -4,7 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderDebug;
-import com.github.catvod.utils.okhttp.OkHttpUtil;
+import com.github.catvod.net.OkHttp;
 
 import java.util.ArrayList;
 import java.util.HashMap;
