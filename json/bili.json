@@ -29,6 +29,10 @@
       "type_id": "電視劇"
     },
     {
+      "type_name": "戏曲",
+      "type_id": "戏曲"
+    },
+    {
       "type_name": "演唱會",
       "type_id": "演唱會"
     },
