@@ -41,7 +41,7 @@ public class SuoniZy extends Spider {
     private Pattern detailPattern = Pattern.compile("/voddetail/(\\d+)\\.html");
 
     private String req(String url, Map<String, String> header) {
-        return OkHttp.string(url, header);
+//        return OkHttp.string(url, header);
 //        return OkHttpUtil.string(url, header);
     }
 
@@ -277,8 +277,8 @@ public class SuoniZy extends Spider {
      */
     public static void main(String[] args) {
         SuoniZy suoniZy = new SuoniZy();
-        try {
-            suoniZy.init(new Context(), "");
+//        try {
+//           suoniZy.init(new Context(), "");
 
             System.out.println(suoniZy.searchContent("神印", true));
 
