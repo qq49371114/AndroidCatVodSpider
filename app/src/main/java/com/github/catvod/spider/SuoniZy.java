@@ -46,7 +46,7 @@ public class SuoniZy extends Spider {
     }
 
     private OkHttpClient getOkHttpClient() {
-        return OkHttp.client();
+//        return OkHttp.client();
 //        return OkHttpUtil.defaultClient();
     }
 
