@@ -49,8 +49,12 @@
       "type_id": "游戏"
     },
     {
-      "type_name": "游戏",
-      "type_id": "游戏"
+      "type_name": "课堂",
+      "type_id": "课堂"
+    },
+    {
+      "type_name": "新歌热榜",
+      "type_id": "新歌热榜"
     },
     {
       "type_name": "直播",
