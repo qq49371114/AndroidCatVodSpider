@@ -1,6 +1,18 @@
 {
   "class": [
     {
+      "type_name": "電影",
+      "type_id": "電影"
+    },
+    {
+      "type_name": "電視劇",
+      "type_id": "電視劇"
+    },
+    {
+      "type_name": "戏曲",
+      "type_id": "戏曲"
+    },
+    {
       "type_name": "帕梅拉",
       "type_id": "帕梅拉"
     },
@@ -17,20 +29,36 @@
       "type_id": "健身"
     },
     {
+      "type_name": "鬼畜",
+      "type_id": "鬼畜"
+    },
+    {
       "type_name": "舞蹈",
       "type_id": "舞蹈"
     },
     {
-      "type_name": "電影",
-      "type_id": "電影"
+      "type_name": "番剧",
+      "type_id": "番剧"
     },
     {
-      "type_name": "電視劇",
-      "type_id": "電視劇"
+      "type_name": "纪录片",
+      "type_id": "记录片"
     },
     {
-      "type_name": "戏曲",
-      "type_id": "戏曲"
+      "type_name": "游戏",
+      "type_id": "游戏"
+    },
+    {
+      "type_name": "游戏",
+      "type_id": "游戏"
+    },
+    {
+      "type_name": "直播",
+      "type_id": "直播"
+    },
+    {
+      "type_name": "搞笑",
+      "type_id": "搞笑"
     },
     {
       "type_name": "演唱會",
