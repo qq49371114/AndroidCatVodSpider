@@ -271,6 +271,9 @@ public class Ddrk extends Cloud {
         try {
             // 视频详情url
             String url = ids.get(0);
+            if (!url.startsWith("http")) {
+                url = siteUrl +"/"+ url + "/";
+            }
             Document doc = Jsoup.parse(OkHttp.string(url, getHeaders(url)));
             JSONObject result = new JSONObject();
             JSONObject vodList = new JSONObject();

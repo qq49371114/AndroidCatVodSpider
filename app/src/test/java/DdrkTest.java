@@ -56,7 +56,7 @@ public class DdrkTest {
 
     @org.junit.Test
     public void categoryContent() throws Exception {
-        String content = spider.categoryContent("https://ddys.mov/drama/western-drama", "2", true, null);
+        String content = spider.categoryContent("https://ddys.pro/category/movie/western-movie/", "2", true, null);
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println("categoryContent--" + gson.toJson(map));
@@ -65,8 +65,8 @@ public class DdrkTest {
 
     @org.junit.Test
     public void detailContent() throws Exception {
-
-        String content = spider.detailContent(Arrays.asList("https://ddys.pro/dahmer-monster/"));
+        // String content = spider.detailContent(Arrays.asList("https://ddys.pro/the-shadow-strays/"));
+        String content = spider.detailContent(Arrays.asList("dahmer-monster"));
         JsonObject map = Json.safeObject(content);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println("detailContent--" + content);
