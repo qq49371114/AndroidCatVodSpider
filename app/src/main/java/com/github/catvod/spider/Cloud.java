@@ -66,16 +66,17 @@ public class Cloud extends Spider {
                 ucShare.add(shareLink);
             }
         }
-
-        if (!ucShare.isEmpty()) {
-            from.add(uc.detailContentVodPlayFrom(ucShare));
+        if (!aliShare.isEmpty()) {
+            from.add(ali.detailContentVodPlayFrom(aliShare));
         }
         if (!quarkShare.isEmpty()) {
             from.add(quark.detailContentVodPlayFrom(quarkShare));
         }
-        if (!aliShare.isEmpty()) {
-            from.add(ali.detailContentVodPlayFrom(aliShare));
+        if (!ucShare.isEmpty()) {
+            from.add(uc.detailContentVodPlayFrom(ucShare));
         }
+
+
 
         return TextUtils.join("$$$", from);
     }
