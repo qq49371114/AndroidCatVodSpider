@@ -1,16 +1,13 @@
 package com.github.catvod.spider;
 
 import android.content.Context;
-
 import com.github.catvod.bean.Class;
 import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
-import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
 import com.github.catvod.utils.Util;
-
 import com.google.gson.JsonElement;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
@@ -158,7 +155,7 @@ public class Libvio extends Cloud {
 
             Elements li = list.get(i).select("a");
             for (Element element : li) {
-                if (tabName.contains("夸克")) {
+                if (tabName.contains("夸克") || tabName.contains("UC")) {
                     quarkList.add(element.attr("href"));
                 } else {
                     Vod.VodPlayBuilder.PlayUrl playUrl = new Vod.VodPlayBuilder.PlayUrl();
@@ -168,7 +165,7 @@ public class Libvio extends Cloud {
                 }
 
             }
-            if (!tabName.contains("夸克")) {
+            if (!tabName.contains("夸克") && !tabName.contains("UC")) {
                 builder.append(tabName, playUrls);
             }
         }

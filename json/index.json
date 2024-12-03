@@ -1,5 +1,5 @@
 {
-  "spider": "https://androidcatvodspider.pages.dev/jar/custom_spider.jar;md5;36638a433f3e6309211580fd8de594ec",
+  "spider": "https://androidcatvodspider.pages.dev/jar/custom_spider.jar;md5;476072459de884c114120e7e7375c42c",
   "lives": [
     {
       "name": "直播",
@@ -80,6 +80,14 @@
       "name": "夸克吧",
       "type": 3,
       "api": "csp_KuaKeBa",
+      "searchable": 1,
+      "changeable": 1,
+      "ext": {}
+    }, {
+      "key": "DianYingYunJi",
+      "name": "电影云集",
+      "type": 3,
+      "api": "csp_DianYingYunJi",
       "searchable": 1,
       "changeable": 1,
       "ext": {}
