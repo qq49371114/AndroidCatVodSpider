@@ -40,7 +40,7 @@ public class NG extends Spider {
         hashMap.put("devices", "android");
         hashMap.put("deviceModel", "2407FRK8EC");
         hashMap.put("deviceBrand", "Xiaomi");
-        hashMap.put("deviceVersion", "9");
+        hashMap.put("deviceVersion", "14");
         hashMap.put("deviceScreen", "2712*1220");
         hashMap.put("appVersionCode", "9");
         hashMap.put("appVersionName", "1.0.9");
