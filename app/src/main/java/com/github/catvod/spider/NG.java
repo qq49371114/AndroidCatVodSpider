@@ -38,14 +38,14 @@ public class NG extends Spider {
     private Map<String, String> getParams() {
         Map<String, String> hashMap = new HashMap<>();
         hashMap.put("devices", "android");
-        hashMap.put("deviceModel", "ASUS_I003DD");
-        hashMap.put("deviceBrand", "ASUS");
+        hashMap.put("deviceModel", "2407FRK8EC");
+        hashMap.put("deviceBrand", "Xiaomi");
         hashMap.put("deviceVersion", "9");
-        hashMap.put("deviceScreen", "2340*1080");
+        hashMap.put("deviceScreen", "2712*1220");
         hashMap.put("appVersionCode", "9");
         hashMap.put("appVersionName", "1.0.9");
         hashMap.put("time", String.valueOf(System.currentTimeMillis() / 1000));
-        hashMap.put("imei", "");
+        hashMap.put("imei", "ddfbf419ac46f6ff");
         hashMap.put("app", "ylys");
         return hashMap;
     }
