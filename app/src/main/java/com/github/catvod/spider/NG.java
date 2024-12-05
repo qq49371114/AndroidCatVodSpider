@@ -54,7 +54,7 @@ public class NG extends Spider {
         Map<String, String> headers = new HashMap<>();
         long currentTimeMillis = System.currentTimeMillis();
         headers.put("timeMillis", String.valueOf(currentTimeMillis));
-        headers.put("sign", Util.MD5(Util.base64Decode("I3VCRnN6ZEVNMG9MMEpSbkA=") + currentTimeMillis));
+        headers.put("sign", Util.MD5(Util.base64Decode("OUU3N0E5NjUwNkFBQzZBOEMzNzY4MEJGNjM0MDI4MzM=") + currentTimeMillis));
         return headers;
     }
 
