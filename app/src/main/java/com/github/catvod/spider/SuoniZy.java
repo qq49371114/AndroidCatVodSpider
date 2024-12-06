@@ -277,21 +277,5 @@ public class SuoniZy extends Spider {
      * 仅用于测试，编译打包jar时需要去掉这个函数
      * just for test, remove this function when you make jar
      */
-    public static void main(String[] args) {
-        SuoniZy suoniZy = new SuoniZy();
-        try {
-            suoniZy.init(new Context(), "");
-
-            SpiderDebug.log(suoniZy.searchContent("神印", true));
-            Thread.sleep(5 * 1000L);
-
-            SpiderDebug.log(suoniZy.detailContent(Arrays.asList("34382")));
-            Thread.sleep(5 * 1000L);
-
-            SpiderDebug.log(suoniZy.detailContent(Arrays.asList("64676")));
-            Thread.sleep(5 * 1000L);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 }
