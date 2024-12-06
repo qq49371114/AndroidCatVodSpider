@@ -271,7 +271,6 @@ public class SuoniZy extends Spider {
         result.put("playUrl", "");
         result.put("url", id);
         return result.toString();
-    }
 
     /**
      * 仅用于测试，编译打包jar时需要去掉这个函数
