@@ -77,8 +77,8 @@
 ## 基础类
 ----
 
-> com.github.catvod.crawler.Spider 爬虫基类
-> com.github.catvod.crawler.Cloud 网盘（UC、ali、quark）爬虫开发类
+> com.github.catvod.spider.Spider 爬虫基类
+> com.github.catvod.spider.Cloud 网盘（UC、ali、quark）爬虫开发类
 
 
 
