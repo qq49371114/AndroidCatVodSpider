@@ -3,10 +3,10 @@ package com.github.catvod.spider;
 import android.content.Context;
 import android.text.TextUtils;
 import com.github.catvod.crawler.Spider;
-//import com.github.catvod.utils.FileUtil;
+import com.github.catvod.utils.FileUtil;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
-//import com.github.catvod.utils.okhttp.OkHttpUtil;
+import com.github.catvod.utils.okhttp.OkHttpUtil;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -43,13 +43,13 @@ public class SuoniZy extends Spider {
     private Pattern detailPattern = Pattern.compile("/voddetail/(\\d+)\\.html");
 
     private String req(String url, Map<String, String> header) {
-        return OkHttp.string(url, header);
-//        return OkHttpUtil.string(url, header);
+//        return OkHttp.string(url, header);
+        return OkHttpUtil.string(url, header);
     }
 
     private OkHttpClient getOkHttpClient() {
-        return OkHttp.client();
-//        return OkHttpUtil.defaultClient();
+//        return OkHttp.client();
+        return OkHttpUtil.defaultClient();
     }
 
     private Map<String, String> getHeader() {
