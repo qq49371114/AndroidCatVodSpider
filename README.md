@@ -12,7 +12,8 @@ jsSpider 参考 https://github.com/jadehh/TVSpider
 或者 https://androidcatvodspider.pages.dev/json/index.json
 
 
-
+## 贡献
+请参考 [CONTRIBUTING.md](/CONTRIBUTING.md)
 
 ## ✨ Star 数
 
