@@ -3,7 +3,8 @@
 
 ### 欢迎各路大佬踊跃提PR，分享爬虫代码。
 
-
+## 源码仓库地址
+https://github.com/lushunming/AndroidCatVodSpider
 
 ## 快速开始
 ----
@@ -95,9 +96,9 @@
 ----
 1. 除了`com.github.catvod.spider`包以外的代码，最终都会被软件本身内置的代码代替掉，所以，建议你不要修改除`com.github.catvod.spider`包以外的代码。
 
-2. 需要提交爬虫和对应的爬虫测试类，不然不接受PR
+   2. 需要提交爬虫和对应的爬虫测试类，不然不接受PR
 
-3. 待补充
+   3. 待补充
 
 ## 爬虫类返回的相关Json字符串格式说明
 ----
