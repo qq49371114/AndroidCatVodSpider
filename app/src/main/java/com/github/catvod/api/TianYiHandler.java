@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -38,6 +39,8 @@ public class TianYiHandler {
     private AlertDialog dialog;
     private final Cache cache;
     private final Cache ecache;
+    public static final String AppID = "8025431004";
+    public static final String ReturnURL = "https://m.cloud.189.cn/zhuanti/2020/loginErrorPc/index.html";
 
     public File getCache() {
         return Path.tv("tianyi");
@@ -55,6 +58,10 @@ public class TianYiHandler {
     private Map<String, String> ecookieMap;
     private String cookie;
     private String ecookie;
+    private String sessionKey;
+    private String sessionSecret;
+    private String refreshToken;
+    private String accessToken;
 
     public TianYiHandler() {
 
@@ -63,23 +70,111 @@ public class TianYiHandler {
         cache = Cache.objectFrom(Path.read(getCache()));
         ecache = Cache.objectFrom(Path.read(geteCache()));
         cookie = cache.getUser().getCookie();
+        sessionKey = cache.getUser().getAccessToken();
+        sessionSecret = cache.getUser().getRefreshToken();
+        refreshToken = cache.getUser().getSessionKey();
+        accessToken = cache.getUser().getSessionSecret();
         ecookie = ecache.getUser().getCookie();
     }
 
-    public void refreshCookie() throws IOException {
+    public JsonObject getSessionForPC(Map<String, String> params) {
+        Map<String, String> requestParams = new HashMap<>();
+        requestParams.put("appId", AppID); // 替换为实际的AppID常量
+        requestParams.putAll(clientSuffix()); // 需要实现clientSuffix方法
+        requestParams.putAll(params);
 
+        OkResult result = OkHttp.post("https://api.cloud.189.cn/getSessionForPC.action", requestParams, Map.of("Cookie", this.ecookie, "Referer", API_URL, "accept", "application/json;charset=UTF-8"));
 
-        String url = "https://cloud.189.cn/api/portal/loginUrl.action?redirectURL=https%3A%2F%2Fcloud.189.cn%2Fweb%2Fredirect.html";
-        String index = OkHttp.getLocation(url, Map.of("Cookie", this.cookie));
+        SpiderDebug.log("getSessionForPC response: " + result.getBody());
+        return Json.safeObject(result.getBody());
+    }
+
+    public JsonObject loginBySsoCookie(String cookie) throws IOException {
+        ecookie = cookie;
+        SpiderDebug.log("loginBySsoCookie...");
+
+        Map<String, String> params = new HashMap<>();
+        params.put("appId", AppID);
+        params.put("clientType", "TELEPC");
+        params.put("returnURL", ReturnURL);
+        params.put("timeStamp", String.valueOf(System.currentTimeMillis()));
+
+        String loginUrl = OkHttp.getLocation("https://cloud.189.cn/api/portal/unifyLoginForPC.action?" + mapToParamString(params), new HashMap<>());
+        Map<String, String> headers = Map.of("Cookie", ecookie);
+        String redirectUrl = OkHttp.getLocation(loginUrl, headers);
+
+        return getSessionForPC(Map.of("redirectURL", redirectUrl));
+    }
+
+    // 新增参数映射方法
+    private String mapToParamString(Map<String, String> params) throws UnsupportedEncodingException {
+        List<String> list = new ArrayList<>();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            list.add(URLEncoder.encode(entry.getKey(), "UTF-8") + "=" + URLEncoder.encode(entry.getValue(), "UTF-8"));
+        }
+        return StringUtils.join(list, "&");
+    }
+
+    public JsonObject refreshToken(String refreshToken) throws IOException {
+        Map<String, String> params = new HashMap<>();
+        params.put("clientId", AppID);
+        params.put("refreshToken", refreshToken);
+        params.put("grantType", "refresh_token");
+        params.put("format", "json");
+
+        OkResult result = OkHttp.post("https://api.cloud.189.cn/api/oauth2/refreshToken.do", params, new HashMap<>());
+        return Json.safeObject(result.getBody());
+    }
+
+    public Map<String, String> clientSuffix() {
+        return Map.of("clientType", "TELEPC", "version", "6.2", "channelId", "web_cloud.189.cn", "rand", String.valueOf(System.currentTimeMillis()));
+    }
+
+    public void refreshCookie(String coo, String eco) throws IOException {
+        this.cookie = coo;
+        this.ecookie = eco;
+        getCookieMap(List.of(cookie.split(";")));
+        geteCookieMap(List.of(ecookie.split(";")));
+        Map<String, String> headers = new HashMap<>();
+        //  headers.put("Host", "cloud.189.cn");
+        headers.put("Accept-Language", "zh-CN,zh;q=0.9");
+        headers.put("Upgrade-Insecure-Requests", "1");
+        headers.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36");
+        headers.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
+        headers.put("Sec-Fetch-Site", "same-site");
+        headers.put("Sec-Fetch-Mode", "navigate");
+        headers.put("Sec-Fetch-Dest", "iframe");
+        headers.put("Sec-Ch-Ua", "\"Not:A-Brand\";v=\"24\", \"Chromium\";v=\"134\"");
+        headers.put("Sec-Ch-Ua-Mobile", "?0");
+        headers.put("Sec-Ch-Ua-Platform", "\"Windows\"");
+        // headers.put("Referer", "https://cloud.189.cn/");
+        headers.put("Priority", "u=0, i");
+        headers.put("Connection", "keep-alive");
+        /*
+         * apm_key=6A6B13F8887686E883B1226B183B489B; apm_uid=3BAED3AB37D76BB95AC568FFCFEFF0E3; apm_ct=20250318090421000; apm_ua=6DBB10952A38C11D19E2648023D5055B; share_2eyARfBzURZj=kz6y; JSESSIONID=FF2191ED1A23F307A8A58502874E177E; COOKIE_LOGIN_USER=E8A9178705F8CDDFB78A2036131A0D0A2908728B5AB2D4292CB56748AE2B8B904AEB21BDBE6E0D907D52E0B076BE29D5
+         */
+        headers.put("Cookie", cookie);
+        String url = "https://cloud.189.cn/api/portal/loginUrl.action?redirectURL=https%3A%2F%2Fcloud.189.cn%2Fweb%2Fredirect.html&defaultSaveName=3&defaultSaveNameCheck=uncheck&browserId=05ceccc253cd2d6e28bc563970f9f6ce";
+        String index = OkHttp.getLocation(url, headers);
         SpiderDebug.log("index：" + index);
         SpiderDebug.log("index red: " + index);
-        Map<String, List<String>> resHeaderMap = OkHttp.getLocationHeader(index, Map.of("Cookie", this.ecookie));
+        /*
+         * GUID=ad7562961e1a44adb24381e3928e4029; GRAYNUMBER=27CD201807E6E6172F3BEF66F3D635B7; pageOp=9fedf699a3178ef7ac45032864abf551; LT=1b84f76ec003c490; SSON=dc466c8192e3109eaea837c1d136c1fd065253ce1c7d3a66ca1520d7d6d6307b10a1fe65c7becac73b95f24a6e681e654ec4f47c39533ebcc48bb78d6d6e63d1bbf3334e6e97eaa7092d34f87bf1209e36d759f9a7d7bc09b34795372d42a82a302d1eaec39a397d35abb256498f85dbfd53f6f31854ee7959aebcce2b8a85fdaa2ea367dbe01456a4cbe9f07c6fab1d4b39495e41bbd34157312b67d03bba9f84a93a2946705c477cf0f4342a7b8b555ba1f098921b572d5eef0f7fe154aaed13e52ae3ee0347c11850a7a8d11410a4612bb428c6adbfc59b13ae9990ddbf4a23570e0f99a4aea9; OPENINFO=33c28688ef52ce9e3a9ef87388047efbde5e3e2e4c7ef6ef267632468c7dfaf294ff59fa59d34801
+         */
+        //https://open.e.189.cn/api/logbox/oauth2/unifyAccountLogin.do   sson cookie
+        headers.put("Cookie", ecookie);
+        Map<String, List<String>> resHeaderMap = OkHttp.getLocationHeader(index, headers);
 
         getCookieMap(resHeaderMap.get("Set-Cookie"));
         this.cookie = mapToCookie(cookieMap);
         indexUrl = resHeaderMap.get("Location").get(0);
         SpiderDebug.log("indexUrl red: " + indexUrl);
-        OkResult okResult = OkHttp.get(indexUrl, new HashMap<>(), Map.of("Cookie", this.cookie));
+        /*
+        apm_key=6A6B13F8887686E883B1226B183B489B; apm_uid=3BAED3AB37D76BB95AC568FFCFEFF0E3; apm_ct=20250318090421000; apm_ua=6DBB10952A38C11D19E2648023D5055B; share_2eyARfBzURZj=kz6y; JSESSIONID=FF2191ED1A23F307A8A58502874E177E; COOKIE_LOGIN_USER=E8A9178705F8CDDFB78A2036131A0D0A2908728B5AB2D4292CB56748AE2B8B904AEB21BDBE6E0D907D52E0B076BE29D5
+         */
+        //https://cloud.189.cn/api/portal/callbackUnify.action
+        headers.put("Cookie", cookie);
+        OkResult okResult = OkHttp.get(indexUrl, new HashMap<>(), headers);
 
         SpiderDebug.log("refreshCookie header：" + Json.toJson(okResult.getResp()));
         if (okResult.getResp().containsKey("set-cookie")) {
@@ -321,9 +416,18 @@ public class TianYiHandler {
             String redirectUrl = obj.get("redirectUrl").getAsString();
 
 
-            fetchUserInfo(redirectUrl, secondCookie);
-
-
+            //  fetchUserInfo(redirectUrl, secondCookie);
+            JsonObject result = loginBySsoCookie(ecookie);
+            //  JsonObject result = getSessionForPC(Map.of("redirectURL", redirectUrl));
+            SpiderDebug.log("ty  cookie info------" + Json.toJson(result));
+            this.refreshToken = result.get("refreshToken").getAsString();
+            this.accessToken = result.get("accessToken").getAsString();
+            this.sessionKey = result.get("sessionKey").getAsString();
+            this.sessionSecret = result.get("sessionSecret").getAsString();
+            User user = new User(result.get("accessToken").getAsString(), result.get("refreshToken").getAsString(), result.get("sessionKey").getAsString(), result.get("sessionSecret").getAsString());
+            cache.setTianyiUser(user);
+            //停止检验线程，关闭弹窗
+            stopService();
         } else {
             SpiderDebug.log("扫码失败------" + body);
         }

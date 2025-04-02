@@ -5,6 +5,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RunWith(RobolectricTestRunner.class)
 public class TianyiApiTest {
 
@@ -27,6 +30,7 @@ public class TianyiApiTest {
 
         //  TianyiApi.get().getVod(shareData1);
         ShareData shareData2 = TianyiApi.get().getShareData("https://cloud.189.cn/t/ZvEjUvq6FNr2", "");
+        ShareData shareData3 = TianyiApi.get().getShareData("https://cloud.189.cn/t/maqmaijayqQn（访问码：qis7）", "");
         // TianyiApi.get().getVod(shareData2);
 
 
@@ -36,10 +40,30 @@ public class TianyiApiTest {
     @Test
     public void getVod() throws Exception {
 
-        com.github.catvod.bean.tianyi.ShareData shareData1 = TianyiApi.get().getShareData("https://cloud.189.cn/web/share?code=qEVVjyqM7bY3（访问码：6iel）", "");
+        com.github.catvod.bean.tianyi.ShareData shareData1 = TianyiApi.get().getShareData("https://cloud.189.cn/web/share?code=ZvEjUvq6FNr2", "");
         TianyiApi api = TianyiApi.get();
-        api.setCookie("apm_ct=20250326080123000;OPENINFO=33c28688ef52ce9e3a9ef87388047efbde5e3e2e4c7ef6ef267632468c7dfaf294ff59fa59d34801;apm_sid=02F59AEE89AF29D6420BBD8408003B99;apm_key=317D96407B91CFC7EDA9010FA963CB06;pageOp=8b7ecdae02246019e5b5c07d5775e568;apm_uid=CD70AFED168CA30CF75CDBF983D237C2;LT=358459209f24f17e;GUID=a72822a1f8574d2c97b8392c067e835c;SSON=dc466c8192e3109eaea837c1d136c1fd065253ce1c7d3a66ca1520d7d6d6307b10a1fe65c7becac73b95f24a6e681e654ec4f47c39533ebcc48bb78d6d6e63d1bbf3334e6e97eaa7092d34f87bf1209e791a623d703df58b667c93cf9745938a396cfcc4e795bb687b7e16255f08379edd4f03e64b2002aa915c3157b008d54ed80b1ad57bf6b7405d23e0763077999425d511e0ccc0e07a952221985bf9903d10b9f21c4d6c175b5e9fb20721ef5b2926290dda57af27ff65ad5df045c8a824bebb4dcec0cd08a68edfc462d5bcd7a180b80b072ca61aa87dd0ebe3946397f94f0bc28d24a56958;JSESSIONID=58737554E5FEB36C9AF67050CE292E38;COOKIE_LOGIN_USER=92F4CEE641F1363A0EA09AC7FA6B61FDB6DD036333EFCD7F28818C64A94CFACC7C6186180FCEE7A6BD5E2A597347DBE58BA1C72D1493EE0847FD4F5A;apm_ua=45747CD36C19E71509E38183EB8AAB8D");
+        api.setCookie("{\"res_code\":0,\"res_message\":\"成功\",\"accessToken\":\"4ac9176e6b624f6eaa80f1ab0946b5bf\",\"familySessionKey\":\"caf57b24-7cc1-40a6-9cb2-5fba83c97e79_family\",\"familySessionSecret\":\"FEC5CC05873575A90BCCF8967A11F681\",\"getFileDiffSpan\":60,\"getUserInfoSpan\":600,\"keepAlive\":1000,\"loginName\":\"18506241601@189.cn\",\"refreshToken\":\"4e3949ccc59b43c9962ceb9b734d868f\",\"sessionKey\":\"d47c4fbe-54cf-415e-93f1-16e5e35ba4e1\",\"sessionSecret\":\"FEC5CC05873575A90BCCF8967A11F681\"}");
         api.getVod(shareData1);
+
+
+    }
+
+    @Test
+    public void signatureHeader() throws Exception {
+        Map<String, String> param = new HashMap<>();
+        param.put("uuid", "851f74df-9fdc-4d34-b337-6560310da555");
+        param.put("shareId", "12536115513594");
+        param.put("fileId", "8139432799826548");
+        param.put("isFolder", "false");
+        param.put("iconOption", "5");
+        param.put("pageSize", "1");
+        param.put("pageNum", "1");
+        param.put("shareMode", "1");
+        param.put("accessCode", "gsf3");
+        TianyiApi api = TianyiApi.get();
+        api.setCookie("{\"res_code\":0,\"res_message\":\"成功\",\"accessToken\":\"4ac9176e6b624f6eaa80f1ab0946b5bf\",\"familySessionKey\":\"caf57b24-7cc1-40a6-9cb2-5fba83c97e79_family\",\"familySessionSecret\":\"FEC5CC05873575A90BCCF8967A11F681\",\"getFileDiffSpan\":60,\"getUserInfoSpan\":600,\"keepAlive\":1000,\"loginName\":\"18506241601@189.cn\",\"refreshToken\":\"4e3949ccc59b43c9962ceb9b734d868f\",\"sessionKey\":\"d47c4fbe-54cf-415e-93f1-16e5e35ba4e1\",\"sessionSecret\":\"FEC5CC05873575A90BCCF8967A11F681\"}");
+        Map<String, String> header = api.signatureHeader("https://api.cloud.189.cn/open/share/listShareDir.action", "GET", api.encryptParams(param));
+        System.out.println(header.get("Signature"));
 
 
     }

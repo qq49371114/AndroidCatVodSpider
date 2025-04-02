@@ -31,6 +31,16 @@ public class TianYiHandlerTest {
 
         }
 
+    }  @Test
+    public void refreshCookie() throws Exception {
+        // Mock the OkHttp.get method to return a predefined OkResult
+        // Execute the method under test
+  //tianYiHandler.refreshCookie("JSESSIONID=E51C209D80B1366B16A45163B3AFE2AA; COOKIE_LOGIN_USER=F86A554EF86A391CB68C48DA4E47148EB3354576B91DA6D3546E70D25F31BA1937550084088849A354FB056D024D8B04");
+
+        while (true) {
+
+        }
+
     }
 
     @Test

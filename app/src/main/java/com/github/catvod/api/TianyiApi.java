@@ -3,9 +3,10 @@ package com.github.catvod.api;
 import android.text.TextUtils;
 import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
-import com.github.catvod.bean.quark.Cache;
+import com.github.catvod.bean.tianyi.Cache;
 import com.github.catvod.bean.tianyi.Item;
 import com.github.catvod.bean.tianyi.ShareData;
+import com.github.catvod.bean.tianyi.User;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.net.OkResult;
@@ -17,8 +18,14 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.crypto.Cipher;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.regex.Matcher;
@@ -27,7 +34,8 @@ import java.util.regex.Pattern;
 public class TianyiApi {
     private String apiUrl = "https://cloud.189.cn/api/open/share/";
     public static final String URL_START = "https://cloud.189.cn/";
-    private String cookie = "";
+    private User user = null;
+
 
     private Map<String, JsonObject> shareTokenCache = new HashMap<>();
 
@@ -52,7 +60,7 @@ public class TianyiApi {
 
     public void setCookie(String token) throws Exception {
         if (StringUtils.isNoneBlank(token)) {
-            this.cookie = token;
+            this.user = Json.parseSafe(token, User.class);
             initUserInfo();
         }
     }
@@ -63,7 +71,7 @@ public class TianyiApi {
 
         headers.put("Content-Type", "application/x-www-form-urlencoded");
         headers.put("accept", "application/json;charset=UTF-8");
-        headers.put("Cookie", cookie);
+
         if (StringUtils.isNotBlank(sessionKey)) {
             headers.put("sessionKey", sessionKey);
         }
@@ -74,7 +82,6 @@ public class TianyiApi {
 
     public void init(String cookie) throws Exception {
 
-        this.cookie = cookie;
 
         getUserSizeInfo();
         this.sessionKey = getUserBriefInfo();
@@ -164,7 +171,7 @@ public class TianyiApi {
 
 
         int leftRetry = retry != null ? retry : 3;
-        if (StringUtils.isAllBlank(cookie)) {
+        if (Objects.isNull(this.user)) {
             this.initUserInfo();
             return api(url, params, data, leftRetry - 1, method);
         }
@@ -199,47 +206,16 @@ public class TianyiApi {
             SpiderDebug.log("initUserInfo...");
 
             //extend没有cookie，从缓存中获取
-            if (StringUtils.isAllBlank(cookie)) {
+            if (Objects.isNull(this.user)) {
                 SpiderDebug.log(" cookie from ext is empty...");
-                cookie = cache.getUser().getCookie();
+                user = cache.getUser();
             }
-            init(cookie);
-            /*//获取到cookie，初始化quark，并且把cookie缓存一次
-            if (StringUtils.isNoneBlank(cookie) && cookie.contains("__pus")) {
-                SpiderDebug.log(" initQuark ...");
-                // initQuark(this.cookie);
-                cache.setUser(User.objectFrom(this.cookie));
-                return;
-            }
+            // init(cookie);
 
-            //没有cookie，也没有serviceTicket，抛出异常，提示用户重新登录
-            if (StringUtils.isAllBlank(cookie) && StringUtils.isAllBlank(serviceTicket)) {
-                SpiderDebug.log("cookie为空");
-                throw new RuntimeException("cookie为空");
-            }
-
-            String token = serviceTicket;
-            OkResult result = OkHttp.get("https://pan.quark.cn/account/info?st=" + token + "&lw=scan", new HashMap<>(), getHeaders());
-            Map json = Json.parseSafe(result.getBody(), Map.class);
-            if (json.get("success").equals(Boolean.TRUE)) {
-                List<String> cookies = result.getResp().get("set-Cookie");
-                List<String> cookieList = new ArrayList<>();
-                for (String cookie : cookies) {
-                    cookieList.add(cookie.split(";")[0]);
-                }
-                this.cookie += TextUtils.join(";", cookieList);
-
-                cache.setUser(User.objectFrom(this.cookie));
-                if (cache.getUser().getCookie().isEmpty()) throw new Exception(this.cookie);
-                // initQuark(this.cookie);
-            }
-*/
         } catch (Exception e) {
             cache.getUser().clean();
             e.printStackTrace();
 
-        } finally {
-            //     while (cache.getUser().getCookie().isEmpty()) SystemClock.sleep(250);
         }
     }
 
@@ -275,7 +251,7 @@ public class TianyiApi {
             }
         }
 
-        shareCode = shareCode.split("（访问码")[0].trim();
+        //shareCode = shareCode.split("（访问码")[0].trim();
         ShareData shareData = new ShareData(shareCode, "0");
         shareData.setSharePwd(accessCode);
         return shareData;
@@ -293,7 +269,7 @@ public class TianyiApi {
         OkResult result = OkHttp.get("https://cloud.189.cn/api/portal/getUserSizeInfo.action", new HashMap<>(), getHeaders());
         JsonObject res = Json.safeObject(result.getBody());
         if (res.isEmpty() || (Objects.nonNull(res.get("errorCode")) && res.get("errorCode").getAsString().equals("InvalidSessionKey"))) {
-           // tianYiHandler.startScan();
+            // tianYiHandler.startScan();
             //tianYiHandler.refreshCookie(cookie);
             tianYiHandler.startScan();
         }
@@ -335,11 +311,11 @@ public class TianyiApi {
              * }
              */
             if (Objects.nonNull(shareToken.get("res_code")) && shareToken.get("res_code").getAsInt() == 0) {
-                shareData.setShareId((String) shareToken.get("shareId").getAsString());
-                shareData.setShareMode((Integer) shareToken.get("shareMode").getAsInt());
+                shareData.setShareId(shareToken.get("shareId").getAsString());
+                shareData.setShareMode(shareToken.get("shareMode").getAsInt());
                 shareData.setFolder(shareToken.get("isFolder").getAsBoolean());
-                shareData.setFileId((String) shareToken.get("fileId").getAsString());
-                shareData.setFolderId((String) shareToken.get("fileId").getAsString());
+                shareData.setFileId(shareToken.get("fileId").getAsString());
+                shareData.setFolderId(shareToken.get("fileId").getAsString());
 
                 this.shareTokenCache.put(shareData.getShareId(), shareToken);
             }
@@ -421,6 +397,19 @@ public class TianyiApi {
 
     private String getDownload(String shareId, String fileId) throws Exception {
         Map<String, String> headers = getHeaders();
+        Map<String, String> param = new HashMap<>(Map.of("shareId", shareId, "dt", "1", "fileId", fileId, "type", "4", "key", "noCache"));
+        String timeStamp=String.valueOf(System.currentTimeMillis());
+        param.put("AccessToken",this.user.getAccessToken());
+        param.put("Timestamp",timeStamp);
+        param.put("params", encryptParams(param));
+        headers.putAll(tianYiHandler.clientSuffix());
+        Map<String, String> header = signatureHeader("https://cloud.189.cn/api/portal/getNewVlcVideoPlayUrl.action", "GET", encryptParams(param));
+        headers.putAll(header);
+       /* headers.put("accessToken", this.user.getAccessToken());
+        headers.put("Sign-Type", "1");
+        headers.put("Timestamp", timeStamp);
+        headers.put("Signature", signatureOfMd5(param));*/
+
         //headers.remove("sessionKey");
         OkResult result = OkHttp.get("https://cloud.189.cn/api/portal/getNewVlcVideoPlayUrl.action?shareId=" + shareId + "&dt=1&fileId=" + fileId + "&type=4&key=noCache", new HashMap<>(), headers);
         JsonObject res = Json.safeObject(result.getBody());
@@ -456,6 +445,100 @@ public class TianyiApi {
         }
     }
 
+    public String signatureOfMd5(Map<String, String> params) {
+        List<String> keys = new ArrayList<>();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            keys.add(entry.getKey() + "=" + entry.getValue());
+        }
+
+        Collections.sort(keys);
+        String signStr = String.join("&", keys);
+
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(signStr.getBytes());
+            byte[] digest = md.digest();
+            return bytesToHex(digest).toLowerCase();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("MD5算法不可用", e);
+        }
+    }
+
+
+    // HMAC 签名
+    public String signatureOfHmac(String sessionSecret, String sessionKey, String operate, String fullUrl, String dateOfGmt, String param) throws Exception {
+        Matcher matcher = Pattern.compile("://[^/]+((/[^/\\s?#]+)*)").matcher(fullUrl);
+        matcher.find();
+        String urlPath = matcher.group(1);
+
+        String data = String.format("SessionKey=%s&Operate=%s&RequestURI=%s&Date=%s", sessionKey, operate, urlPath, dateOfGmt);
+        //if (!param.isEmpty()) data += "&params=" + param;
+
+        Mac mac = Mac.getInstance("HmacSHA1");
+        mac.init(new SecretKeySpec(sessionSecret.getBytes(), "HmacSHA1"));
+        return bytesToHex(mac.doFinal(data.getBytes())).toUpperCase();
+    }
+
+
+    // AES ECB 加密
+    public String aesECBEncrypt(String data, String key) throws Exception {
+        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key.getBytes(), "AES"));
+        return bytesToHex(cipher.doFinal(pkcs7Padding(data.getBytes(), 16))).toUpperCase();
+    }
+
+    private byte[] pkcs7Padding(byte[] data, int blockSize) {
+        int padding = blockSize - (data.length % blockSize);
+        byte[] padBytes = new byte[data.length + padding];
+        System.arraycopy(data, 0, padBytes, 0, data.length);
+        Arrays.fill(padBytes, data.length, padBytes.length, (byte) padding);
+        return padBytes;
+    }
+
+    public String getHttpDateStr() {
+        SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return sdf.format(new Date());
+    }
+
+
+    public Map<String, String> signatureHeader(String url, String method, String params) {
+        String dateOfGmt = getHttpDateStr();
+        User token = this.user;
+
+        String sessionKey = token.getSessionKey();
+        String sessionSecret = token.getSessionSecret();
+
+        Map<String, String> header = new HashMap<>();
+        header.put("Date", dateOfGmt);
+        header.put("SessionKey", sessionKey);
+        header.put("X-Request-ID", UUID.randomUUID().toString());
+        try {
+            header.put("Signature", signatureOfHmac(sessionSecret, sessionKey, method, url, dateOfGmt, params));
+        } catch (Exception e) {
+            SpiderDebug.log("生成签名失败: " + e.getMessage());
+        }
+        return header;
+    }
+
+    public String encryptParams(Map<String, String> params) throws Exception {
+        User token = this.user;
+        String sessionSecret = token.getSessionSecret();
+
+        if (params != null && !params.isEmpty()) {
+            String secretKey = sessionSecret.length() >= 16 ? sessionSecret.substring(0, 16) : sessionSecret;
+            return aesECBEncrypt(buildQueryString(params), secretKey);
+        }
+        return "";
+    }
+
+    private String buildQueryString(Map<String, String> params) {
+        List<String> paramList = new ArrayList<>();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            paramList.add(encodeURIComponent(entry.getKey()) + "=" + encodeURIComponent(entry.getValue()));
+        }
+        return String.join("&", paramList);
+    }
 
 }
 
