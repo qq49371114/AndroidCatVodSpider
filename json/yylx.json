@@ -1,6 +1,6 @@
 
 {
-  "spider": "https://androidcatvodspider.netlify.app/jar/custom_spider.jar;md5;71051da8d3f321cb2c1da13584c5cd1d",
+  "spider": "./custom_spider.jar",
   "lives": [
     {
       "name": "电视直播",
