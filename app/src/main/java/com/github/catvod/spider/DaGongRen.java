@@ -45,7 +45,7 @@ public class DaGongRen extends Spider {
         List<Vod> list = new ArrayList<>();
         List<Class> classes = new ArrayList<>();
         String[] typeIdList = {"dianying","dianshiju","zongyi","dongman","jilupian","lunlipian"};
-        String[] typeNameList = {"电影","连续剧","综艺","动漫","纪录片","福利"};
+        String[] typeNameList = {"电影","连续剧","综艺","动漫","纪录片"};
         for (int i = 0; i < typeNameList.length; i++) {
             classes.add(new Class(typeIdList[i], typeNameList[i]));
         }
