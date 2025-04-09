@@ -39,7 +39,7 @@ public class TvDy extends Spider {
         List<Vod> list = new ArrayList<>();
         List<Class> classes = new ArrayList<>();
         String[] typeIdList = {"1", "2", "3", "4", "5", "34"};
-        String[] typeNameList = {"电影", "电视剧", "综艺", "动漫", "福利", "纪录片"};
+        String[] typeNameList = {"电影", "电视剧", "综艺", "动漫", "纪录片"};
         for (int i = 0; i < typeNameList.length; i++) {
             classes.add(new Class(typeIdList[i], typeNameList[i]));
         }
