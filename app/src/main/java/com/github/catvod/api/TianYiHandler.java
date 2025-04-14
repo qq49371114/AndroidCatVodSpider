@@ -14,6 +14,7 @@ import com.github.catvod.net.OkResult;
 import com.github.catvod.spider.Init;
 import com.github.catvod.utils.*;
 import com.google.gson.JsonObject;
+import java.security.SecureRandom;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.Request;
@@ -252,7 +253,7 @@ public class TianYiHandler {
         params.put("appId", "cloud");
         params.put("encryuuid", encryuuid);
         params.put("uuid", uuid);
-        params.put("date", DateFormatUtils.format(new Date(), "yyyy-MM-ddHH:mm:ss") + new Random().nextInt(24));
+        params.put("date", DateFormatUtils.format(new Date(), "yyyy-MM-ddHH:mm:ss") + new SecureRandom().nextInt(24));
         params.put("returnUrl", URLEncoder.encode(returnUrl, "UTF-8"));
         params.put("clientType", "1");
         params.put("timeStamp", (System.currentTimeMillis() / 1000 + 1) + "000");
