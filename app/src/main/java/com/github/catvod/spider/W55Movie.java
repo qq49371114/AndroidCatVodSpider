@@ -65,8 +65,8 @@ public class W55Movie extends Spider {
     public String homeContent(boolean filter) throws Exception {
         List<Vod> list = new ArrayList<>();
         List<Class> classes = new ArrayList<>();
-        String[] typeIdList = {"/label/netflix", "/vodshow/1", "/vodshow/2", "/vodshow/124", "/vodshow/4", "/vodshow/3"};
-        String[] typeNameList = {"Netflix", "电影", "连续剧", "福利", "动漫", "综艺"};
+        String[] typeIdList = {"/label/netflix", "/vodshow/1", "/vodshow/2", "/vodshow/4", "/vodshow/3"};
+        String[] typeNameList = {"Netflix", "电影", "连续剧", "动漫", "综艺"};
         for (int i = 0; i < typeNameList.length; i++) {
             classes.add(new Class(typeIdList[i], typeNameList[i]));
         }
