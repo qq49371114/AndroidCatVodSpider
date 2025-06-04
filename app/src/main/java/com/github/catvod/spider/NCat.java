@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 public class NCat extends Spider {
 
     private static final String siteUrl = "https://www.ncat3.app";
-    private static final String picUrl = "https://vres.wbadl.cn";
+    private static final String picUrl = "https://vres.wxwoq.com";
     private static final String cateUrl = siteUrl + "/show/";
     private static final String detailUrl = siteUrl + "/detail/";
     private static final String searchUrl = siteUrl + "/search?k=";
@@ -50,7 +50,7 @@ public class NCat extends Spider {
             try {
                 String pic = element.select("img").last().attr("data-original");
                 String url = element.select("a").attr("href");
-                String name = element.select(".v-item-title").text().replace("可可影视-kekys.com", "").trim();
+                String name = element.select(".v-item-title").text().replace("可可影视", "").trim();
                 if (!pic.startsWith("http")) {
                     pic = picUrl + pic;
                 }
@@ -72,7 +72,7 @@ public class NCat extends Spider {
             try {
                 String pic = element.select("img").last().attr("data-original");
                 String url = element.select("a").attr("href");
-                String name =  element.select(".v-item-title").text().replace("可可影视-kekys.com", "").trim();
+                String name =  element.select(".v-item-title").text().replace("可可影视", "").trim();
                 if (!pic.startsWith("http")) {
                     pic = picUrl + pic;
                 }
@@ -142,7 +142,7 @@ public class NCat extends Spider {
             try {
                 String pic = element.select("img").attr("data-original");
                 String url = element.attr("href");
-                String name =  element.select(".v-item-title").text().replace("可可影视-kekys.com", "").trim();
+                String name =  element.select(".v-item-title").text().replace("可可影视", "").trim();
                 if (!pic.startsWith("http")) {
                     pic = picUrl + pic;
                 }
