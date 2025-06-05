@@ -38,8 +38,8 @@ public class TvDy extends Spider {
     public String homeContent(boolean filter) throws Exception {
         List<Vod> list = new ArrayList<>();
         List<Class> classes = new ArrayList<>();
-        String[] typeIdList = {"1", "2", "3", "4", "34"};
-        String[] typeNameList = {"电影", "电视剧", "综艺", "动漫", "纪录片"};
+        String[] typeIdList = {"dianying", "dianshiju", "zongyi", "dongman", "tiyu"};
+        String[] typeNameList = {"电影", "电视剧", "综艺", "动漫", "体育"};
         for (int i = 0; i < typeNameList.length; i++) {
             classes.add(new Class(typeIdList[i], typeNameList[i]));
         }
