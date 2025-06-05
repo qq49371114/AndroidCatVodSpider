@@ -1,6 +1,22 @@
 {
   "class": [
     {
+      "type_name": "番剧",
+      "type_id": "番剧"
+    },
+    {
+      "type_name": "国创",
+      "type_id": "国创"
+    },
+    {
+      "type_name": "鬼畜",
+      "type_id": "鬼畜"
+    },
+    {
+      "type_name": "音乐",
+      "type_id": "音乐"
+    },
+    {
       "type_name": "帕梅拉",
       "type_id": "帕梅拉"
     },
