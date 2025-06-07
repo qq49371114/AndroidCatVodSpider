@@ -16,6 +16,46 @@
       "type_name": "音乐",
       "type_id": "音乐"
     },
+        {
+            "type_name": "车载U盘DJ",
+            "type_id": "车载U盘DJ"
+        },
+        {
+            "type_name": "小可音乐",
+            "type_id": "小可音乐"
+        },
+        {
+            "type_name": "川剧",
+            "type_id": "川剧"
+        },
+        {
+            "type_name": "闽剧",
+            "type_id": "闽剧"
+        },
+        {
+            "type_name": "越剧",
+            "type_id": "越剧"
+        },
+        {
+            "type_name": "豫剧",
+            "type_id": "豫剧"
+        },
+        {
+            "type_name": "道情",
+            "type_id": "太康道情戏"
+        },
+        {
+            "type_name": "民间小调",
+            "type_id": "民间小调"
+        },
+    {
+      "type_name": "短剧",
+      "type_id": "微短剧"
+    },
+    {
+      "type_name": "沙雕动画",
+      "type_id": "沙雕动画"
+    }
     {
       "type_name": "帕梅拉",
       "type_id": "帕梅拉"
