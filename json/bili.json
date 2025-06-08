@@ -33,6 +33,10 @@
             "type_id": "闽剧"
         },
         {
+            "type_name": "潮剧",
+            "type_id": "潮剧"
+        },
+        {
             "type_name": "越剧",
             "type_id": "越剧"
         },
