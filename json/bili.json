@@ -93,6 +93,10 @@
             "type_id": "電影"
         },
         {
+            "type_name": "韩剧",
+            "type_id": "韩剧"
+        },
+        {
             "type_name": "電視劇",
             "type_id": "電視劇"
         },
