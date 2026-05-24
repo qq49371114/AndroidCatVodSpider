@@ -1,258 +1,47 @@
 {
-    "class": [
-        {
-            "type_name": "番剧",
-            "type_id": "番剧"
-        },
-        {
-            "type_name": "国创",
-            "type_id": "国创"
-        },
-        {
-            "type_name": "鬼畜",
-            "type_id": "鬼畜"
-        },
-        {
-            "type_name": "音乐",
-            "type_id": "音乐"
-        },
-        {
-            "type_name": "车载U盘DJ",
-            "type_id": "车载U盘DJ"
-        },
-        {
-            "type_name": "小可音乐",
-            "type_id": "小可音乐"
-        },
-        {
-            "type_name": "川剧",
-            "type_id": "川剧"
-        },
-        {
-            "type_name": "闽剧",
-            "type_id": "闽剧"
-        },
-        {
-            "type_name": "潮剧",
-            "type_id": "潮剧"
-        },
-        {
-            "type_name": "越剧",
-            "type_id": "越剧"
-        },
-        {
-            "type_name": "豫剧",
-            "type_id": "豫剧"
-        },
-        {
-            "type_name": "道情",
-            "type_id": "太康道情戏"
-        },
-        {
-            "type_name": "民间小调",
-            "type_id": "民间小调"
-        },
-        {
-            "type_name": "短剧",
-            "type_id": "微短剧"
-        },
-        {
-            "type_name": "沙雕动画",
-            "type_id": "沙雕动画"
-        },
-        {
-            "type_name": "海峡两岸",
-            "type_id": "海峡两岸"
-        },
-        {
-            "type_name": "帕梅拉",
-            "type_id": "帕梅拉"
-        },
-        {
-            "type_name": "太極拳",
-            "type_id": "太極拳"
-        },
-        {
-            "type_name": "廣場舞",
-            "type_id": "廣場舞"
-        },
-        {
-            "type_name": "健身",
-            "type_id": "健身"
-        },
-        {
-            "type_name": "舞蹈",
-            "type_id": "舞蹈"
-        },
-        {
-            "type_name": "4k超清电影",
-            "type_id": "4k超清电影"
-        },
-        {
-            "type_name": "電影",
-            "type_id": "電影"
-        },
-        {
-            "type_name": "韩剧",
-            "type_id": "韩剧"
-        },
-        {
-            "type_name": "電視劇",
-            "type_id": "電視劇"
-        },
-        {
-            "type_name": "演唱會",
-            "type_id": "演唱會"
-        },
-        {
-            "type_name": "動物世界",
-            "type_id": "動物世界"
-        }
-    ],
-    "filters": {
-        "帕梅拉": [
-            {
-                "key": "order",
-                "name": "排序",
-                "value": [
-                    {
-                        "n": "綜合排序",
-                        "v": "totalrank"
-                    },
-                    {
-                        "n": "最多點擊",
-                        "v": "click"
-                    },
-                    {
-                        "n": "最新發布",
-                        "v": "pubdate"
-                    },
-                    {
-                        "n": "最多彈幕",
-                        "v": "dm"
-                    },
-                    {
-                        "n": "最多收藏",
-                        "v": "stow"
-                    }
-                ]
-            },
-            {
-                "key": "duration",
-                "name": "時長",
-                "value": [
-                    {
-                        "n": "全部",
-                        "v": "0"
-                    },
-                    {
-                        "n": "60分鐘以上",
-                        "v": "4"
-                    },
-                    {
-                        "n": "30~60分鐘",
-                        "v": "3"
-                    },
-                    {
-                        "n": "10~30分鐘",
-                        "v": "2"
-                    },
-                    {
-                        "n": "10分鐘以下",
-                        "v": "1"
-                    }
-                ]
-            },
-            {
-                "key": "tid",
-                "name": "分類",
-                "value": [
-                    {
-                        "n": "全部",
-                        "v": ""
-                    },
-                    {
-                        "n": "合集",
-                        "v": "合集"
-                    },
-                    {
-                        "n": "Pamela Reif",
-                        "v": "Pamela Reif"
-                    }
-                ]
-            }
-        ],
-        "太極拳": [
-            {
-                "key": "order",
-                "name": "排序",
-                "value": [
-                    {
-                        "n": "綜合排序",
-                        "v": "totalrank"
-                    },
-                    {
-                        "n": "最多點擊",
-                        "v": "click"
-                    },
-                    {
-                        "n": "最新發布",
-                        "v": "pubdate"
-                    },
-                    {
-                        "n": "最多彈幕",
-                        "v": "dm"
-                    },
-                    {
-                        "n": "最多收藏",
-                        "v": "stow"
-                    }
-                ]
-            },
-            {
-                "key": "duration",
-                "name": "時長",
-                "value": [
-                    {
-                        "n": "全部",
-                        "v": "0"
-                    },
-                    {
-                        "n": "60分鐘以上",
-                        "v": "4"
-                    },
-                    {
-                        "n": "30~60分鐘",
-                        "v": "3"
-                    },
-                    {
-                        "n": "10~30分鐘",
-                        "v": "2"
-                    },
-                    {
-                        "n": "10分鐘以下",
-                        "v": "1"
-                    }
-                ]
-            },
-            {
-                "key": "tid",
-                "name": "分類",
-                "value": [
-                    {
-                        "n": "全部",
-                        "v": ""
-                    },
-                    {
-                        "n": "合集",
-                        "v": "合集"
-                    },
-                    {
-                        "n": "五連鞭",
-                        "v": "五連鞭"
-                    }
-                ]
-            }
-        ]
+  "class": [
+    {"type_name": "番剧", "type_id": "番剧"},
+    {"type_name": "国创", "type_id": "国创"},
+    {"type_name": "鬼畜", "type_id": "鬼畜"},
+    {"type_name": "音乐", "type_id": "音乐"},
+    {"type_name": "短剧", "type_id": "微短剧"},
+    {"type_name": "沙雕动画", "type_id": "沙雕动画"},
+    {"type_name": "海峡两岸", "type_id": "海峡两岸"},
+    {"type_name": "電影", "type_id": "電影"},
+    {"type_name": "電視劇", "type_id": "電視劇"},
+    {"type_name": "韩剧", "type_id": "韩剧"},
+    {"type_name": "演唱會", "type_id": "演唱會"},
+    {"type_name": "动物世界", "type_id": "动物世界"}
+  ],
+  "$list": {
+    "url": "https://api.bilibili.com/x/web-interface/search/type?search_type=video&keyword={key}&page={pg}",
+    "header": {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "Referer": "https://search.bilibili.com/all"
+    },
+    "parse": "data.result",
+    "field": {
+      "vod_id": "aid",
+      "vod_name": "title",
+      "vod_pic": "pic|http:",
+      "vod_remarks": "duration"
     }
+  },
+  "$detail": {
+    "url": "https://api.bilibili.com/x/web-interface/view?aid={id}",
+    "header": {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "Referer": "https://www.bilibili.com"
+    },
+    "parse": "data",
+    "field": {
+      "vod_id": "aid",
+      "vod_name": "title",
+      "vod_pic": "pic|http:",
+      "vod_content": "desc",
+      "vod_actor": "owner.name",
+      "vod_play_from": "B站",
+      "vod_play_url": "全集|av{aid}"
+    }
+  }
 }
